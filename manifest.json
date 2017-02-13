@@ -1,0 +1,45 @@
+{
+	"name": "Synapse",
+	"id": "synapse",
+	"packaging_format": 1,
+	"requirements": {
+		"yunohost": ">= 2.4"
+	},
+	"description": {
+		"en": "Instant messaging server who use matrix",
+		"fr": "Un serveur de messagerie instantané basé sur matrix"
+	},
+	"version": "1.0",
+	"url": "http://www.site",
+	"license": "free",
+	"maintainer": {
+		"name": "Josué Tille",
+		"email": "josue@tille.ch"
+	},
+	"multi_instance": true,
+	"services": [
+		"nginx"
+	],
+	"arguments": {
+		"install" : [
+			{
+				"name": "domain",
+				"type": "domain",
+				"ask": {
+					"en": "Choose a domain for Synapse",
+					"fr": "Choisissez un domaine pour Synapse"
+				},
+				"example": "domain.org"
+			},
+                        {
+                                "name": "is_public",
+                                "type": "boolean",
+                                "ask": {
+                                        "en": "Is it a public server ?",
+                                        "fr": "Est-ce un serveur publique ?"
+                                },
+                                "default": "0"
+                        }
+		]
+	}
+}

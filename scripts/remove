@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Import common cmd
+source ./_common.sh
+
+# Init script
+init_script
+
+domain=$(ynh_app_setting_get $app domain)
+synapse_tls_port=$(ynh_app_setting_get $app synapse_tls_port)
+turnserver_port=$(ynh_app_setting_get $app turnserver_port)
+turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
+
+sudo service matrix-synapse stop || true
+sudo service coturn stop || true
+
+ynh_package_autoremove matrix-synapse python-matrix-synapse-ldap3 coturn || true
+
+REMOVE_NGINX_CONF	# Suppression de la configuration nginx
+REMOVE_LOGROTATE_CONF	# Suppression de la configuration de logrotate
+
+closeport() {
+    if sudo yunohost firewall list | grep -q "\- $port$"
+    then
+            echo "Close port $port"
+            sudo yunohost firewall disallow TCP $port > /dev/null
+    fi
+}
+
+port=$synapse_tls_port
+closeport
+port=$turnserver_port
+closeport
+port=$turnserver_tls_port
+closeport
+
+sudo rm -rf /etc/apt/sources.list.d/matrix.list
+sudo rm -rf /var/lib/matrix-synapse
+ynh_package_update
+
+# Régénère la configuration de SSOwat
+sudo yunohost app ssowatconf
+sudo service nginx reload
+

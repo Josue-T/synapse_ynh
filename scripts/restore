@@ -1,0 +1,151 @@
+#!/bin/bash
+
+######## Actually we cant use common script in backup / restore script see this issue for more informations : https://dev.yunohost.org/issues/621
+# # Import common cmd
+# source ./_common.sh
+#
+
+######## We implement manually this fonctions 
+
+init_script() {
+    # Exit on command errors and treat unset variables as an error
+    set -eu
+
+    # Source YunoHost helpers
+    source /usr/share/yunohost/helpers
+
+    # Retrieve arguments
+    app=$YNH_APP_INSTANCE_NAME
+    CHECK_VAR "$app" "app name not set"
+    GET_DEBIAN_VERSION
+    
+    if [ -n "$(uname -m | grep 64)" ]; then
+            ARCHITECTURE="amd64"
+    elif [ -n "$(uname -m | grep 86)" ]; then
+            ARCHITECTURE="386"
+    elif [ -n "$(uname -m | grep arm)" ]; then
+            ARCHITECTURE="arm"
+    else
+            ynh_die "Unable to find arch"
+    fi
+}
+
+install_arm_package_dep() {
+
+    wget -q -O '/tmp/python-nacl.deb' "http://ftp.ch.debian.org/debian/pool/main/p/python-nacl/python-nacl_${python_nacl_version}_armhf.deb"
+
+    if ([[ ! -e '/tmp/python-nacl.deb' ]] || [[ $(md5sum '/tmp/python-nacl.deb' | cut -d' ' -f1) != $md5sum_python_nacl ]]) && \
+        ([[ ! -e '/tmp/python-ujson.deb' ]] || [[ $(md5sum '/tmp/python-ujson.deb' | cut -d' ' -f1) != $md5sum_python_ujson ]])
+    then
+        ynh_die "Error : can't get debian dependance package"
+    fi
+    
+    sudo dpkg -i /tmp/python-nacl.deb
+    sudo dpkg -i /tmp/python-ujson.deb
+}
+
+GET_DEBIAN_VERSION() {
+    debian_version=$(sudo lsb_release -sc)
+    test -z $debian_version && ynh_die "Can't find debian version"
+    test $debian_version == 'jessie' || ynh_die "This package is not available for your debian version"
+}
+
+enable_backport_repos() {
+    if [[ -z "$(grep -e "^deb .*/.* $debian_version-backports main" /etc/apt/sources.list ; grep -e "^deb .*/.* $debian_version-backports main" /etc/apt/sources.list.d/*)" ]]
+    then
+        echo "deb $(grep -m 1 "^deb .* $debian_version .*main" /etc/apt/sources.list | cut -d ' ' -f2) $debian_version-backports main contrib non-free" | sudo tee -a "/etc/apt/sources.list"
+    fi
+    ynh_package_update
+}
+
+CHECK_VAR () {	# Vérifie que la variable n'est pas vide.
+# $1 = Variable à vérifier
+# $2 = Texte à afficher en cas d'erreur
+	test -n "$1" || (echo "$2" >&2 && false)
+}
+
+######## End of common fonctions
+
+# Init script
+init_script
+
+# Retrieve arguments
+domain=$(ynh_app_setting_get $app domain)
+synapse_port=$(ynh_app_setting_get $app synapse_port)
+synapse_tls_port=$(ynh_app_setting_get $app synapse_tls_port)
+turnserver_port=$(ynh_app_setting_get $app turnserver_port)
+turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
+
+# Restore Nginx
+conf=/etc/nginx/conf.d/$domain.d/$app.conf
+if [ -f $conf ]; then
+    ynh_die "There is already a nginx conf file at this path: $conf"
+fi
+sudo cp -a ./nginx.conf "/etc/nginx/conf.d/${domain}.d/${app}.conf"
+
+# Make dh cert for synapse if it not exist
+test ! -e /etc/yunohost/certs/$domain/dh.pem && sudo openssl dhparam -out /etc/yunohost/certs/$domain/dh.pem 2048 > /dev/null
+
+# Get Matrix key repos
+wget -q -O '/tmp/matrix-repo-key.asc' "https://matrix.org/packages/debian/repo-key.asc"
+sudo apt-key add "/tmp/matrix-repo-key.asc"
+
+echo "matrix-synapse matrix-synapse/server-name select $domain" | sudo debconf-set-selections # Configure dpkg for no questions
+echo "matrix-synapse matrix-synapse/report-stats select false" | sudo debconf-set-selections # Configure dpkg for no questions
+
+# Enable debian-backports repos
+enable_backport_repos
+
+# Install coturn (the turn server)
+ynh_package_install coturn
+
+# Enable Synapse repos
+if [[ -n "$(uname -m | grep arm)" ]]
+then
+        # Use special conf for arm arch because some binary are not available in jessie backport or in matrix repos
+        install_arm_package_dep
+        ynh_package_install -t $debian_version-backports -f
+        echo "deb [arch=i386] http://matrix.org/packages/debian/ $debian_version main" | sudo tee -a "/etc/apt/sources.list.d/matrix.list"
+        ynh_package_update
+else
+        echo "deb http://matrix.org/packages/debian/ $debian_version main" | sudo tee -a "/etc/apt/sources.list.d/matrix.list"
+        ynh_package_update
+fi
+
+# Install synapse package
+# We neet to install python-cryptography to Solve a python error about dependance (from cryptography.hazmat.primitives.asymmetric.utils)
+ynh_package_install -t $debian_version-backports matrix-synapse python-matrix-synapse-ldap3 python-cryptography
+
+# Restaure la configuration de logrotate
+sudo cp -a ./logrotate /etc/logrotate.d/$app
+
+# Restore synapse config
+sudo cp -a ./synapse_config/. "/etc/matrix-synapse/."
+
+# Restore coturn server
+sudo cp -a ./coturn_config "/etc/turnserver.conf"
+
+# Restore synapse database
+sudo cp -a ./data/. "/var/lib/matrix-synapse/."
+
+# Configure access for certificates
+sudo setfacl -m user:matrix-synapse:r /etc/yunohost/certs/$domain/crt.pem
+sudo setfacl -m user:matrix-synapse:r /etc/yunohost/certs/$domain/key.pem
+sudo setfacl -m user:matrix-synapse:r /etc/yunohost/certs/$domain/dh.pem
+
+sudo setfacl -m user:turnserver:r /etc/yunohost/certs/$domain/crt.pem
+sudo setfacl -m user:turnserver:r /etc/yunohost/certs/$domain/key.pem
+sudo setfacl -m user:turnserver:r /etc/yunohost/certs/$domain/dh.pem
+
+# Ouvre le port dans le firewall
+sudo yunohost firewall allow --no-upnp TCP $synapse_tls_port > /dev/null 2>&1
+sudo yunohost firewall allow --no-upnp Both $turnserver_port > /dev/null 2>&1
+sudo yunohost firewall allow --no-upnp Both $turnserver_tls_port > /dev/null 2>&1
+
+# Régénère la configuration de SSOwat
+sudo yunohost app ssowatconf
+
+# Reload webserver
+sudo service nginx reload
+sudo service matrix-synapse restart
+sudo service coturn restart
