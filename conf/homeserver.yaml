@@ -288,7 +288,7 @@ turn_uris: [ "turn:__DOMAIN__:__TURNSERVER_TLS_PORT__?transport=udp", "turn:__DO
 turn_shared_secret: "__TURNPWD__"
 
 # How long generated TURN credentials last
-turn_user_lifetime: "1h"
+turn_user_lifetime: "86400000"
 
 
 ## Registration ##

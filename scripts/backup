@@ -59,6 +59,7 @@ ynh_backup "/etc/matrix-synapse" "synapse_config"
 
 # Backup coturn server
 ynh_backup "/etc/turnserver.conf" "coturn_config"
+ynh_backup "/etc/default/coturn" "coturn_config_default"
 
 # Backup synapse database
 ynh_backup "/var/lib/matrix-synapse" "data"
