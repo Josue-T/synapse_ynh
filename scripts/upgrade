@@ -12,10 +12,8 @@ path=$(ynh_app_setting_get $app path)
 is_public=$(ynh_app_setting_get $app is_public)
 synapse_port=$(ynh_app_setting_get $app synapse_port)
 synapse_tls_port=$(ynh_app_setting_get $app synapse_tls_port)
-turnserver_dbpass=$(ynh_app_setting_get "$app" turnserver_mysqlpwd)
 turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
 turnserver_pwd=$(ynh_app_setting_get $app turnserver_pwd)
-turnserver_dbuser="turnserver"
 
 CHECK_PATH	# Vérifie et corrige la syntaxe du path.
 
