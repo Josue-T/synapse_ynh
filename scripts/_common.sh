@@ -50,11 +50,51 @@ GET_DEBIAN_VERSION() {
 }
 
 enable_backport_repos() {
-    if [[ -z "$(grep -e "^deb .*/.* $debian_version-backports main" /etc/apt/sources.list ; grep -e "^deb .*/.* $debian_version-backports main" /etc/apt/sources.list.d/*)" ]]
+    if [[ -z "$(grep -e "^deb .*/.* $debian_version-backports main" /etc/apt/sources.list ; grep -e "^deb .*/.* $debian_version-backports main" /etc/apt/sources.list.d/*.list)" ]]
     then
         echo "deb $(grep -m 1 "^deb .* $debian_version .*main" /etc/apt/sources.list | cut -d ' ' -f2) $debian_version-backports main contrib non-free" | sudo tee -a "/etc/apt/sources.list"
     fi
     ynh_package_update
+}
+
+set_access() { # example : set_access USER FILE
+user="$1"
+file_to_set="$2"
+while [[ 0 ]]
+do    
+    path_to_set=""
+    oldIFS="$IFS"
+    IFS="/"
+    for dirname in $file_to_set
+    do
+        if [[ -n "$dirname" ]]
+        then
+            sudo test -f "$path_to_set"/"$dirname" && sudo setfacl -m d:u:$user:r "$path_to_set"
+            
+            path_to_set="$path_to_set/$dirname"
+            
+            if $(sudo sudo -u $user test ! -r "$path_to_set")
+            then
+                sudo test -d "$path_to_set" && sudo setfacl -m user:$user:rx  "$path_to_set"
+                sudo test -f "$path_to_set" && sudo setfacl -m user:$user:r  "$path_to_set"
+                sudo test -L "$path_to_set" && sudo setfacl -m user:$user:r  "$path_to_set"
+            fi
+        fi
+    done
+    IFS="$oldIFS"
+    
+    if $(sudo test -L "$file_to_set")
+    then
+        if [[ -n "$(sudo readlink "$file_to_set" | grep -e "^/")" ]]
+        then
+            file_to_set=$(sudo readlink "$file_to_set") # If it is an absolute path
+        else
+            file_to_set=$(sudo realpath -s -m "$(echo "$file_to_set" | cut -d'/' -f-$(echo "$file_to_set" | grep -o '/' | wc -l))/$(sudo readlink "$file_to_set")") # If it is an relative path (we get with realpath the absolute path)
+        fi
+    else
+        break
+    fi
+done
 }
 
 CHECK_VAR () {	# Vérifie que la variable n'est pas vide.

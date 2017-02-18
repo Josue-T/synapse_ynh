@@ -99,13 +99,13 @@ sudo sed -i "s@__DOMAIN__@$domain@g" /etc/turnserver.conf
 sudo sed -i "s@__TLS_PORT__@$turnserver_tls_port@g" /etc/turnserver.conf
 
 # Configure access for certificates
-sudo setfacl -m user:matrix-synapse:r /etc/yunohost/certs/$domain/crt.pem
-sudo setfacl -m user:matrix-synapse:r /etc/yunohost/certs/$domain/key.pem
-sudo setfacl -m user:matrix-synapse:r /etc/yunohost/certs/$domain/dh.pem
+set_access matrix-synapse /etc/yunohost/certs/$domain/crt.pem
+set_access matrix-synapse /etc/yunohost/certs/$domain/key.pem
+set_access matrix-synapse /etc/yunohost/certs/$domain/dh.pem
 
-sudo setfacl -m user:turnserver:r /etc/yunohost/certs/$domain/crt.pem
-sudo setfacl -m user:turnserver:r /etc/yunohost/certs/$domain/key.pem
-sudo setfacl -m user:turnserver:r /etc/yunohost/certs/$domain/dh.pem
+set_access turnserver /etc/yunohost/certs/$domain/crt.pem
+set_access turnserver /etc/yunohost/certs/$domain/key.pem
+set_access turnserver /etc/yunohost/certs/$domain/dh.pem
 
 # Configuration de logrotate
 sed -i "s@__APP__@$app@g" ../conf/logrotate
