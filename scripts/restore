@@ -66,6 +66,45 @@ enable_backport_repos() {
     ynh_package_update
 }
 
+set_access() { # example : set_access USER FILE
+user="$1"
+file_to_set="$2"
+while [[ 0 ]]
+do    
+    path_to_set=""
+    oldIFS="$IFS"
+    IFS="/"
+    for dirname in $file_to_set
+    do
+        if [[ -n "$dirname" ]]
+        then
+            sudo test -f "$path_to_set"/"$dirname" && sudo setfacl -m d:u:$user:r "$path_to_set"
+            
+            path_to_set="$path_to_set/$dirname"
+            
+            if $(sudo sudo -u $user test ! -r "$path_to_set")
+            then
+                sudo test -d "$path_to_set" && sudo setfacl -m user:$user:rx  "$path_to_set"
+                sudo test -f "$path_to_set" && sudo setfacl -m user:$user:r  "$path_to_set"
+            fi
+        fi
+    done
+    IFS="$oldIFS"
+    
+    if $(sudo test -L "$file_to_set")
+    then
+        if [[ -n "$(sudo readlink "$file_to_set" | grep -e "^/")" ]]
+        then
+            file_to_set=$(sudo readlink "$file_to_set") # If it is an absolute path
+        else
+            file_to_set=$(sudo realpath -s -m "$(echo "$file_to_set" | cut -d'/' -f-$(echo "$file_to_set" | grep -o '/' | wc -l))/$(sudo readlink "$file_to_set")") # If it is an relative path (we get with realpath the absolute path)
+        fi
+    else
+        break
+    fi
+done
+}
+
 CHECK_VAR () {	# Vérifie que la variable n'est pas vide.
 # $1 = Variable à vérifier
 # $2 = Texte à afficher en cas d'erreur
@@ -201,13 +240,13 @@ sudo cp -a ./coturn_config_default "/etc/default/coturn"
 sudo cp -a ./data/. "/var/lib/matrix-synapse/."
 
 # Configure access for certificates
-sudo setfacl -m user:matrix-synapse:r /etc/yunohost/certs/$domain/crt.pem
-sudo setfacl -m user:matrix-synapse:r /etc/yunohost/certs/$domain/key.pem
-sudo setfacl -m user:matrix-synapse:r /etc/yunohost/certs/$domain/dh.pem
+set_access matrix-synapse /etc/yunohost/certs/$domain/crt.pem
+set_access matrix-synapse /etc/yunohost/certs/$domain/key.pem
+set_access matrix-synapse /etc/yunohost/certs/$domain/dh.pem
 
-sudo setfacl -m user:turnserver:r /etc/yunohost/certs/$domain/crt.pem
-sudo setfacl -m user:turnserver:r /etc/yunohost/certs/$domain/key.pem
-sudo setfacl -m user:turnserver:r /etc/yunohost/certs/$domain/dh.pem
+set_access turnserver /etc/yunohost/certs/$domain/crt.pem
+set_access turnserver /etc/yunohost/certs/$domain/key.pem
+set_access turnserver /etc/yunohost/certs/$domain/dh.pem
 
 # Ouvre le port dans le firewall
 sudo yunohost firewall allow --no-upnp TCP $synapse_tls_port > /dev/null 2>&1

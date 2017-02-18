@@ -37,6 +37,15 @@ sudo sed -i "s@__TLS_PORT__@$synapse_tls_port@g" /etc/matrix-synapse/homeserver.
 sudo sed -i "s@__TURNSERVER_TLS_PORT__@$turnserver_tls_port@g" /etc/matrix-synapse/homeserver.yaml
 sudo sed -i "s@__TURNPWD__@$turnserver_pwd@g" /etc/matrix-synapse/homeserver.yaml
 
+# Configure access for certificates
+set_access matrix-synapse /etc/yunohost/certs/$domain/crt.pem
+set_access matrix-synapse /etc/yunohost/certs/$domain/key.pem
+set_access matrix-synapse /etc/yunohost/certs/$domain/dh.pem
+
+set_access turnserver /etc/yunohost/certs/$domain/crt.pem
+set_access turnserver /etc/yunohost/certs/$domain/key.pem
+set_access turnserver /etc/yunohost/certs/$domain/dh.pem
+
 if [ "$is_public" = "0" ]
 then
     sudo sed -i "s@__ALLOWED_ACCESS__@False@g" /etc/matrix-synapse/homeserver.yaml
