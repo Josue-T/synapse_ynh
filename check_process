@@ -15,7 +15,7 @@
         backup_restore=1
         multi_instance=0
         wrong_user=0
-        wrong_path=2
+        wrong_path=1
         incorrect_path=0
         corrupt_source=1
         fail_download_source=1
