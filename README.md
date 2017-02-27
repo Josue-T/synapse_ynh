@@ -1,6 +1,9 @@
 Synapse for YunoHost
 ==================
 
+Yunohost chattroom with matrix : [https://riot.im/app/#/room/#yunohost:matrix.org](https://riot.im/app/#/room/#yunohost:matrix.org)
+
+[Yunohost project](https://yunohost.org/#/)
 
 ## For ARM arch (or slow arch)
 

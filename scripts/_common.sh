@@ -77,7 +77,6 @@ do
             then
                 sudo test -d "$path_to_set" && sudo setfacl -m user:$user:rx  "$path_to_set"
                 sudo test -f "$path_to_set" && sudo setfacl -m user:$user:r  "$path_to_set"
-                sudo test -L "$path_to_set" && sudo setfacl -m user:$user:r  "$path_to_set"
             fi
         fi
     done
