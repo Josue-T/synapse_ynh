@@ -8,7 +8,6 @@ init_script
 
 domain=$(ynh_app_setting_get $app domain)
 synapse_tls_port=$(ynh_app_setting_get $app synapse_tls_port)
-turnserver_port=$(ynh_app_setting_get $app turnserver_port)
 turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
 
 sudo service matrix-synapse stop || true
@@ -28,8 +27,6 @@ closeport() {
 }
 
 port=$synapse_tls_port
-closeport
-port=$turnserver_port
 closeport
 port=$turnserver_tls_port
 closeport
