@@ -16,12 +16,10 @@ CHECK_DOMAINPATH	# Vérifie la disponibilité du path et du domaine.
 CHECK_FINALPATH	# Vérifie que le dossier de destination n'est pas déjà utilisé.
 
 # Ouvre le port dans le firewall
-NO_LOG FIND_PORT 8448	# Cherche un port libre.
-synapse_tls_port=$port
-NO_LOG FIND_PORT 8008	# Cherche un port libre.
-synapse_port=$port
-NO_LOG FIND_PORT 5349	# Cherche un port libre.
-turnserver_tls_port=$port
+synapse_tls_port=$(ynh_find_port 8448)
+synapse_port=$(ynh_find_port 8008)
+turnserver_tls_port=$(ynh_find_port 5349)
+
 sudo yunohost firewall allow --no-upnp TCP $synapse_tls_port > /dev/null 2>&1
 sudo yunohost firewall allow --no-upnp Both $turnserver_tls_port > /dev/null 2>&1
 
