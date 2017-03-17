@@ -1,5 +1,6 @@
 #!/bin/bash
 
+debian_repos="http://httpredir.debian.org/debian/"
 md5sum_python_nacl="34c44f8f5100170bae3b4329ffb43087"
 md5sum_python_ujson="5b65f8cb6bedef7971fdc557e09effbe"
 python_nacl_version="1.0.1-2"
@@ -30,8 +31,8 @@ init_script() {
 
 install_arm_package_dep() {
 
-    wget -q -O '/tmp/python-nacl.deb' "http://ftp.ch.debian.org/debian/pool/main/p/python-nacl/python-nacl_${python_nacl_version}_armhf.deb"
-    wget -q -O '/tmp/python-ujson.deb' "http://ftp.ch.debian.org/debian/pool/main/u/ujson/python-ujson_${python_ujson_version}_armhf.deb"
+    wget -q -O '/tmp/python-nacl.deb' "${debian_repos}pool/main/p/python-nacl/python-nacl_${python_nacl_version}_armhf.deb"
+    wget -q -O '/tmp/python-ujson.deb' "${debian_repos}pool/main/u/ujson/python-ujson_${python_ujson_version}_armhf.deb"
 
     if ([[ ! -e '/tmp/python-nacl.deb' ]] || [[ $(md5sum '/tmp/python-nacl.deb' | cut -d' ' -f1) != $md5sum_python_nacl ]]) || \
         ([[ ! -e '/tmp/python-ujson.deb' ]] || [[ $(md5sum '/tmp/python-ujson.deb' | cut -d' ' -f1) != $md5sum_python_ujson ]])
@@ -52,7 +53,10 @@ GET_DEBIAN_VERSION() {
 enable_backport_repos() {
     if [[ -z "$(grep -e "^deb .*/.* $debian_version-backports main" /etc/apt/sources.list ; grep -e "^deb .*/.* $debian_version-backports main" /etc/apt/sources.list.d/*.list)" ]]
     then
-        echo "deb $(grep -m 1 "^deb .* $debian_version .*main" /etc/apt/sources.list | cut -d ' ' -f2) $debian_version-backports main contrib non-free" | sudo tee -a "/etc/apt/sources.list"
+        debian_repos_url=$(grep -m 1 "^deb .* $debian_version .*main" /etc/apt/sources.list | cut -d ' ' -f2)
+        test -z "$(echo $debian_repos_url | grep '://')" && debian_repos_url="$debian_repos"
+        
+        echo "deb $debian_repos_url $debian_version-backports main contrib non-free" | sudo tee -a "/etc/apt/sources.list"
     fi
     ynh_package_update
 }
