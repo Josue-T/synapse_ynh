@@ -3,10 +3,11 @@
 # Commentaire ignoré
     ; Manifest
         domain="$DOMAIN"    (DOMAIN)
+		path="/_matrix"	(PATH)
         is_public=1 (PUBLIC|public=1|private=0)
     ; Checks
         pkg_linter=1
-        setup_sub_dir=1
+        setup_sub_dir=0
         setup_root=0
         setup_nourl=1
         setup_private=1
