@@ -2,8 +2,8 @@
     auto_remove=1
 # Commentaire ignoré
     ; Manifest
-        domain="$DOMAIN"    (DOMAIN)
-		path="/_matrix"	(PATH)
+        domain="domain.tld"    (DOMAIN)
+	path="/_matrix"	(PATH)
         is_public=1 (PUBLIC|public=1|private=0)
     ; Checks
         pkg_linter=1
