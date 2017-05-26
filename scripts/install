@@ -111,6 +111,9 @@ sudo cp ../conf/logrotate /etc/logrotate.d/$app
 
 ynh_app_setting_set $app skipped_uris "/"
 
+# register yunohost service
+sudo yunohost service add matrix-synapse
+
 # Régénère la configuration de SSOwat
 sudo yunohost app ssowatconf
 # Recharge la configuration Nginx
