@@ -1,28 +1,34 @@
 #!/bin/bash
 
+# Source YunoHost helpers
+source /usr/share/yunohost/helpers
+source ./psql.sh
+
+# Stop script if errors
+set -u
+
 # Import common cmd
 source ./_common.sh
 
-# Init script
-init_script
-
-domain=$(ynh_app_setting_get $app domain)
+# Retrieve app settings
+domain=$(ynh_app_setting_get $app special_domain)
+final_path=$(ynh_app_setting_get $app final_path)
 synapse_tls_port=$(ynh_app_setting_get $app synapse_tls_port)
 turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
 
-sudo service matrix-synapse stop || true
-sudo service coturn stop || true
+systemctl stop matrix-synapse.service || true
+systemctl stop coturn.service || true
 
-ynh_package_autoremove matrix-synapse python-matrix-synapse-ldap3 coturn || true
+# Suppression de la configuration nginx
+ynh_secure_remove "/etc/nginx/conf.d/$domain.d/$app.conf"
+systemctl reload nginx.service
 
-REMOVE_NGINX_CONF	# Suppression de la configuration nginx
-REMOVE_LOGROTATE_CONF	# Suppression de la configuration de logrotate
-
+# Close firewall ports
 closeport() {
-    if sudo yunohost firewall list | grep -q "\- $port$"
+    if yunohost firewall list | grep -q "\- $port$"
     then
             echo "Close port $port"
-            sudo yunohost firewall disallow TCP $port > /dev/null
+            yunohost firewall disallow TCP $port > /dev/null
     fi
 }
 
@@ -31,13 +37,37 @@ closeport
 port=$turnserver_tls_port
 closeport
 
-sudo rm -rf /etc/apt/sources.list.d/matrix.list
-sudo rm -rf /var/lib/matrix-synapse
-ynh_package_update
+# Remove the skipped url
+python $final_path/remove_sso_conf.py
 
-sudo yunohost service remove matrix-synapse
+# Remove depandance
+ynh_remove_app_dependencies || true
 
-# Régénère la configuration de SSOwat
-sudo yunohost app ssowatconf
-sudo service nginx reload
+# Clean all directory
+ynh_secure_remove $final_path
+ynh_secure_remove /var/lib/matrix-synapse
+ynh_secure_remove /var/log/matrix-synapse
+ynh_secure_remove /etc/matrix-synapse
+ynh_secure_remove /etc/default/matrix-synapse
+
+# Remove systemd service
+systemctl disable matrix-synapse.service
+ynh_secure_remove /etc/systemd/system/matrix-synapse.service
+systemctl daemon-reload
+
+# Remove database and user
+ynh_psql_drop_db $synapse_db_name
+ynh_psql_drop_user $synapse_db_user
+
+# Remove user
+ynh_system_user_delete matrix-synapse
+
+# Remove logrotate
+ynh_remove_logrotate
+
+# Remove Monitoring
+yunohost service remove matrix-synapse
+
+# Reload nginx
+systemctl reload nginx.service
 

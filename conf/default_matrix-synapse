@@ -1,0 +1,3 @@
+# Specify environment variables used when running Synapse
+# SYNAPSE_CACHE_FACTOR=1 (default)
+ 

@@ -1,67 +1,128 @@
 #!/bin/bash
 
+# Source YunoHost helpers
+source /usr/share/yunohost/helpers
+source ./psql.sh
+
+# Stop script if errors
+ynh_abort_if_errors
+
 # Import common cmd
 source ./_common.sh
 
-# Init script
-init_script
-
 # Retrieve arguments
-domain=$(ynh_app_setting_get $app domain)
-path=$(ynh_app_setting_get $app path)
+domain=$(ynh_app_setting_get $app special_domain)
+path=$(ynh_app_setting_get $app special_path)
+final_path=$(ynh_app_setting_get $app final_path)
+synapse_old_version=$(ynh_app_setting_get $app synapse_version)
+synapse_db_pwd=$(ynh_app_setting_get $app synapse_db_pwd)
 is_public=$(ynh_app_setting_get $app is_public)
 synapse_port=$(ynh_app_setting_get $app synapse_port)
 synapse_tls_port=$(ynh_app_setting_get $app synapse_tls_port)
 turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
 turnserver_pwd=$(ynh_app_setting_get $app turnserver_pwd)
 
-CHECK_PATH	# Vérifie et corrige la syntaxe du path.
+systemctl stop matrix-synapse.service
 
-if [[ -n "$(uname -m | grep arm)" ]]
+if [[ -z $synapse_old_version ]]
 then
-    install_arm_package_dep
+	ynh_die "Update from this version is not available now. You need to wait for the next update."
+
+	##  We move from debian package to new package with python virtualenv
+	# Change settings
+	path="/_matrix"
+	domain=$(ynh_app_setting_get $app domain)
+	final_path="/opt/yunohost/matrix-synapse"
+	ynh_app_setting_set $app special_domain $domain
+	ynh_app_setting_set $app special_path $path
+	ynh_app_setting_set $app final_path $final_path
+	ynh_app_setting_delete $app domain
+	ynh_app_setting_delete $app path
+	ynh_app_setting_delete $app skipped_uris
+
+	# Remove old package and add new package as dependance
+	ynh_secure_remove /etc/apt/sources.list.d/matrix.list
+	ynh_package_autoremove --purge matrix-synapse python-matrix-synapse-ldap3 || true
+
+	# If we don't remove these line in dpkg config, dpkg fail on every new package install
+	sudo sed --in-place ':a;N;$!ba;s@matrix-synapse nogroup 755 /var/lib/matrix-synapse\n@@g' /var/lib/dpkg/statoverride
+	sudo sed --in-place ':a;N;$!ba;s@matrix-synapse nogroup 755 /var/log/matrix-synapse\n@@g' /var/lib/dpkg/statoverride
+	sudo sed --in-place ':a;N;$!ba;s@matrix-synapse nogroup 755 /etc/matrix-synapse\n@@g' /var/lib/dpkg/statoverride
+
+	# add new package as dependance and install dependance
+	install_dependances
+
+	# Create directory Install synapse in virtualenv
+	install_from_source
+
+	# Open access to server without a button the home
+	cp ../conf/add_sso_conf.py $final_path
+	cp ../conf/remove_sso_conf.py $final_path
+	python $final_path/add_sso_conf.py
+
+	# Create user
+	ynh_system_user_create $synapse_user /var/lib/matrix-synapse
+
+	# Create systemd service
+	ynh_secure_remove /etc/init.d/matrix-synapse
+	ynh_secure_remove /lib/systemd/system/matrix-synapse.service
+	ynh_secure_remove /etc/systemd/system/matrix-synapse.service
+	systemctl daemon-reload
+	systemctl disable matrix-synapse.service
+
+	cp ../conf/default_matrix-synapse /etc/default/matrix-synapse
+	cp ../conf/matrix-synapse.service /etc/systemd/system/
+	systemctl daemon-reload
+	systemctl enable matrix-synapse.service
+
+	# Configuration de logrotate
+	ynh_use_logrotate /var/log/matrix-synapse/
+
+	# register yunohost service
+	yunohost service add matrix-synapse
+
+	## Move to postgresql from sqlite
+
+	# We create the new settings
+	synapse_db_pwd=$(ynh_string_random 30)
+	ynh_app_setting_set $app synapse_db_pwd $synapse_db_pwd
+
+	# Create postgresql database
+	ynh_psql_create_user $synapse_db_user $synapse_db_pwd
+	ynh_psql_execute_as_root \
+	"CREATE DATABASE $synapse_db_name ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' template=template0 OWNER $synapse_db_user;"
+
+	# Create config file for synapse with postgresql
+	config_synapse
+
+	# Migrate database
+	/opt/yunohost/matrix-synapse/bin/synapse_port_db --sqlite-database /var/lib/matrix-synapse/homeserver.db \
+	--postgres-config /etc/matrix-synapse/homeserver.yaml
 fi
 
-# Et copie le fichier de config nginx
-sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
-
-# Modifie les variables dans le fichier de configuration nginx
-sudo sed -i "s@__PATH__@$path@g" /etc/nginx/conf.d/$domain.d/$app.conf
-sudo sed -i "s@__PORT__@$synapse_port@g" /etc/nginx/conf.d/$domain.d/$app.conf
+# Update nginx config
+config_nginx
 
 # Configure Synapse
-sudo cp ../conf/homeserver.yaml /etc/matrix-synapse/homeserver.yaml
-sudo sed -i "s@__DOMAIN__@$domain@g" /etc/matrix-synapse/homeserver.yaml
-sudo sed -i "s@__PORT__@$synapse_port@g" /etc/matrix-synapse/homeserver.yaml
-sudo sed -i "s@__TLS_PORT__@$synapse_tls_port@g" /etc/matrix-synapse/homeserver.yaml
-sudo sed -i "s@__TURNSERVER_TLS_PORT__@$turnserver_tls_port@g" /etc/matrix-synapse/homeserver.yaml
-sudo sed -i "s@__TURNPWD__@$turnserver_pwd@g" /etc/matrix-synapse/homeserver.yaml
+config_synapse
 
 # Configure access for certificates
-set_access matrix-synapse /etc/yunohost/certs/$domain/crt.pem
-set_access matrix-synapse /etc/yunohost/certs/$domain/key.pem
-set_access matrix-synapse /etc/yunohost/certs/$domain/dh.pem
-
-set_access turnserver /etc/yunohost/certs/$domain/crt.pem
-set_access turnserver /etc/yunohost/certs/$domain/key.pem
-set_access turnserver /etc/yunohost/certs/$domain/dh.pem
-
-if [ "$is_public" = "0" ]
-then
-    sudo sed -i "s@__ALLOWED_ACCESS__@False@g" /etc/matrix-synapse/homeserver.yaml
-else
-    sudo sed -i "s@__ALLOWED_ACCESS__@True@g" /etc/matrix-synapse/homeserver.yaml
-fi
+set_certificat_access
 
 # Configure Coturn
-sudo cp ../conf/turnserver.conf /etc/turnserver.conf
-sudo sed -i "s@__TURNPWD__@$turnserver_pwd@g" /etc/turnserver.conf
-sudo sed -i "s@__DOMAIN__@$domain@g" /etc/turnserver.conf
-sudo sed -i "s@__TLS_PORT__@$turnserver_tls_port@g" /etc/turnserver.conf
+config_coturn
 
-# Régénère la configuration de SSOwat
-sudo yunohost app ssowatconf
+# Upgrade manually Synapse
+PS1=""
+source $final_path/bin/activate
+pip install --upgrade pip
+pip install --upgrade setuptools
+pip install --upgrade https://github.com/matrix-org/synapse/tarball/master
+
+# Set new settings
+ynh_app_setting_set $app synapse_version $synapse_version
+
 # Recharge la configuration Nginx
-sudo service nginx reload
-sudo service matrix-synapse restart
-sudo service coturn restart
+systemctl reload nginx.service
+systemctl start matrix-synapse.service
+systemctl restart coturn.service

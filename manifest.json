@@ -3,20 +3,20 @@
 	"id": "synapse",
 	"packaging_format": 1,
 	"requirements": {
-		"yunohost": ">= 2.4"
+		"yunohost": ">= 2.6.4"
 	},
 	"description": {
 		"en": "Instant messaging server who use matrix",
 		"fr": "Un serveur de messagerie instantané basé sur matrix"
 	},
-	"version": "1.0",
-	"url": "http://www.site",
+	"version": "0.22.0",
+	"url": "http://matrix.org",
 	"license": "free",
 	"maintainer": {
 		"name": "Josué Tille",
 		"email": "josue@tille.ch"
 	},
-	"multi_instance": true,
+	"multi_instance": false,
 	"services": [
 		"nginx"
 	],
@@ -31,15 +31,15 @@
 				},
 				"example": "domain.org"
 			},
-                        {
-                                "name": "is_public",
-                                "type": "boolean",
-                                "ask": {
-                                        "en": "Is it a public server ?",
-                                        "fr": "Est-ce un serveur public ?"
-                                },
-                                "default": "0"
-                        }
+			{
+				"name": "is_public",
+				"type": "boolean",
+				"ask": {
+					"en": "Is it a public server ?",
+					"fr": "Est-ce un serveur public ?"
+				},
+				"default": "0"
+			}
 		]
 	}
 }

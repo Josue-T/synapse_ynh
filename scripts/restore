@@ -1,236 +1,70 @@
 #!/bin/bash
 
-######## Actually we cant use common script in backup / restore script see this issue for more informations : https://dev.yunohost.org/issues/621
-# # Import common cmd
-# source ./_common.sh
-#
+# Source YunoHost helpers
+source /usr/share/yunohost/helpers
 
-######## We implement manually this fonctions 
+# Stop script if errors
+ynh_abort_if_errors
 
-#!/bin/bash
-
-md5sum_python_nacl="34c44f8f5100170bae3b4329ffb43087"
-md5sum_python_ujson="5b65f8cb6bedef7971fdc557e09effbe"
-python_nacl_version="1.0.1-2"
-python_ujson_version="1.35-1"
-
-init_script() {
-    # Exit on command errors and treat unset variables as an error
-    set -eu
-
-    # Source YunoHost helpers
-    source /usr/share/yunohost/helpers
-
-    # Retrieve arguments
-    app=$YNH_APP_INSTANCE_NAME
-    CHECK_VAR "$app" "app name not set"
-    GET_DEBIAN_VERSION
-    
-    if [ -n "$(uname -m | grep 64)" ]; then
-            ARCHITECTURE="amd64"
-    elif [ -n "$(uname -m | grep 86)" ]; then
-            ARCHITECTURE="386"
-    elif [ -n "$(uname -m | grep arm)" ]; then
-            ARCHITECTURE="arm"
-    else
-            ynh_die "Unable to find arch"
-    fi
-}
-
-install_arm_package_dep() {
-
-    wget -q -O '/tmp/python-nacl.deb' "http://ftp.ch.debian.org/debian/pool/main/p/python-nacl/python-nacl_${python_nacl_version}_armhf.deb"
-    wget -q -O '/tmp/python-ujson.deb' "http://ftp.ch.debian.org/debian/pool/main/u/ujson/python-ujson_${python_ujson_version}_armhf.deb"
-
-    if ([[ ! -e '/tmp/python-nacl.deb' ]] || [[ $(md5sum '/tmp/python-nacl.deb' | cut -d' ' -f1) != $md5sum_python_nacl ]]) || \
-        ([[ ! -e '/tmp/python-ujson.deb' ]] || [[ $(md5sum '/tmp/python-ujson.deb' | cut -d' ' -f1) != $md5sum_python_ujson ]])
-    then
-        ynh_die "Error : can't get debian dependance package"
-    fi
-    
-    sudo dpkg -i /tmp/python-nacl.deb || true
-    sudo dpkg -i /tmp/python-ujson.deb || true
-}
-
-GET_DEBIAN_VERSION() {
-    debian_version=$(sudo lsb_release -sc)
-    test -z $debian_version && ynh_die "Can't find debian version"
-    test $debian_version == 'jessie' || ynh_die "This package is not available for your debian version"
-}
-
-enable_backport_repos() {
-    if [[ -z "$(grep -e "^deb .*/.* $debian_version-backports main" /etc/apt/sources.list ; grep -e "^deb .*/.* $debian_version-backports main" /etc/apt/sources.list.d/*)" ]]
-    then
-        echo "deb $(grep -m 1 "^deb .* $debian_version .*main" /etc/apt/sources.list | cut -d ' ' -f2) $debian_version-backports main contrib non-free" | sudo tee -a "/etc/apt/sources.list"
-    fi
-    ynh_package_update
-}
-
-set_access() { # example : set_access USER FILE
-user="$1"
-file_to_set="$2"
-while [[ 0 ]]
-do    
-    path_to_set=""
-    oldIFS="$IFS"
-    IFS="/"
-    for dirname in $file_to_set
-    do
-        if [[ -n "$dirname" ]]
-        then
-            sudo test -f "$path_to_set"/"$dirname" && sudo setfacl -m d:u:$user:r "$path_to_set"
-            
-            path_to_set="$path_to_set/$dirname"
-            
-            if $(sudo sudo -u $user test ! -r "$path_to_set")
-            then
-                sudo test -d "$path_to_set" && sudo setfacl -m user:$user:rx  "$path_to_set"
-                sudo test -f "$path_to_set" && sudo setfacl -m user:$user:r  "$path_to_set"
-            fi
-        fi
-    done
-    IFS="$oldIFS"
-    
-    if $(sudo test -L "$file_to_set")
-    then
-        if [[ -n "$(sudo readlink "$file_to_set" | grep -e "^/")" ]]
-        then
-            file_to_set=$(sudo readlink "$file_to_set") # If it is an absolute path
-        else
-            file_to_set=$(sudo realpath -s -m "$(echo "$file_to_set" | cut -d'/' -f-$(echo "$file_to_set" | grep -o '/' | wc -l))/$(sudo readlink "$file_to_set")") # If it is an relative path (we get with realpath the absolute path)
-        fi
-    else
-        break
-    fi
-done
-}
-
-CHECK_VAR () {	# Vérifie que la variable n'est pas vide.
-# $1 = Variable à vérifier
-# $2 = Texte à afficher en cas d'erreur
-	test -n "$1" || (echo "$2" >&2 && false)
-}
-
-CHECK_PATH () {	# Vérifie la présence du / en début de path. Et son absence à la fin.
-	if [ "${path:0:1}" != "/" ]; then    # Si le premier caractère n'est pas un /
-		path="/$path"    # Ajoute un / en début de path
-	fi
-	if [ "${path:${#path}-1}" == "/" ] && [ ${#path} -gt 1 ]; then    # Si le dernier caractère est un / et que ce n'est pas le seul caractère.
-		path="${path:0:${#path}-1}"	# Supprime le dernier caractère
-	fi
-}
-
-CHECK_DOMAINPATH () {	# Vérifie la disponibilité du path et du domaine.
-	sudo yunohost app checkurl $domain$path -a $app
-}
-
-CHECK_FINALPATH () {	# Vérifie que le dossier de destination n'est pas déjà utilisé.
-	final_path=/var/www/$app
-	if [ -e "$final_path" ]
-	then
-		echo "This path already contains a folder" >&2
-		false
-	fi
-}
-
-### REMOVE SCRIPT
-
-REMOVE_NGINX_CONF () {	# Suppression de la configuration nginx
-	if [ -e "/etc/nginx/conf.d/$domain.d/$app.conf" ]; then	# Delete nginx config
-		echo "Delete nginx config"
-		sudo rm "/etc/nginx/conf.d/$domain.d/$app.conf"
-		sudo service nginx reload
-	fi
-}
-
-REMOVE_LOGROTATE_CONF () {	# Suppression de la configuration de logrotate
-	if [ -e "/etc/logrotate.d/$app" ]; then
-		echo "Delete logrotate config"
-		sudo rm "/etc/logrotate.d/$app"
-	fi
-}
-
-######## End of common fonctions
-
-# Init script
-init_script
+# Import common cmd
+source ../settings/scripts/_common.sh
+source ../settings/scripts/psql.sh
 
 # Retrieve arguments
-domain=$(ynh_app_setting_get $app domain)
+domain=$(ynh_app_setting_get $app special_domain)
+path=$(ynh_app_setting_get $app special_path)
+final_path=$(ynh_app_setting_get $app final_path)
+synapse_db_pwd=$(ynh_app_setting_get $app synapse_db_pwd)
+is_public=$(ynh_app_setting_get $app is_public)
 synapse_port=$(ynh_app_setting_get $app synapse_port)
 synapse_tls_port=$(ynh_app_setting_get $app synapse_tls_port)
 turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
+turnserver_pwd=$(ynh_app_setting_get $app turnserver_pwd)
 
-# Restore Nginx
-conf=/etc/nginx/conf.d/$domain.d/$app.conf
-if [ -f $conf ]; then
-    ynh_die "There is already a nginx conf file at this path: $conf"
-fi
-sudo cp -a ./nginx.conf "/etc/nginx/conf.d/${domain}.d/${app}.conf"
+# Check domain/path availability
+ynh_webpath_available $domain $path || ynh_die "$domain/$path is not available, please use an other domain."
 
 # Make dh cert for synapse if it not exist
-test ! -e /etc/yunohost/certs/$domain/dh.pem && sudo openssl dhparam -out /etc/yunohost/certs/$domain/dh.pem 2048 > /dev/null
-
-# Get Matrix key repos
-wget -q -O '/tmp/matrix-repo-key.asc' "https://matrix.org/packages/debian/repo-key.asc"
-sudo apt-key add "/tmp/matrix-repo-key.asc"
-
-echo "matrix-synapse matrix-synapse/server-name select $domain" | sudo debconf-set-selections # Configure dpkg for no questions
-echo "matrix-synapse matrix-synapse/report-stats select false" | sudo debconf-set-selections # Configure dpkg for no questions
-
-# Install coturn (the turn server)
-ynh_package_install coturn
-
-# Enable debian-backports repos
-enable_backport_repos
-
-# Enable Synapse repos
-if [[ -n "$(uname -m | grep arm)" ]]
-then
-        # Use special conf for arm arch because some binary are not available in jessie backport or in matrix repos
-        install_arm_package_dep
-        ynh_package_install -t $debian_version-backports -f
-        echo "deb [arch=i386] http://matrix.org/packages/debian/ $debian_version main" | sudo tee -a "/etc/apt/sources.list.d/matrix.list"
-        ynh_package_update
-else
-        echo "deb http://matrix.org/packages/debian/ $debian_version main" | sudo tee -a "/etc/apt/sources.list.d/matrix.list"
-        ynh_package_update
-fi
-
-# Install synapse package
-# We neet to install python-cryptography to Solve a python error about dependance (from cryptography.hazmat.primitives.asymmetric.utils)
-ynh_package_install -t $debian_version-backports matrix-synapse python-matrix-synapse-ldap3 python-cryptography
-
-# Restaure la configuration de logrotate
-sudo cp -a ./logrotate /etc/logrotate.d/$app
-
-# Restore synapse config
-sudo cp -a ./synapse_config/. "/etc/matrix-synapse/."
-
-# Restore coturn server
-sudo cp -a ./coturn_config "/etc/turnserver.conf"
-sudo cp -a ./coturn_config_default "/etc/default/coturn"
-
-# Restore synapse database
-sudo cp -a ./data/. "/var/lib/matrix-synapse/."
-
-# Configure access for certificates
-set_access matrix-synapse /etc/yunohost/certs/$domain/crt.pem
-set_access matrix-synapse /etc/yunohost/certs/$domain/key.pem
-set_access matrix-synapse /etc/yunohost/certs/$domain/dh.pem
-
-set_access turnserver /etc/yunohost/certs/$domain/crt.pem
-set_access turnserver /etc/yunohost/certs/$domain/key.pem
-set_access turnserver /etc/yunohost/certs/$domain/dh.pem
+test ! -e /etc/yunohost/certs/$domain/dh.pem && openssl dhparam -out /etc/yunohost/certs/$domain/dh.pem 2048 > /dev/null
 
 # Ouvre le port dans le firewall
-sudo yunohost firewall allow --no-upnp TCP $synapse_tls_port > /dev/null 2>&1
-sudo yunohost firewall allow --no-upnp Both $turnserver_tls_port > /dev/null 2>&1
+yunohost firewall allow --no-upnp TCP $synapse_tls_port > /dev/null 2>&1
+yunohost firewall allow --no-upnp Both $turnserver_tls_port > /dev/null 2>&1
 
-# Régénère la configuration de SSOwat
-sudo yunohost app ssowatconf
+# Install all dependances
+install_dependances
+
+# Create user
+ynh_system_user_create $synapse_user /var/lib/matrix-synapse
+
+# Create directory Install synapse in virtualenv
+install_from_source
+
+# Restore all config and data
+ynh_restore
+
+# Configure access for certificates
+set_certificat_access
+
+# Restore postgresql database
+ynh_psql_create_user $synapse_db_user $synapse_db_pwd
+ynh_psql_execute_as_root \
+"CREATE DATABASE $synapse_db_name
+ ENCODING 'UTF8'
+ LC_COLLATE='C'
+ LC_CTYPE='C'
+ template=template0
+ OWNER $synapse_db_user;"
+su -c "psql $synapse_db_name" postgres < ${YNH_CWD}/dump.sql
+
+# Enable systemd service
+systemctl daemon-reload
+systemctl enable matrix-synapse.service
+
+# register yunohost service
+yunohost service add matrix-synapse
 
 # Reload webserver
-sudo service nginx reload
-sudo service matrix-synapse restart
-sudo service coturn restart
+systemctl reload nginx.service
+systemctl restart matrix-synapse.service
+systemctl restart coturn.service

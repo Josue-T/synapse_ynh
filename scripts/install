@@ -1,122 +1,97 @@
 #!/bin/bash
 
+# Source YunoHost helpers
+source /usr/share/yunohost/helpers
+source ./psql.sh
+
+# Stop script if errors
+ynh_abort_if_errors
+
 # Import common cmd
 source ./_common.sh
 
-# Init script
-init_script
-
 # Retrieve arguments
 domain=$YNH_APP_ARG_DOMAIN
-path="/_matrix"
 is_public=$YNH_APP_ARG_IS_PUBLIC
+path="/_matrix"
+final_path="/opt/yunohost/matrix-synapse"
 
-CHECK_PATH	# Vérifie et corrige la syntaxe du path.
-CHECK_DOMAINPATH	# Vérifie la disponibilité du path et du domaine.
-CHECK_FINALPATH	# Vérifie que le dossier de destination n'est pas déjà utilisé.
+# Check domain/path availability
+test $(ynh_webpath_available $domain $path) == 'True' || ynh_die "$domain$path is not available, please use an other domain."
+
+# Check Final Path availability
+test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
 # Ouvre le port dans le firewall
 synapse_tls_port=$(ynh_find_port 8448)
 synapse_port=$(ynh_find_port 8008)
 turnserver_tls_port=$(ynh_find_port 5349)
 
-sudo yunohost firewall allow --no-upnp TCP $synapse_tls_port > /dev/null 2>&1
-sudo yunohost firewall allow --no-upnp Both $turnserver_tls_port > /dev/null 2>&1
+yunohost firewall allow --no-upnp TCP $synapse_tls_port > /dev/null 2>&1
+yunohost firewall allow --no-upnp Both $turnserver_tls_port > /dev/null 2>&1
 
 # Make dh cert for synapse if it not exist
-test ! -e /etc/yunohost/certs/$domain/dh.pem && sudo openssl dhparam -out /etc/yunohost/certs/$domain/dh.pem 2048 > /dev/null
+test ! -e /etc/yunohost/certs/$domain/dh.pem && openssl dhparam -out /etc/yunohost/certs/$domain/dh.pem 2048 > /dev/null
 
-# Find password for turnserver
+# Find password for turnserver and database
 turnserver_pwd=$(ynh_string_random 30)
+synapse_db_pwd=$(ynh_string_random 30)
 
 # Enregistre les infos dans la config YunoHost
-ynh_app_setting_set $app domain $domain
-ynh_app_setting_set $app path $path
+ynh_app_setting_set $app special_domain $domain
+ynh_app_setting_set $app special_path $path
+ynh_app_setting_set $app final_path $final_path
+ynh_app_setting_set $app synapse_version $synapse_version
+ynh_app_setting_set $app synapse_db_pwd $synapse_db_pwd
 ynh_app_setting_set $app is_public $is_public
 ynh_app_setting_set $app synapse_port $synapse_port
 ynh_app_setting_set $app synapse_tls_port $synapse_tls_port
 ynh_app_setting_set $app turnserver_tls_port $turnserver_tls_port
 ynh_app_setting_set $app turnserver_pwd $turnserver_pwd
 
-# Et copie le fichier de config nginx
-sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+# Install all dependances
+install_dependances
 
-# Modifie les variables dans le fichier de configuration nginx
-sudo sed -i "s@__PATH__@$path@g" /etc/nginx/conf.d/$domain.d/$app.conf
-sudo sed -i "s@__PORT__@$synapse_port@g" /etc/nginx/conf.d/$domain.d/$app.conf
+# Create user
+ynh_system_user_create $synapse_user /var/lib/matrix-synapse
 
-# Get Matrix key repos
-wget -q -O '/tmp/matrix-repo-key.asc' "https://matrix.org/packages/debian/repo-key.asc"
-sudo apt-key add "/tmp/matrix-repo-key.asc"
+# Create postgresql database
+ynh_psql_create_user $synapse_db_user $synapse_db_pwd
+ynh_psql_execute_as_root \
+"CREATE DATABASE $synapse_db_name ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' template=template0 OWNER $synapse_db_user;"
 
-echo "matrix-synapse matrix-synapse/server-name select $domain" | sudo debconf-set-selections # Configure dpkg for no questions
-echo "matrix-synapse matrix-synapse/report-stats select false" | sudo debconf-set-selections # Configure dpkg for no questions
+# Create directory Install synapse in virtualenv
+install_from_source
 
-# Install coturn (the turn server)
-ynh_package_install coturn
+# Open access to server without a button the home
+cp ../conf/add_sso_conf.py $final_path
+cp ../conf/remove_sso_conf.py $final_path
+python $final_path/add_sso_conf.py
 
-# Enable debian-backports repos
-enable_backport_repos
+# Create systemd service
+cp ../conf/default_matrix-synapse /etc/default/matrix-synapse
+cp ../conf/matrix-synapse.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable matrix-synapse.service
 
-# Enable Synapse repos
-if [[ -n "$(uname -m | grep arm)" ]]
-then
-        # Use special conf for arm arch because some binary are not available in jessie backport or in matrix repos
-        install_arm_package_dep
-        ynh_package_install -t $debian_version-backports -f
-        echo "deb [arch=i386] http://matrix.org/packages/debian/ $debian_version main" | sudo tee -a "/etc/apt/sources.list.d/matrix.list"
-        ynh_package_update
-else
-        echo "deb http://matrix.org/packages/debian/ $debian_version main" | sudo tee -a "/etc/apt/sources.list.d/matrix.list"
-        ynh_package_update
-fi
-
-# Install synapse package
-# We neet to install python-cryptography to Solve a python error about dependance (from cryptography.hazmat.primitives.asymmetric.utils)
-ynh_package_install -t $debian_version-backports matrix-synapse python-matrix-synapse-ldap3 python-cryptography
+# Config nginx
+config_nginx
 
 # Configure Synapse
-sudo cp ../conf/homeserver.yaml /etc/matrix-synapse/homeserver.yaml
-sudo sed -i "s@__DOMAIN__@$domain@g" /etc/matrix-synapse/homeserver.yaml
-sudo sed -i "s@__PORT__@$synapse_port@g" /etc/matrix-synapse/homeserver.yaml
-sudo sed -i "s@__TLS_PORT__@$synapse_tls_port@g" /etc/matrix-synapse/homeserver.yaml
-sudo sed -i "s@__TURNSERVER_TLS_PORT__@$turnserver_tls_port@g" /etc/matrix-synapse/homeserver.yaml
-sudo sed -i "s@__TURNPWD__@$turnserver_pwd@g" /etc/matrix-synapse/homeserver.yaml
-if [ "$is_public" = "0" ]
-then
-    sudo sed -i "s@__ALLOWED_ACCESS__@False@g" /etc/matrix-synapse/homeserver.yaml
-else
-    sudo sed -i "s@__ALLOWED_ACCESS__@True@g" /etc/matrix-synapse/homeserver.yaml
-fi
+config_synapse
 
 # Configure Coturn
-sudo cp ../conf/default_coturn /etc/default/coturn
-sudo cp ../conf/turnserver.conf /etc/turnserver.conf
-sudo sed -i "s@__TURNPWD__@$turnserver_pwd@g" /etc/turnserver.conf
-sudo sed -i "s@__DOMAIN__@$domain@g" /etc/turnserver.conf
-sudo sed -i "s@__TLS_PORT__@$turnserver_tls_port@g" /etc/turnserver.conf
+config_coturn
 
 # Configure access for certificates
-set_access matrix-synapse /etc/yunohost/certs/$domain/crt.pem
-set_access matrix-synapse /etc/yunohost/certs/$domain/key.pem
-set_access matrix-synapse /etc/yunohost/certs/$domain/dh.pem
-
-set_access turnserver /etc/yunohost/certs/$domain/crt.pem
-set_access turnserver /etc/yunohost/certs/$domain/key.pem
-set_access turnserver /etc/yunohost/certs/$domain/dh.pem
+set_certificat_access
 
 # Configuration de logrotate
-sed -i "s@__APP__@$app@g" ../conf/logrotate
-sudo cp ../conf/logrotate /etc/logrotate.d/$app
-
-ynh_app_setting_set $app skipped_uris "/"
+ynh_use_logrotate /var/log/matrix-synapse/
 
 # register yunohost service
-sudo yunohost service add matrix-synapse
+yunohost service add matrix-synapse
 
-# Régénère la configuration de SSOwat
-sudo yunohost app ssowatconf
 # Recharge la configuration Nginx
-sudo service nginx reload
-sudo service matrix-synapse restart
-sudo service coturn restart
+systemctl restart matrix-synapse.service
+systemctl restart coturn.service

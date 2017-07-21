@@ -1,55 +1,17 @@
 #!/bin/bash
 
-######## Actually we cant use common script in backup / restore script see this issue for more informations : https://dev.yunohost.org/issues/621
-# # Import common cmd
-# source ./_common.sh
-#
+# Source YunoHost helpers
+source /usr/share/yunohost/helpers
 
-######## We implement manually this fonctions 
+# Stop script if errors
+ynh_abort_if_errors
 
-init_script() {
-    # Exit on command errors and treat unset variables as an error
-    set -eu
-
-    # Source YunoHost helpers
-    source /usr/share/yunohost/helpers
-
-    # Retrieve arguments
-    app=$YNH_APP_INSTANCE_NAME
-    CHECK_VAR "$app" "app name not set"
-    GET_DEBIAN_VERSION
-    
-    if [ -n "$(uname -m | grep 64)" ]; then
-            ARCHITECTURE="amd64"
-    elif [ -n "$(uname -m | grep 86)" ]; then
-            ARCHITECTURE="386"
-    elif [ -n "$(uname -m | grep arm)" ]; then
-            ARCHITECTURE="arm"
-    else
-            ynh_die "Unable to find arch"
-    fi
-}
-
-GET_DEBIAN_VERSION() {
-    debian_version=$(sudo lsb_release -sc)
-    test -z $debian_version && ynh_die "Can't find debian version"
-    test $debian_version == 'jessie' || ynh_die "This package is not available for your debian version"
-}
-
-CHECK_VAR () {	# Vérifie que la variable n'est pas vide.
-# $1 = Variable à vérifier
-# $2 = Texte à afficher en cas d'erreur
-	test -n "$1" || (echo "$2" >&2 && false)
-}
-
-######## End of common fonctions
-
-# Init script
-init_script
+# Import common cmd
+source ../settings/scripts/_common.sh
+source ../settings/scripts/psql.sh
 
 # Retrieve arguments
-final_path=$(ynh_app_setting_get $app final_path)
-domain=$(ynh_app_setting_get $app domain)
+domain=$(ynh_app_setting_get $app special_domain)
 
 # Copy Nginx config
 ynh_backup "/etc/nginx/conf.d/${domain}.d/${app}.conf" "nginx.conf"
@@ -62,9 +24,14 @@ ynh_backup "/etc/turnserver.conf" "coturn_config"
 ynh_backup "/etc/default/coturn" "coturn_config_default"
 
 # Backup synapse database
-ynh_backup "/var/lib/matrix-synapse" "data"
+ynh_backup "/var/lib/matrix-synapse" "data" 1
+
+# Backup Postgresql database
+sudo su -c "pg_dump $synapse_db_name" postgres > ${YNH_CWD}/dump.sql
 
 # Copie la configuration de logrotate
 ynh_backup "/etc/logrotate.d/$app" "logrotate"
 
-
+# Backup systemd service
+ynh_backup "/etc/default/matrix-synapse"
+ynh_backup "/etc/systemd/system/matrix-synapse.service"
