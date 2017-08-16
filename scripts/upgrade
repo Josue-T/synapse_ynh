@@ -26,7 +26,7 @@ systemctl stop matrix-synapse.service
 
 if [[ -z $synapse_old_version ]]
 then
-	ynh_die "Update from this version is not available now. You need to wait for the next update."
+# 	ynh_die "Update from this version is not available now. You need to wait for the next update."
 
 	##  We move from debian package to new package with python virtualenv
 	# Change settings
@@ -94,7 +94,10 @@ then
 
 	# Create config file for synapse with postgresql
 	config_synapse
-
+	
+	# We get the last version of the synapse_port_db script because an old version could be buggy.
+	cp ../sources/synapse_port_db /opt/yunohost/matrix-synapse/bin/synapse_port_db
+	
 	# Migrate database
 	/opt/yunohost/matrix-synapse/bin/synapse_port_db --sqlite-database /var/lib/matrix-synapse/homeserver.db \
 	--postgres-config /etc/matrix-synapse/homeserver.yaml
