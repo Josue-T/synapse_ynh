@@ -10,6 +10,7 @@ synapse_version="0.22.0"
 install_dependances() {
 	ynh_install_app_dependencies coturn build-essential python2.7-dev libffi-dev python-pip python-setuptools sqlite3 libssl-dev python-virtualenv libjpeg-dev libpq-dev postgresql
 	pip install --upgrade pip
+	pip install --upgrade cffi
 	pip install --upgrade ndg-httpsclient
 	pip install --upgrade virtualenv
 }
