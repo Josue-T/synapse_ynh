@@ -24,6 +24,13 @@ turnserver_pwd=$(ynh_app_setting_get $app turnserver_pwd)
 
 systemctl stop matrix-synapse.service
 
+ynh_backup_before_upgrade
+ynh_clean_setup () {
+	ynh_restore_upgradebackup
+}
+
+ynh_abort_if_errors
+
 if [[ -z $synapse_old_version ]]
 then
 # 	ynh_die "Update from this version is not available now. You need to wait for the next update."

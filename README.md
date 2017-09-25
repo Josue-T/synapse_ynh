@@ -56,3 +56,11 @@ https://github.com/vector-im/riot-web/issues/1977 for more details.
 - Test arm
 - Riot doc
 - Test production
+
+Todo for official App
+======================
+
+- Improve the upgrade from old version (all feedback is welcome)
+- Improve documentation
+
+
