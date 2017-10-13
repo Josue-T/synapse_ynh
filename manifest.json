@@ -11,7 +11,7 @@
 	},
 	"version": "0.23.0",
 	"url": "http://matrix.org",
-	"license": "free",
+	"license": "Apache-2.0",
 	"maintainer": {
 		"name": "Josué Tille",
 		"email": "josue@tille.ch"
