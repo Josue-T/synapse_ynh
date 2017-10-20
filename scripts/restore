@@ -37,11 +37,11 @@ install_dependances
 # Create user
 ynh_system_user_create $synapse_user /var/lib/matrix-synapse
 
-# Create directory Install synapse in virtualenv
-install_from_source
-
 # Restore all config and data
 ynh_restore
+
+# Open access to server without a button the home
+python $final_path/add_sso_conf.py
 
 # Configure access for certificates
 set_certificat_access

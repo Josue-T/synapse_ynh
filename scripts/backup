@@ -12,6 +12,7 @@ source ../settings/scripts/psql.sh
 
 # Retrieve arguments
 domain=$(ynh_app_setting_get $app special_domain)
+final_path="/opt/yunohost/matrix-synapse"
 
 # Copy Nginx config
 ynh_backup "/etc/nginx/conf.d/${domain}.d/${app}.conf" "nginx.conf"
@@ -32,6 +33,12 @@ sudo su -c "pg_dump $synapse_db_name" postgres > ${YNH_CWD}/dump.sql
 # Copie la configuration de logrotate
 ynh_backup "/etc/logrotate.d/$app" "logrotate"
 
+# Copy the logs
+ynh_backup "/var/log/matrix-synapse" "log"
+
 # Backup systemd service
 ynh_backup "/etc/default/matrix-synapse"
 ynh_backup "/etc/systemd/system/matrix-synapse.service"
+
+# Backup synapse binary
+ynh_backup "$final_path" "bin"
