@@ -34,7 +34,7 @@ ynh_abort_if_errors
 if [[ -z $synapse_old_version ]]
 then
     # To be sure that the migration is sucessfull we check that the old synapse version is compatible with the synapse_port_db script.
-    if [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.22") != 1 ]]
+    if [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.23") != 1 ]] && [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.22") != 1 ]]
     then
         ynh_die "Update from this synapse version is not available now. You need to wait for the next update."
  	fi
