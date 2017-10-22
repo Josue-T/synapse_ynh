@@ -13,24 +13,24 @@ install_dependances() {
 	pip install --upgrade virtualenv
 }
 
-install_from_source() {
+setup_dir() {
     # Create empty dir for synapse
     mkdir -p /var/lib/matrix-synapse
     mkdir -p /var/log/matrix-synapse
     mkdir -p /etc/matrix-synapse/conf.d
     mkdir -p $final_path
+}
 
+install_source() {
     # Install synapse in virtualenv
     virtualenv -p python2.7 $final_path
     PS1=""
     cp ../conf/virtualenv_activate $final_path/bin/activate
     source $final_path/bin/activate
     pip install --upgrade pip
-    pip install --upgrade cffi
-    pip install --upgrade ndg-httpsclient
-    pip install --upgrade setuptools
-    pip install https://github.com/matrix-org/synapse/tarball/master
-    pip install psycopg2
+    pip install --upgrade cffi ndg-httpsclient setuptools
+    pip install --upgrade https://github.com/matrix-org/synapse/tarball/master
+    pip install --upgrade psycopg2 lxml
     
     # Set permission
     chown $synapse_user:root -R $final_path
@@ -127,7 +127,7 @@ set_access() { # example : set_access USER FILE
 }
 
 
-####### Solve issue 
+####### Solve issue https://dev.yunohost.org/issues/1006
 
 # Install package(s)
 #
