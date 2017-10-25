@@ -31,7 +31,8 @@ install_source() {
     pip install --upgrade cffi ndg-httpsclient setuptools
     pip install --upgrade https://github.com/matrix-org/synapse/tarball/master
     pip install --upgrade psycopg2 lxml
-    
+    deactivate
+
     # Set permission
     chown $synapse_user:root -R $final_path
     chown $synapse_user:root -R /var/lib/matrix-synapse
