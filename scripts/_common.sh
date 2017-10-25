@@ -5,7 +5,7 @@ app=$YNH_APP_INSTANCE_NAME
 synapse_user="matrix-synapse"
 synapse_db_name="matrix_synapse"
 synapse_db_user="matrix_synapse"
-synapse_version="0.22.0"
+synapse_version="0.24.1"
 
 install_dependances() {
 	ynh_install_app_dependencies coturn build-essential python2.7-dev libffi-dev python-pip python-setuptools sqlite3 libssl-dev python-virtualenv libjpeg-dev libpq-dev postgresql
@@ -19,18 +19,20 @@ setup_dir() {
     mkdir -p /var/log/matrix-synapse
     mkdir -p /etc/matrix-synapse/conf.d
     mkdir -p $final_path
+    
+    # Install virtualenv
+    virtualenv -p python2.7 $final_path
 }
 
 install_source() {
     # Install synapse in virtualenv
-    virtualenv -p python2.7 $final_path
     PS1=""
     cp ../conf/virtualenv_activate $final_path/bin/activate
     source $final_path/bin/activate
     pip install --upgrade pip
-    pip install --upgrade cffi ndg-httpsclient setuptools
+    pip install --upgrade setuptools
+    pip install --upgrade cffi ndg-httpsclient psycopg2 lxml
     pip install --upgrade https://github.com/matrix-org/synapse/tarball/master
-    pip install --upgrade psycopg2 lxml
     deactivate
 
     # Set permission
