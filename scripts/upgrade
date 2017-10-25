@@ -36,6 +36,7 @@ then
     # To be sure that the migration is sucessfull we check that the old synapse version is compatible with the synapse_port_db script.
     if [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.23") != 1 ]] && [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.22") != 1 ]]
     then
+        systemctl start matrix-synapse.service
         ynh_die "Update from this synapse version is not available now. You need to wait for the next update."
  	fi
 
@@ -64,7 +65,8 @@ then
 	install_dependances
 
 	# Create directory Install synapse in virtualenv
-	install_from_source
+	setup_dir || true # If the dir aready exist, but to be sure that all dir exist.
+	install_source
 
 	# Open access to server without a button the home
 	cp ../conf/add_sso_conf.py $final_path
@@ -109,10 +111,15 @@ then
 	# We get the last version of the synapse_port_db script because an old version could be buggy.
 	cp ../sources/synapse_port_db /opt/yunohost/matrix-synapse/bin/synapse_port_db
 	
-	# Migrate database
+	# Migrate database (in virtualenv)
+	source $final_path/bin/activate
 	/opt/yunohost/matrix-synapse/bin/synapse_port_db --sqlite-database /var/lib/matrix-synapse/homeserver.db \
 	--postgres-config /etc/matrix-synapse/homeserver.yaml
+	deactivate
 fi
+
+# Upgrade manually Synapse
+install_source
 
 # Update nginx config
 config_nginx
@@ -125,9 +132,6 @@ set_certificat_access
 
 # Configure Coturn
 config_coturn
-
-# Upgrade manually Synapse
-install_source
 
 # Set new settings
 ynh_app_setting_set $app synapse_version $synapse_version
