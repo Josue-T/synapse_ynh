@@ -65,7 +65,7 @@ then
 	install_dependances
 
 	# Create directory Install synapse in virtualenv
-	setup_dir || true # If the dir aready exist, but to be sure that all dir exist.
+	setup_dir || true # If the dir aready exist the command could fail
 	install_source
 
 	# Open access to server without a button the home
