@@ -42,6 +42,7 @@ BOOLEAN_COLUMNS = {
     "public_room_list_stream": ["visibility"],
     "device_lists_outbound_pokes": ["sent"],
     "users_who_share_rooms": ["share_private"],
+    "groups": ["is_public"],
 }
 
 
@@ -111,6 +112,7 @@ class Store(object):
 
     _simple_update_one = SQLBaseStore.__dict__["_simple_update_one"]
     _simple_update_one_txn = SQLBaseStore.__dict__["_simple_update_one_txn"]
+    _simple_update_txn = SQLBaseStore.__dict__["_simple_update_txn"]
 
     def runInteraction(self, desc, func, *args, **kwargs):
         def r(conn):
