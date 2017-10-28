@@ -19,9 +19,6 @@ setup_dir() {
     mkdir -p /var/log/matrix-synapse
     mkdir -p /etc/matrix-synapse/conf.d
     mkdir -p $final_path
-    
-    # Install virtualenv
-    virtualenv -p python2.7 $final_path
 }
 
 install_source() {
