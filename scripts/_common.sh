@@ -8,7 +8,7 @@ synapse_db_user="matrix_synapse"
 synapse_version="0.24.1"
 
 install_dependances() {
-	ynh_install_app_dependencies coturn build-essential python2.7-dev libffi-dev python-pip python-setuptools sqlite3 libssl-dev python-virtualenv libjpeg-dev libpq-dev postgresql
+	ynh_install_app_dependencies coturn build-essential python2.7-dev libffi-dev python-pip python-setuptools sqlite3 libssl-dev python-virtualenv libxml2-dev libxslt1-dev python-lxml libjpeg-dev libpq-dev postgresql
 	pip install --upgrade pip
 	pip install --upgrade virtualenv
 }
@@ -25,15 +25,23 @@ setup_dir() {
 }
 
 install_source() {
-    # Install synapse in virtualenv
-    PS1=""
-    cp ../conf/virtualenv_activate $final_path/bin/activate
-    source $final_path/bin/activate
-    pip install --upgrade pip
-    pip install --upgrade setuptools
-    pip install --upgrade cffi ndg-httpsclient psycopg2 lxml
-    pip install --upgrade https://github.com/matrix-org/synapse/tarball/master
-    deactivate
+	if [ -n "$(uname -m | grep arm)" ]
+	then
+		ynh_setup_source $final_path/ "armv7"
+	else
+		# Install virtualenv if it don't exist
+		test -e $final_path/bin || virtualenv -p python2.7 $final_path
+
+		# Install synapse in virtualenv
+		PS1=""
+		cp ../conf/virtualenv_activate $final_path/bin/activate
+		source $final_path/bin/activate
+		pip install --upgrade pip
+		pip install --upgrade setuptools
+		pip install --upgrade cffi ndg-httpsclient psycopg2 lxml
+		pip install --upgrade https://github.com/matrix-org/synapse/tarball/master
+		deactivate
+	fi
 
     # Set permission
     chown $synapse_user:root -R $final_path

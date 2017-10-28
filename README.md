@@ -14,7 +14,8 @@ If you don't have a dh.pem file in `/etc/yunohost/certs/YOUR DOMAIN/dh.pem` you 
 You could built it by this cmd : `sudo openssl dhparam -out /etc/yunohost/certs/YOUR DOMAIN/dh.pem 2048 > /dev/null`
 After that you can install it without problem.
 
-The install use the python virtualenvironement. Everything is built on the install and some package a compiled so it could take a long time if the processor is slow.
+The package use a prebuild python virtualenvironnement. The binary are taken from this repos : https://github.com/Josue-T/synapse_python_build
+The script to build the binary is also available.
 
 ### Package update package
 
