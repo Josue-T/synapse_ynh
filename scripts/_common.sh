@@ -5,7 +5,15 @@ app=$YNH_APP_INSTANCE_NAME
 synapse_user="matrix-synapse"
 synapse_db_name="matrix_synapse"
 synapse_db_user="matrix_synapse"
-synapse_version="0.24.1"
+
+get_app_version_from_json() {
+   manifest_path="../manifest.json"
+    if [ ! -e "$manifest_path" ]; then
+    	manifest_path="../settings/manifest.json"	# Into the restore script, the manifest is not at the same place
+    fi
+    echo $(grep '\"version\": ' "$manifest_path" | cut -d '"' -f 4)	# Retrieve the version number in the manifest file.
+}
+APP_VERSION=$(get_app_version_from_json)
 
 install_dependances() {
 	ynh_install_app_dependencies coturn build-essential python2.7-dev libffi-dev python-pip python-setuptools sqlite3 libssl-dev python-virtualenv libxml2-dev libxslt1-dev python-lxml libjpeg-dev libpq-dev postgresql
@@ -24,6 +32,7 @@ setup_dir() {
 install_source() {
 	if [ -n "$(uname -m | grep arm)" ]
 	then
+		ynh_replace_string __APP_VERSION__ $APP_VERSION "$YNH_CWD/../conf/${src_id}.src"
 		ynh_setup_source $final_path/ "armv7"
 	else
 		# Install virtualenv if it don't exist

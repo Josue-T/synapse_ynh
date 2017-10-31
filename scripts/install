@@ -41,7 +41,7 @@ synapse_db_pwd=$(ynh_string_random 30)
 ynh_app_setting_set $app special_domain $domain
 ynh_app_setting_set $app special_path $path
 ynh_app_setting_set $app final_path $final_path
-ynh_app_setting_set $app synapse_version $synapse_version
+ynh_app_setting_set $app synapse_version $APP_VERSION
 ynh_app_setting_set $app synapse_db_pwd $synapse_db_pwd
 ynh_app_setting_set $app is_public $is_public
 ynh_app_setting_set $app synapse_port $synapse_port

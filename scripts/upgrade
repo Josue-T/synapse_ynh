@@ -134,7 +134,7 @@ set_certificat_access
 config_coturn
 
 # Set new settings
-ynh_app_setting_set $app synapse_version $synapse_version
+ynh_app_setting_set $app synapse_version $APP_VERSION
 
 # Recharge la configuration Nginx
 systemctl reload nginx.service
