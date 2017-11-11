@@ -47,6 +47,7 @@ python $final_path/add_sso_conf.py
 set_certificat_access
 
 # Restore postgresql database
+ynh_psql_test_if_first_run
 ynh_psql_create_user $synapse_db_user $synapse_db_pwd
 ynh_psql_execute_as_root \
 "CREATE DATABASE $synapse_db_name

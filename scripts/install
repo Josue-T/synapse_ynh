@@ -56,6 +56,7 @@ install_dependances
 ynh_system_user_create $synapse_user /var/lib/matrix-synapse
 
 # Create postgresql database
+ynh_psql_test_if_first_run
 ynh_psql_create_user $synapse_db_user $synapse_db_pwd
 ynh_psql_execute_as_root \
 "CREATE DATABASE $synapse_db_name ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' template=template0 OWNER $synapse_db_user;"

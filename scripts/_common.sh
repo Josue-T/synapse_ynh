@@ -16,7 +16,7 @@ get_app_version_from_json() {
 APP_VERSION=$(get_app_version_from_json)
 
 install_dependances() {
-	ynh_install_app_dependencies coturn build-essential python2.7-dev libffi-dev python-pip python-setuptools sqlite3 libssl-dev python-virtualenv libxml2-dev libxslt1-dev python-lxml libjpeg-dev libpq-dev postgresql
+	ynh_install_app_dependencies coturn build-essential python2.7-dev libffi-dev python-pip python-setuptools sqlite3 libssl-dev python-virtualenv libxml2-dev libxslt1-dev python-lxml libjpeg-dev libpq-dev postgresql acl
 	pip install --upgrade pip
 	pip install --upgrade virtualenv
 }

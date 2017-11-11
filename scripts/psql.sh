@@ -50,3 +50,20 @@ ynh_psql_drop_db() {
 ynh_psql_drop_user() {
     sudo su -c "dropuser ${1}" - postgres
 }
+
+ynh_psql_test_if_first_run() {
+	if [ -f /etc/yunohost/psql ];
+	then
+		echo "PostgreSQL is already installed, no need to create master password"
+	else
+		local pgsql=$(ynh_string_random)
+		echo "$pgsql" >> /etc/yunohost/psql
+		systemctl start postgresql
+		sudo -u postgres psql -c "ALTER user postgres WITH PASSWORD '${pgsql}'"
+		# we can t use peer since YunoHost create users with nologin
+		sed -i '/local\s*all\s*all\s*peer/i \
+			local all all password' /etc/postgresql/9.4/main/pg_hba.conf
+		systemctl enable postgresql
+		systemctl reload postgresql
+	fi
+}
