@@ -45,7 +45,7 @@ install_source() {
 		pip install --upgrade pip
 		pip install --upgrade setuptools
 		pip install --upgrade cffi ndg-httpsclient psycopg2 lxml
-		pip install --upgrade https://github.com/matrix-org/synapse/tarball/master
+		pip install --upgrade https://github.com/matrix-org/synapse/archive/v$APP_VERSION.tar.gz
 		deactivate
 	fi
 
