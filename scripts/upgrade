@@ -22,6 +22,12 @@ synapse_tls_port=$(ynh_app_setting_get $app synapse_tls_port)
 turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
 turnserver_pwd=$(ynh_app_setting_get $app turnserver_pwd)
 
+# To be sure that the migration is sucessfull we check that the old synapse version is compatible with the synapse_port_db script.
+if [[ -z $synapse_old_version ]] && [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.25") != 1 ]] && [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.24") != 1 ]]
+then
+	ynh_die "Update from this synapse version is not available now. You need to wait for the next update."
+fi
+
 systemctl stop matrix-synapse.service
 
 ynh_backup_before_upgrade
@@ -33,12 +39,6 @@ ynh_abort_if_errors
 
 if [[ -z $synapse_old_version ]]
 then
-    # To be sure that the migration is sucessfull we check that the old synapse version is compatible with the synapse_port_db script.
-    if [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.25") != 1 ]] && [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.24") != 1 ]]
-    then
-        systemctl start matrix-synapse.service
-        ynh_die "Update from this synapse version is not available now. You need to wait for the next update."
- 	fi
 
 	##  We move from debian package to new package with python virtualenv
 	# Change settings
