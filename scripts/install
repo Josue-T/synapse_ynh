@@ -89,7 +89,7 @@ config_coturn
 set_certificat_access
 
 # Configuration de logrotate
-ynh_use_logrotate /var/log/matrix-synapse/
+ynh_use_logrotate /var/log/matrix-synapse
 
 # register yunohost service
 yunohost service add matrix-synapse
