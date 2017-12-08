@@ -48,6 +48,22 @@ We have put some coarse mitigations into place to try to protect against this
 situation, but it's still not good practice to do it in the first place.  See
 https://github.com/vector-im/riot-web/issues/1977 for more details.
 
+Migration from old package
+--------------------------
+
+The old synapse package had some problem, the package has been reviewed in the summer 2017. The old package was made with the debian package with the synapse apt repos. The database used sqlite. To improve the performance and to have a better compatibility the new package use python virtual environment and postgresql as database. The Upgrade was made to make the migration from the old package to the new package. The part of this script is available here : https://github.com/YunoHost-Apps/synapse_ynh/blob/master/scripts/upgrade#L40-L119 .
+
+This script try to upgrade the app without any problem but it could happen that something fail and in this case it NOT guaranteed that the restored successfully. So it's REALLY recommended to make manually a backup before this big upgrade.
+
+To check if you use the old synapse package type this command :
+`sudo yunohost app setting synapse synapse_version`
+- If the command return nothing you are using the old package.
+- If the command return something like 0.25.1 you are using the new package.
+
+To do a backup before the upgrade use this command : `sudo yunohost backup create --verbose --ignore-system --apps synapse`
+
+If anything fail while you are doing the upgrade please make an issue here : https://github.com/YunoHost-Apps/synapse_ynh/issues
+
 License
 -------
 
@@ -63,5 +79,4 @@ To do
 
 ### Todo for official App
 
-- Improve the upgrade from old version (all feedback is welcome)
 - Improve documentation
