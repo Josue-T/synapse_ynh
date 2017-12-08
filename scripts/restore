@@ -62,6 +62,10 @@ su -c "psql $synapse_db_name" postgres < ${YNH_CWD}/dump.sql
 systemctl daemon-reload
 systemctl enable matrix-synapse.service
 
+# Configuration de logrotate
+ynh_use_logrotate /var/log/matrix-synapse
+ynh_use_logrotate /var/log/turnserver
+
 # register yunohost service
 yunohost service add matrix-synapse
 

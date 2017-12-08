@@ -148,16 +148,6 @@ set_access() { # example : set_access USER FILE
 
 ####### Solve issue https://dev.yunohost.org/issues/1006
 
-# Install package(s)
-#
-# usage: ynh_package_install name [name [...]]
-# | arg: name - the package name to install
-ynh_package_try_install() {
-    ynh_apt -o Dpkg::Options::=--force-confdef \
-            -o Dpkg::Options::=--force-confold install $@
-}
-
-
 # Build and install a package from an equivs control file
 #
 # example: generate an empty control file with `equivs-control`, adjust its
@@ -192,44 +182,66 @@ ynh_package_install_from_equivs () {
      && equivs-build ./control 1>/dev/null \
      && sudo dpkg --force-depends \
           -i "./${pkgname}_${pkgversion}_all.deb" 2>&1 \
-     && ynh_package_try_install -f)
+     && ynh_package_install -f) || ynh_die "Unable to install dependencies"
     [[ -n "$TMPDIR" ]] && rm -rf $TMPDIR	# Remove the temp dir.
 
     # check if the package is actually installed
     ynh_package_is_installed "$pkgname"
 }
 
-# Define and install dependencies with a equivs control file
-# This helper can/should only be called once per app
+# Implement PR : https://github.com/YunoHost/yunohost/pull/392
+
+# Use logrotate to manage the logfile
 #
-# usage: ynh_install_app_dependencies dep [dep [...]]
-# | arg: dep - the package name to install in dependence
-ynh_install_app_dependencies () {
-    dependencies=$@
-    manifest_path="../manifest.json"
-    if [ ! -e "$manifest_path" ]; then
-    	manifest_path="../settings/manifest.json"	# Into the restore script, the manifest is not at the same place
-    fi
-    version=$(grep '\"version\": ' "$manifest_path" | cut -d '"' -f 4)	# Retrieve the version number in the manifest file.
-    dep_app=${app//_/-}	# Replace all '_' by '-'
-
-    if ynh_package_is_installed "${dep_app}-ynh-deps"; then
-		echo "A package named ${dep_app}-ynh-deps is already installed" >&2
-    else
-        cat > /tmp/${dep_app}-ynh-deps.control << EOF	# Make a control file for equivs-build
-Section: misc
-Priority: optional
-Package: ${dep_app}-ynh-deps
-Version: ${version}
-Depends: ${dependencies// /, }
-Architecture: all
-Description: Fake package for ${app} (YunoHost app) dependencies
- This meta-package is only responsible of installing its dependencies.
-EOF
-        ynh_package_install_from_equivs /tmp/${dep_app}-ynh-deps.control \
-            || (ynh_package_autopurge; ynh_die "Unable to install dependencies")	# Install the fake package and its dependencies
-        rm /tmp/${dep_app}-ynh-deps.control
-        ynh_app_setting_set $app apt_dependencies $dependencies
-    fi
+# usage: ynh_use_logrotate [logfile] [--non-append]
+# | arg: logfile - absolute path of logfile
+# | option: --non-append - Replace the config file instead of appending this new config.
+#
+# If no argument provided, a standard directory will be use. /var/log/${app}
+# You can provide a path with the directory only or with the logfile.
+# /parentdir/logdir
+# /parentdir/logdir/logfile.log
+#
+# It's possible to use this helper several times, each config will be added to the same logrotate config file.
+# Unless you use the option --non-append
+ynh_use_logrotate () {
+	local customtee="tee -a"
+	if [ $# -gt 0 ] && [ "$1" == "--non-append" ]; then
+		customtee="tee"
+		# Destroy this argument for the next command.
+		shift
+	elif [ $# -gt 1 ] && [ "$2" == "--non-append" ]; then
+		customtee="tee"
+	fi
+	if [ $# -gt 0 ]; then
+		if [ "$(echo ${1##*.})" == "log" ]; then	# Keep only the extension to check if it's a logfile
+			logfile=$1	# In this case, focus logrotate on the logfile
+		else
+			logfile=$1/*.log	# Else, uses the directory and all logfile into it.
+		fi
+	else
+		logfile="/var/log/${app}/*.log" # Without argument, use a defaut directory in /var/log
+	fi
+	cat > ./${app}-logrotate << EOF	# Build a config file for logrotate
+$logfile {
+		# Rotate if the logfile exceeds 100Mo
+	size 100M
+		# Keep 12 old log maximum
+	rotate 12
+		# Compress the logs with gzip
+	compress
+		# Compress the log at the next cycle. So keep always 2 non compressed logs
+	delaycompress
+		# Copy and truncate the log to allow to continue write on it. Instead of move the log.
+	copytruncate
+		# Do not do an error if the log is missing
+	missingok
+		# Not rotate if the log is empty
+	notifempty
+		# Keep old logs in the same dir
+	noolddir
 }
-
+EOF
+	sudo mkdir -p $(dirname "$logfile")	# Create the log directory, if not exist
+	cat ${app}-logrotate | sudo $customtee /etc/logrotate.d/$app > /dev/null	# Append this config to the existing config file, or replace the whole config file (depending on $customtee)
+}

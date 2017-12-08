@@ -47,6 +47,7 @@ ynh_remove_app_dependencies || true
 ynh_secure_remove $final_path
 ynh_secure_remove /var/lib/matrix-synapse
 ynh_secure_remove /var/log/matrix-synapse
+ynh_secure_remove /var/log/turnserver
 ynh_secure_remove /etc/matrix-synapse
 ynh_secure_remove /etc/default/matrix-synapse
 
