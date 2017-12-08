@@ -71,7 +71,7 @@ then
 	# Open access to server without a button the home
 	cp ../conf/add_sso_conf.py $final_path
 	cp ../conf/remove_sso_conf.py $final_path
-	python $final_path/add_sso_conf.py
+	python $final_path/add_sso_conf.py || echo "Error while sso config, please add '/_matrix' in /etc/ssowat/conf.json.persistent"
 
 	# Create user
 	ynh_system_user_create $synapse_user /var/lib/matrix-synapse
@@ -117,6 +117,9 @@ then
 	--postgres-config /etc/matrix-synapse/homeserver.yaml
 	deactivate
 fi
+
+# If the turnserver log is not ready configured we configure it now
+test -e /var/log/turnserver || (mkdir -p /var/log/turnserver && ynh_use_logrotate /var/log/turnserver)
 
 # Upgrade manually Synapse
 install_source

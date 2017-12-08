@@ -25,6 +25,7 @@ setup_dir() {
     # Create empty dir for synapse
     mkdir -p /var/lib/matrix-synapse
     mkdir -p /var/log/matrix-synapse
+    mkdir -p /var/log/turnserver
     mkdir -p /etc/matrix-synapse/conf.d
     mkdir -p $final_path
 }
@@ -53,6 +54,7 @@ install_source() {
     chown $synapse_user:root -R $final_path
     chown $synapse_user:root -R /var/lib/matrix-synapse
     chown $synapse_user:root -R /var/log/matrix-synapse
+    chown turnserver:root -R /var/log/turnserver
     chown $synapse_user:root -R /etc/matrix-synapse
 }
 
