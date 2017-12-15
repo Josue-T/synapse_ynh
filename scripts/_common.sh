@@ -30,6 +30,15 @@ setup_dir() {
     mkdir -p $final_path
 }
 
+set_permission() {
+    # Set permission
+    chown $synapse_user:root -R $final_path
+    chown $synapse_user:root -R /var/lib/matrix-synapse
+    chown $synapse_user:root -R /var/log/matrix-synapse
+    chown turnserver:root -R /var/log/turnserver
+    chown $synapse_user:root -R /etc/matrix-synapse
+}
+
 install_source() {
 	if [ -n "$(uname -m | grep arm)" ]
 	then
@@ -49,13 +58,6 @@ install_source() {
 		pip install --upgrade https://github.com/matrix-org/synapse/archive/v$APP_VERSION.tar.gz
 		deactivate
 	fi
-
-    # Set permission
-    chown $synapse_user:root -R $final_path
-    chown $synapse_user:root -R /var/lib/matrix-synapse
-    chown $synapse_user:root -R /var/log/matrix-synapse
-    chown turnserver:root -R /var/log/turnserver
-    chown $synapse_user:root -R /etc/matrix-synapse
 }
 
 config_nginx() {

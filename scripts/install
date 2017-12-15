@@ -64,6 +64,7 @@ ynh_psql_execute_as_root \
 # Create directory and Install synapse in virtualenv
 setup_dir
 install_source
+set_permission
 
 # Open access to server without a button the home
 cp ../conf/add_sso_conf.py $final_path

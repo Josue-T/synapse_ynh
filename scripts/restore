@@ -40,6 +40,9 @@ ynh_system_user_create $synapse_user /var/lib/matrix-synapse
 # Restore all config and data
 ynh_restore
 
+# Set the permission
+set_permission
+
 # Open access to server without a button the home
 python $final_path/add_sso_conf.py
 

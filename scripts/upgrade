@@ -67,6 +67,7 @@ then
 	# Create directory Install synapse in virtualenv
 	setup_dir || true # If the dir aready exist the command could fail
 	install_source
+	set_permission
 
 	# Open access to server without a button the home
 	cp ../conf/add_sso_conf.py $final_path
@@ -123,6 +124,7 @@ test -e /var/log/turnserver || (mkdir -p /var/log/turnserver && ynh_use_logrotat
 
 # Upgrade manually Synapse
 install_source
+set_permission
 
 # Update nginx config
 config_nginx
