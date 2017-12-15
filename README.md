@@ -5,6 +5,8 @@ Yunohost chattroom with matrix : [https://riot.im/app/#/room/#yunohost:matrix.or
 
 [Yunohost project](https://yunohost.org/#/)
 
+[![Integration level](https://dash.yunohost.org/integration/synapse.svg)](https://ci-apps.yunohost.org/jenkins/job/synapse%20%28Community%29/lastBuild/consoleFull) 
+
 Setup
 -----
 
