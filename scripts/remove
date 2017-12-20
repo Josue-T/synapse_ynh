@@ -57,8 +57,7 @@ ynh_secure_remove /etc/systemd/system/matrix-synapse.service
 systemctl daemon-reload
 
 # Remove database and user
-ynh_psql_drop_db $synapse_db_name
-ynh_psql_drop_user $synapse_db_user
+ynh_psql_remove_db $synapse_db_name $synapse_db_user
 
 # Remove user
 ynh_system_user_delete matrix-synapse
