@@ -42,7 +42,6 @@ set_permission() {
 install_source() {
 	if [ -n "$(uname -m | grep arm)" ]
 	then
-		ynh_replace_string __APP_VERSION__ $APP_VERSION "$YNH_CWD/../conf/armv7.src"
 		ynh_setup_source $final_path/ "armv7"
 	else
 		# Install virtualenv if it don't exist
