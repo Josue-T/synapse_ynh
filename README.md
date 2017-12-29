@@ -50,6 +50,43 @@ We have put some coarse mitigations into place to try to protect against this
 situation, but it's still not good practice to do it in the first place.  See
 https://github.com/vector-im/riot-web/issues/1977 for more details.
 
+Install
+-------
+
+From command line:
+
+`sudo yunohost app install -l synapse https://github.com/YunoHost-Apps/synapse_ynh`
+
+Upgrade
+-------
+
+From command line:
+
+`sudo yunohost app upgrade synapse -u https://github.com/YunoHost-Apps/synapse_ynh`
+
+Issue
+-----
+
+Any issue is welcome here : https://github.com/YunoHost-Apps/synapse_ynh/issues
+
+Administation
+-------------
+
+**All documentation of this section is not warranted. A bad use of command could broke the app and all the data. So use theses command at your own risk.**
+
+Before any manipulation it's recommended to do a backup by this following command :
+
+`sudo yunohost backup create --verbose --ignore-system --apps synapse`
+
+### Set user as admin
+
+Actually there are no function in the client interface to set a user as admin. So it's possible to enable it manually in the database.
+
+This following command will enable the admin access to the specified user :
+```
+su --command="psql matrix_synapse" postgres <<< "UPDATE users SET admin = 1 WHERE name = '@user_to_be_admin:domain.tld'"
+```
+
 Migration from old package
 --------------------------
 
