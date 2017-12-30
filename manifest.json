@@ -38,7 +38,7 @@
 					"en": "Is it a public server ?",
 					"fr": "Est-ce un serveur public ?"
 				},
-				"default": "0"
+				"default": 0
 			}
 		]
 	}

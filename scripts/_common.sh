@@ -37,6 +37,7 @@ set_permission() {
     chown $synapse_user:root -R /var/log/matrix-synapse
     chown turnserver:root -R /var/log/turnserver
     chown $synapse_user:root -R /etc/matrix-synapse
+    chmod 600 /etc/matrix-synapse/dh.pem
 }
 
 install_source() {
@@ -96,56 +97,6 @@ config_coturn() {
 	ynh_replace_string __DOMAIN__ $domain /etc/turnserver.conf
 	ynh_replace_string __TLS_PORT__ $turnserver_tls_port /etc/turnserver.conf
 }
-
-set_certificat_access() {
-	set_access $synapse_user /etc/yunohost/certs/$domain/crt.pem
-	set_access $synapse_user /etc/yunohost/certs/$domain/key.pem
-	set_access $synapse_user /etc/yunohost/certs/$domain/dh.pem
-
-	set_access turnserver /etc/yunohost/certs/$domain/crt.pem
-	set_access turnserver /etc/yunohost/certs/$domain/key.pem
-	set_access turnserver /etc/yunohost/certs/$domain/dh.pem
-}
-
-set_access() { # example : set_access USER FILE
-    user="$1"
-    file_to_set="$2"
-    while [[ 0 ]]
-    do
-        path_to_set=""
-        oldIFS="$IFS"
-        IFS="/"
-        for dirname in $file_to_set
-        do
-            if [[ -n "$dirname" ]]
-            then
-                test -f "$path_to_set"/"$dirname" && setfacl -m d:u:$user:r "$path_to_set"
-                
-                path_to_set="$path_to_set/$dirname"
-                
-                if $(sudo -u $user test ! -r "$path_to_set")
-                then
-                    test -d "$path_to_set" && setfacl -m user:$user:rx  "$path_to_set"
-                    test -f "$path_to_set" && setfacl -m user:$user:r  "$path_to_set"
-                fi
-            fi
-        done
-        IFS="$oldIFS"
-        
-        if $(test -L "$file_to_set")
-        then
-            if [[ -n "$(readlink "$file_to_set" | grep -e "^/")" ]]
-            then
-                file_to_set=$(readlink "$file_to_set") # If it is an absolute path
-            else
-                file_to_set=$(realpath -s -m "$(echo "$file_to_set" | cut -d'/' -f-$(echo "$file_to_set" | grep -o '/' | wc -l))/$(readlink "$file_to_set")") # If it is an relative path (we get with realpath the absolute path)
-            fi
-        else
-            break
-        fi
-    done
-}
-
 
 ####### Solve issue https://dev.yunohost.org/issues/1006
 

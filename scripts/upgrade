@@ -67,6 +67,7 @@ then
 	# Create directory Install synapse in virtualenv
 	setup_dir || true # If the dir aready exist the command could fail
 	install_source
+    cp /etc/yunohost/certs/$domain/dh.pem /etc/matrix-synapse/dh.pem
 	set_permission
 
 	# Open access to server without a button the home
@@ -76,6 +77,8 @@ then
 
 	# Create user
 	ynh_system_user_create $synapse_user /var/lib/matrix-synapse
+    adduser $synapse_user ssl-cert
+    adduser turnserver ssl-cert
 
 	# Create systemd service
 	ynh_secure_remove /etc/init.d/matrix-synapse
@@ -122,6 +125,14 @@ fi
 # If the turnserver log is not ready configured we configure it now
 test -e /var/log/turnserver || (mkdir -p /var/log/turnserver && ynh_use_logrotate /var/log/turnserver)
 
+# Fix issue about certificates access
+if [[ ! $(grep "ssl-cert:x:[0-9]*:.*matrix-synapse" /etc/group) ]]
+then
+    adduser $synapse_user ssl-cert
+    adduser turnserver ssl-cert
+    cp /etc/yunohost/certs/$domain/dh.pem /etc/matrix-synapse/dh.pem
+fi
+
 # Upgrade manually Synapse
 install_source
 set_permission
@@ -131,9 +142,6 @@ config_nginx
 
 # Configure Synapse
 config_synapse
-
-# Configure access for certificates
-set_certificat_access
 
 # Configure Coturn
 config_coturn

@@ -12,8 +12,8 @@ Setup
 
 ### Install for ARM arch (or slow arch)
 
-If you don't have a dh.pem file in `/etc/yunohost/certs/YOUR DOMAIN/dh.pem` you should built it befor to install the app because it could take a long time.
-You could built it by this cmd : `sudo openssl dhparam -out /etc/yunohost/certs/YOUR DOMAIN/dh.pem 2048 > /dev/null`
+For all slow or arm architecture it's recommended to build the dh file before the install to have quicker install.
+You could built it by this cmd : `mkdir -p /etc/matrix-synapse && openssl dhparam -out /etc/matrix-synapse/dh.pem 2048 > /dev/null`
 After that you can install it without problem.
 
 The package use a prebuild python virtualenvironnement. The binary are taken from this repos : https://github.com/Josue-T/synapse_python_build

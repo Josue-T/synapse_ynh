@@ -24,9 +24,6 @@ turnserver_pwd=$(ynh_app_setting_get $app turnserver_pwd)
 # Check domain/path availability
 ynh_webpath_available $domain $path || ynh_die "$domain/$path is not available, please use an other domain."
 
-# Make dh cert for synapse if it not exist
-test ! -e /etc/yunohost/certs/$domain/dh.pem && openssl dhparam -out /etc/yunohost/certs/$domain/dh.pem 2048 > /dev/null
-
 # Ouvre le port dans le firewall
 yunohost firewall allow --no-upnp TCP $synapse_tls_port > /dev/null 2>&1
 yunohost firewall allow --no-upnp Both $turnserver_tls_port > /dev/null 2>&1
@@ -36,6 +33,8 @@ install_dependances
 
 # Create user
 ynh_system_user_create $synapse_user /var/lib/matrix-synapse
+adduser $synapse_user ssl-cert
+adduser turnserver ssl-cert
 
 # Restore all config and data
 ynh_restore
@@ -45,9 +44,6 @@ set_permission
 
 # Open access to server without a button the home
 python $final_path/add_sso_conf.py
-
-# Configure access for certificates
-set_certificat_access
 
 # Restore postgresql database
 ynh_psql_test_if_first_run

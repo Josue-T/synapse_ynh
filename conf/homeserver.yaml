@@ -10,7 +10,7 @@ tls_certificate_path: "/etc/yunohost/certs/__DOMAIN__/crt.pem"
 tls_private_key_path: "/etc/yunohost/certs/__DOMAIN__/key.pem"
 
 # PEM dh parameters for ephemeral keys
-tls_dh_params_path: "/etc/yunohost/certs/__DOMAIN__/dh.pem"
+tls_dh_params_path: "/etc/matrix-synapse/dh.pem"
 
 # Don't bind to the https port
 no_tls: False
