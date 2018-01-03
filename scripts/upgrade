@@ -130,8 +130,9 @@ if [[ ! $(grep "ssl-cert:x:[0-9]*:.*matrix-synapse" /etc/group) ]]
 then
     adduser $synapse_user ssl-cert
     adduser turnserver ssl-cert
-    cp /etc/yunohost/certs/$domain/dh.pem /etc/matrix-synapse/dh.pem
 fi
+
+test -e /etc/matrix-synapse/dh.pem || cp /etc/yunohost/certs/$domain/dh.pem /etc/matrix-synapse/dh.pem
 
 # Upgrade manually Synapse
 install_source
