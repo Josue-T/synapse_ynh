@@ -56,6 +56,12 @@ install_source() {
 		pip install --upgrade setuptools
 		pip install --upgrade cffi ndg-httpsclient psycopg2 lxml
 		pip install --upgrade https://github.com/matrix-org/synapse/archive/v$APP_VERSION.tar.gz
+		
+		# Fix issue with msgpack see https://github.com/YunoHost-Apps/synapse_ynh/issues/29
+		test -e $final_path/lib/python2.7/site-packages/msgpack/__init__.py || (\
+                pip uninstall -y msgpack-python msgpack; \
+                pip install msgpack-python)
+		
 		deactivate
 	fi
 }
