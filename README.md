@@ -87,6 +87,12 @@ This following command will enable the admin access to the specified user :
 su --command="psql matrix_synapse" postgres <<< "UPDATE users SET admin = 1 WHERE name = '@user_to_be_admin:domain.tld'"
 ```
 
+### Disable backup in upgrade
+
+To solve the issue [#30](https://github.com/YunoHost-Apps/synapse_ynh/issues/30) you can disable the upgrade in the upgrade by setting to true the key `disable_backup_before_upgrade` in the app setting. You can set it by this command :
+
+`yunohost app setting synapse disable_backup_before_upgrade -v 1`
+
 Migration from old package
 --------------------------
 

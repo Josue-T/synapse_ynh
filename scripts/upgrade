@@ -30,10 +30,13 @@ fi
 
 systemctl stop matrix-synapse.service
 
-ynh_backup_before_upgrade
-ynh_clean_setup () {
-	ynh_restore_upgradebackup
-}
+if [[ $(ynh_app_setting_get $app disable_backup_before_upgrade) != '1' ]]
+then
+    ynh_backup_before_upgrade
+    ynh_clean_setup () {
+        ynh_restore_upgradebackup
+    }
+fi
 
 ynh_abort_if_errors
 
