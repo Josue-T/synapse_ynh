@@ -68,7 +68,6 @@ ynh_psql_execute_as_root \
 # Create directory and Install synapse in virtualenv
 setup_dir
 install_source
-set_permission
 
 # Open access to server without a button the home
 cp ../conf/add_sso_conf.py $final_path
@@ -93,6 +92,9 @@ config_coturn
 # Configuration de logrotate
 ynh_use_logrotate /var/log/matrix-synapse
 ynh_use_logrotate /var/log/turnserver
+
+# Set Permission for all directory
+set_permission
 
 # register yunohost service
 yunohost service add matrix-synapse

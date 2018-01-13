@@ -139,7 +139,6 @@ test -e /etc/matrix-synapse/dh.pem || cp /etc/yunohost/certs/$domain/dh.pem /etc
 
 # Upgrade manually Synapse
 install_source
-set_permission
 
 # Update nginx config
 config_nginx
@@ -149,6 +148,9 @@ config_synapse
 
 # Configure Coturn
 config_coturn
+
+# Set Permission for all directory
+set_permission
 
 # Set new settings
 ynh_app_setting_set $app synapse_version $APP_VERSION
