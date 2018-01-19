@@ -10,7 +10,7 @@ tls_certificate_path: "/etc/yunohost/certs/__DOMAIN__/crt.pem"
 tls_private_key_path: "/etc/yunohost/certs/__DOMAIN__/key.pem"
 
 # PEM dh parameters for ephemeral keys
-tls_dh_params_path: "/etc/matrix-synapse/dh.pem"
+tls_dh_params_path: "/etc/matrix-__APP__/dh.pem"
 
 # Don't bind to the https port
 no_tls: False
@@ -20,7 +20,7 @@ no_tls: False
 server_name: "__DOMAIN__"
 
 # When running as a daemon, the file to store the pid in
-pid_file: "/var/run/matrix-synapse.pid"
+pid_file: "/var/run/matrix-__APP__.pid"
 
 # Whether to serve a web client from the HTTP/HTTPS root resource.
 web_client: False
@@ -113,7 +113,7 @@ database:
     args:
         user: __SYNAPSE_DB_USER__
         password: __SYNAPSE_DB_PWD__
-        database: matrix_synapse
+        database: matrix___APP__
         host: localhost
         cp_min: 5
         cp_max: 10
@@ -123,7 +123,7 @@ event_cache_size: "10K"
 
 
 # A yaml python logging config file
-log_config: "/etc/matrix-synapse/log.yaml"
+log_config: "/etc/matrix-__APP__/log.yaml"
 
 # Stop twisted from discarding the stack traces of exceptions in
 # deferreds by waiting a reactor tick before running a deferred's
@@ -161,7 +161,7 @@ federation_rc_concurrent: 3
 
 
 # Directory where uploaded images and attachments are stored.
-media_store_path: "/var/lib/matrix-synapse/media"
+media_store_path: "/var/lib/matrix-__APP__/media"
 
 # The largest allowed upload size in bytes
 max_upload_size: "10M"
@@ -353,7 +353,7 @@ expire_access_token: False
 ## Signing Keys ##
 
 # Path to the signing key to sign messages with
-signing_key_path: "/etc/matrix-synapse/homeserver.signing.key"
+signing_key_path: "/etc/matrix-__APP__/homeserver.signing.key"
 
 # The keys that the server used to sign messages with but won't use
 # to sign new messages. E.g. it has lost its private key

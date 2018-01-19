@@ -93,6 +93,17 @@ To solve the issue [#30](https://github.com/YunoHost-Apps/synapse_ynh/issues/30)
 
 `yunohost app setting synapse disable_backup_before_upgrade -v 1`
 
+Multi instance support
+----------------------
+
+To give a possiblity to have multiple domain you can use synapse in multiple instance. In this case all instance will run on differents port so it's really important to use put a SRV record in your domain. You can get the port that your need to put in your SRV record by this following command :
+```
+yunohost app setting synapse__<instancenumber> synapse_tls_port
+```
+
+Before to install a second instance of the app it's really recommend to update all instance already installed.
+
+
 Migration from old package
 --------------------------
 

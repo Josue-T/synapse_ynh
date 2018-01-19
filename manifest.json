@@ -3,7 +3,7 @@
 	"id": "synapse",
 	"packaging_format": 1,
 	"requirements": {
-		"yunohost": ">= 2.7.2"
+		"yunohost": ">= 2.7.7"
 	},
 	"description": {
 		"en": "Instant messaging server who use matrix",
@@ -16,7 +16,7 @@
 		"name": "Josué Tille",
 		"email": "josue@tille.ch"
 	},
-	"multi_instance": false,
+	"multi_instance": true,
 	"services": [
 		"nginx"
 	],

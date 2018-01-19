@@ -2,9 +2,9 @@
 
 # Retrieve arguments
 app=$YNH_APP_INSTANCE_NAME
-synapse_user="matrix-synapse"
-synapse_db_name="matrix_synapse"
-synapse_db_user="matrix_synapse"
+synapse_user="matrix-$app"
+synapse_db_name="matrix_$app"
+synapse_db_user="matrix_$app"
 
 get_app_version_from_json() {
    manifest_path="../manifest.json"
@@ -23,21 +23,21 @@ install_dependances() {
 
 setup_dir() {
     # Create empty dir for synapse
-    mkdir -p /var/lib/matrix-synapse
-    mkdir -p /var/log/matrix-synapse
-    mkdir -p /var/log/turnserver
-    mkdir -p /etc/matrix-synapse/conf.d
+    mkdir -p /var/lib/matrix-$app
+    mkdir -p /var/log/matrix-$app
+    mkdir -p /etc/matrix-$app/conf.d
     mkdir -p $final_path
 }
 
 set_permission() {
     # Set permission
     chown $synapse_user:root -R $final_path
-    chown $synapse_user:root -R /var/lib/matrix-synapse
-    chown $synapse_user:root -R /var/log/matrix-synapse
-    chown turnserver:root -R /var/log/turnserver
-    chown $synapse_user:root -R /etc/matrix-synapse
-    chmod 600 /etc/matrix-synapse/dh.pem
+    chown $synapse_user:root -R /var/lib/matrix-$app
+    chown $synapse_user:root -R /var/log/matrix-$app
+    chown $synapse_user:root -R /etc/matrix-$app
+    chmod 600 /etc/matrix-$app/dh.pem
+    setfacl -R -m user:turnserver:rx  /etc/matrix-$app
+    setfacl -R -m user:turnserver:rwx  /var/log/matrix-$app
 }
 
 install_source() {
@@ -51,6 +51,7 @@ install_source() {
 		# Install synapse in virtualenv
 		PS1=""
 		cp ../conf/virtualenv_activate $final_path/bin/activate
+		ynh_replace_string __FINAL_PATH__ $final_path $final_path/bin/activate
 		source $final_path/bin/activate
 		pip install --upgrade pip
 		pip install --upgrade setuptools
@@ -66,42 +67,46 @@ install_source() {
 	fi
 }
 
-config_nginx() {
-	cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
-
-	ynh_replace_string __PATH__ $path /etc/nginx/conf.d/$domain.d/$app.conf
-	ynh_replace_string __PORT__ $synapse_port /etc/nginx/conf.d/$domain.d/$app.conf
-	
-	systemctl reload nginx.service
-}
-
 config_synapse() {
-	cp ../conf/homeserver.yaml /etc/matrix-synapse/homeserver.yaml
-	cp ../conf/log.yaml /etc/matrix-synapse/log.yaml
+	ynh_backup_if_checksum_is_different /etc/matrix-$app/homeserver.yaml
+	ynh_backup_if_checksum_is_different /etc/matrix-$app/log.yaml
+	cp ../conf/homeserver.yaml /etc/matrix-$app/homeserver.yaml
+	cp ../conf/log.yaml /etc/matrix-$app/log.yaml
 	
-	ynh_replace_string __DOMAIN__ $domain /etc/matrix-synapse/homeserver.yaml
-	ynh_replace_string __SYNAPSE_DB_USER__ $synapse_db_user /etc/matrix-synapse/homeserver.yaml
-	ynh_replace_string __SYNAPSE_DB_PWD__ $synapse_db_pwd /etc/matrix-synapse/homeserver.yaml
-	ynh_replace_string __PORT__ $synapse_port /etc/matrix-synapse/homeserver.yaml
-	ynh_replace_string __TLS_PORT__ $synapse_tls_port /etc/matrix-synapse/homeserver.yaml
-	ynh_replace_string __TURNSERVER_TLS_PORT__ $turnserver_tls_port /etc/matrix-synapse/homeserver.yaml
-	ynh_replace_string __TURNPWD__ $turnserver_pwd /etc/matrix-synapse/homeserver.yaml
+	ynh_replace_string __APP__ $app /etc/matrix-$app/homeserver.yaml
+	ynh_replace_string __DOMAIN__ $domain /etc/matrix-$app/homeserver.yaml
+	ynh_replace_string __SYNAPSE_DB_USER__ $synapse_db_user /etc/matrix-$app/homeserver.yaml
+	ynh_replace_string __SYNAPSE_DB_PWD__ $synapse_db_pwd /etc/matrix-$app/homeserver.yaml
+	ynh_replace_string __PORT__ $port /etc/matrix-$app/homeserver.yaml
+	ynh_replace_string __TLS_PORT__ $synapse_tls_port /etc/matrix-$app/homeserver.yaml
+	ynh_replace_string __TURNSERVER_TLS_PORT__ $turnserver_tls_port /etc/matrix-$app/homeserver.yaml
+	ynh_replace_string __TURNPWD__ $turnserver_pwd /etc/matrix-$app/homeserver.yaml
+	
+	ynh_replace_string __APP__ $app /etc/matrix-$app/log.yaml
 
 	if [ "$is_public" = "0" ]
 	then
-		ynh_replace_string __ALLOWED_ACCESS__ False /etc/matrix-synapse/homeserver.yaml
+		ynh_replace_string __ALLOWED_ACCESS__ False /etc/matrix-$app/homeserver.yaml
 	else
-		ynh_replace_string __ALLOWED_ACCESS__ True /etc/matrix-synapse/homeserver.yaml
+		ynh_replace_string __ALLOWED_ACCESS__ True /etc/matrix-$app/homeserver.yaml
 	fi
+	
+    ynh_store_file_checksum /etc/matrix-$app/homeserver.yaml
+	ynh_store_file_checksum /etc/matrix-$app/log.yaml
 }
 
 config_coturn() {
-	cp ../conf/default_coturn /etc/default/coturn
-	cp ../conf/turnserver.conf /etc/turnserver.conf
+	ynh_backup_if_checksum_is_different /etc/matrix-$app/coturn.conf
+	cp ../conf/turnserver.conf /etc/matrix-$app/coturn.conf
 	
-	ynh_replace_string __TURNPWD__ $turnserver_pwd /etc/turnserver.conf
-	ynh_replace_string __DOMAIN__ $domain /etc/turnserver.conf
-	ynh_replace_string __TLS_PORT__ $turnserver_tls_port /etc/turnserver.conf
+	ynh_replace_string __APP__ $app /etc/matrix-$app/coturn.conf
+	ynh_replace_string __TURNPWD__ $turnserver_pwd /etc/matrix-$app/coturn.conf
+	ynh_replace_string __DOMAIN__ $domain /etc/matrix-$app/coturn.conf
+	ynh_replace_string __TLS_PORT__ $turnserver_tls_port /etc/matrix-$app/coturn.conf
+	ynh_replace_string __TLS_ALT_PORT__ $turnserver_alt_tls_port /etc/matrix-$app/coturn.conf
+	ynh_replace_string __CLI_PORT__ $cli_port /etc/matrix-$app/coturn.conf
+	
+	ynh_store_file_checksum /etc/matrix-$app/coturn.conf
 }
 
 ####### Solve issue https://dev.yunohost.org/issues/1006
@@ -147,59 +152,68 @@ ynh_package_install_from_equivs () {
     ynh_package_is_installed "$pkgname"
 }
 
-# Implement PR : https://github.com/YunoHost/yunohost/pull/392
+# Start or restart a service and follow its booting
+#
+# usage: ynh_check_starting "Line to match" [service name] [Log file] [Timeout]
+#
+# | arg: Line to match - The line to find in the log to attest the service have finished to boot.
+# | arg: Log file - The log file to watch
+# /var/log/$app/$app.log will be used if no other log is defined.
+# | arg: Timeout - The maximum time to wait before ending the watching. Defaut 300 seconds.
+ynh_check_starting () {
+	local line_to_match="$1"
+	local service_name="${2:-$app}"
+	local app_log="${3:-/var/log/$app/$app.log}"
+	local timeout=${4:-300}
 
-# Use logrotate to manage the logfile
-#
-# usage: ynh_use_logrotate [logfile] [--non-append]
-# | arg: logfile - absolute path of logfile
-# | option: --non-append - Replace the config file instead of appending this new config.
-#
-# If no argument provided, a standard directory will be use. /var/log/${app}
-# You can provide a path with the directory only or with the logfile.
-# /parentdir/logdir
-# /parentdir/logdir/logfile.log
-#
-# It's possible to use this helper several times, each config will be added to the same logrotate config file.
-# Unless you use the option --non-append
-ynh_use_logrotate () {
-	local customtee="tee -a"
-	if [ $# -gt 0 ] && [ "$1" == "--non-append" ]; then
-		customtee="tee"
-		# Destroy this argument for the next command.
-		shift
-	elif [ $# -gt 1 ] && [ "$2" == "--non-append" ]; then
-		customtee="tee"
+	ynh_clean_check_starting () {
+		# Stop the execution of tail.
+		kill -s 15 $pid_tail 2>&1
+		ynh_secure_remove "$templog" 2>&1
+	}
+
+	echo "Starting of $service_name" >&2
+	systemctl restart $service_name
+	
+	local i=0
+	local templog="$(mktemp)"
+	
+	# Wait if the log file don't exist
+	if [[ ! -e $app_log ]]
+	then
+		for i in $(seq 1 $timeout)
+		do
+			if [[ -e $app_log ]]
+			then
+				cat $app_log > "$templog"
+				break
+			fi
+			echo -n "." >&2
+			sleep 1
+		done
 	fi
-	if [ $# -gt 0 ]; then
-		if [ "$(echo ${1##*.})" == "log" ]; then	# Keep only the extension to check if it's a logfile
-			logfile=$1	# In this case, focus logrotate on the logfile
-		else
-			logfile=$1/*.log	# Else, uses the directory and all logfile into it.
+	
+	# Following the starting of the app in its log
+	tail -f -n1 "$app_log" >> "$templog" &
+	# Get the PID of the tail command
+	local pid_tail=$!
+
+	for i in $(seq $i $timeout)
+	do
+		# Read the log until the sentence is found, that means the app finished to start. Or run until the timeout
+		if grep --quiet "$line_to_match" "$templog"
+		then
+			echo "The service $service_name has correctly started." >&2
+			break
 		fi
-	else
-		logfile="/var/log/${app}/*.log" # Without argument, use a defaut directory in /var/log
+		echo -n "." >&2
+		sleep 1
+	done
+	if [ $i -eq $timeout ]
+	then
+		echo "The service $service_name didn't fully started before the timeout." >&2
 	fi
-	cat > ./${app}-logrotate << EOF	# Build a config file for logrotate
-$logfile {
-		# Rotate if the logfile exceeds 100Mo
-	size 100M
-		# Keep 12 old log maximum
-	rotate 12
-		# Compress the logs with gzip
-	compress
-		# Compress the log at the next cycle. So keep always 2 non compressed logs
-	delaycompress
-		# Copy and truncate the log to allow to continue write on it. Instead of move the log.
-	copytruncate
-		# Do not do an error if the log is missing
-	missingok
-		# Not rotate if the log is empty
-	notifempty
-		# Keep old logs in the same dir
-	noolddir
-}
-EOF
-	sudo mkdir -p $(dirname "$logfile")	# Create the log directory, if not exist
-	cat ${app}-logrotate | sudo $customtee /etc/logrotate.d/$app > /dev/null	# Append this config to the existing config file, or replace the whole config file (depending on $customtee)
+
+	echo ""
+	ynh_clean_check_starting
 }

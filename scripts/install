@@ -13,27 +13,26 @@ source ./_common.sh
 # Retrieve arguments
 domain=$YNH_APP_ARG_DOMAIN
 is_public=$YNH_APP_ARG_IS_PUBLIC
-path="/_matrix"
-final_path="/opt/yunohost/matrix-synapse"
+path_url="/_matrix"
+final_path="/opt/yunohost/matrix-$app"
 
 # Check domain/path availability
-test $(ynh_webpath_available $domain $path) == 'True' || ynh_die "$domain$path is not available, please use an other domain."
+test $(ynh_webpath_available $domain $path_url) == 'True' || ynh_die "$domain is not available as domain, please use an other domain."
+test ! -e "/etc/nginx/conf.d/$domain.d/synapse*.conf" || ynh_die "$domain is not available as domain, please use an other domain."
 
 # Check Final Path availability
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
 # Ouvre le port dans le firewall
 synapse_tls_port=$(ynh_find_port 8448)
-synapse_port=$(ynh_find_port 8008)
+port=$(ynh_find_port 8008)
 turnserver_tls_port=$(ynh_find_port 5349)
+turnserver_alt_tls_port=$(ynh_find_port $((turnserver_tls_port+1)))
+cli_port=$(ynh_find_port 5766)
 
 yunohost firewall allow --no-upnp TCP $synapse_tls_port > /dev/null 2>&1
 yunohost firewall allow --no-upnp Both $turnserver_tls_port > /dev/null 2>&1
-
-# Make dh cert for synapse if it not exist
-test ! -e /etc/matrix-synapse/dh.pem && \
-    mkdir -p /etc/matrix-synapse && \
-    openssl dhparam -out /etc/matrix-synapse/dh.pem 2048 > /dev/null
+yunohost firewall allow --no-upnp Both $turnserver_alt_tls_port > /dev/null 2>&1
 
 # Find password for turnserver and database
 turnserver_pwd=$(ynh_string_random 30)
@@ -41,21 +40,28 @@ synapse_db_pwd=$(ynh_string_random 30)
 
 # Enregistre les infos dans la config YunoHost
 ynh_app_setting_set $app special_domain $domain
-ynh_app_setting_set $app special_path $path
+ynh_app_setting_set $app special_path $path_url
 ynh_app_setting_set $app final_path $final_path
 ynh_app_setting_set $app synapse_version $APP_VERSION
 ynh_app_setting_set $app synapse_db_pwd $synapse_db_pwd
 ynh_app_setting_set $app is_public $is_public
-ynh_app_setting_set $app synapse_port $synapse_port
+ynh_app_setting_set $app synapse_port $port
 ynh_app_setting_set $app synapse_tls_port $synapse_tls_port
 ynh_app_setting_set $app turnserver_tls_port $turnserver_tls_port
+ynh_app_setting_set $app turnserver_alt_tls_port $turnserver_alt_tls_port
 ynh_app_setting_set $app turnserver_pwd $turnserver_pwd
+ynh_app_setting_set $app cli_port $cli_port
+
+# Make dh cert for synapse if it not exist
+test ! -e /etc/matrix-$app/dh.pem && \
+    mkdir -p /etc/matrix-$app && \
+    openssl dhparam -out /etc/matrix-$app/dh.pem 2048 > /dev/null
 
 # Install all dependances
 install_dependances
 
 # Create user
-ynh_system_user_create $synapse_user /var/lib/matrix-synapse
+ynh_system_user_create $synapse_user /var/lib/matrix-$app
 adduser $synapse_user ssl-cert
 adduser turnserver ssl-cert
 
@@ -74,14 +80,21 @@ cp ../conf/add_sso_conf.py $final_path
 cp ../conf/remove_sso_conf.py $final_path
 python $final_path/add_sso_conf.py
 
-# Create systemd service
-cp ../conf/default_matrix-synapse /etc/default/matrix-synapse
-cp ../conf/matrix-synapse.service /etc/systemd/system/
+# Create systemd service for synapse and turnserver
+cp ../conf/default_matrix-synapse /etc/default/matrix-$app
+cp ../conf/matrix-synapse.service /etc/systemd/system/matrix-$app.service
+ynh_replace_string __APP__ $app /etc/systemd/system/matrix-$app.service
+
+cp ../conf/default_coturn /etc/default/coturn-$app
+cp ../conf/coturn-synapse.service /etc/systemd/system/coturn-$app.service
+ynh_replace_string __APP__ $app /etc/systemd/system/coturn-$app.service
+
 systemctl daemon-reload
-systemctl enable matrix-synapse.service
+systemctl enable matrix-$app.service
+systemctl enable coturn-$app.service
 
 # Config nginx
-config_nginx
+ynh_add_nginx_config
 
 # Configure Synapse
 config_synapse
@@ -90,15 +103,14 @@ config_synapse
 config_coturn
 
 # Configuration de logrotate
-ynh_use_logrotate /var/log/matrix-synapse
-ynh_use_logrotate /var/log/turnserver
+ynh_use_logrotate /var/log/matrix-$app
 
 # Set Permission for all directory
 set_permission
 
 # register yunohost service
-yunohost service add matrix-synapse
+yunohost service add matrix-$app
 
-# Recharge la configuration Nginx
-systemctl restart matrix-synapse.service
-systemctl restart coturn.service
+# Reload service
+systemctl restart coturn-$app.service
+ynh_check_starting "Synapse now listening on port 8448" "matrix-$app" "/var/log/matrix-$app/homeserver.log" 60

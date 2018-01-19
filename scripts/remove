@@ -15,26 +15,25 @@ domain=$(ynh_app_setting_get $app special_domain)
 final_path=$(ynh_app_setting_get $app final_path)
 synapse_tls_port=$(ynh_app_setting_get $app synapse_tls_port)
 turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
+turnserver_alt_tls_port=$(ynh_app_setting_get $app turnserver_alt_tls_port)
 
-systemctl stop matrix-synapse.service || true
-systemctl stop coturn.service || true
-
-# Suppression de la configuration nginx
-ynh_secure_remove "/etc/nginx/conf.d/$domain.d/$app.conf"
-systemctl reload nginx.service
+systemctl stop matrix-$YNH_APP_INSTANCE_NAME.service || true
+systemctl stop coturn-$app.service || true
 
 # Close firewall ports
 closeport() {
     if yunohost firewall list | grep -q "\- $port$"
     then
             echo "Close port $port"
-            yunohost firewall disallow TCP $port > /dev/null
+            yunohost firewall disallow Both $port > /dev/null
     fi
 }
 
 port=$synapse_tls_port
 closeport
 port=$turnserver_tls_port
+closeport
+port=$turnserver_alt_tls_port
 closeport
 
 # Remove the skipped url
@@ -45,29 +44,30 @@ ynh_remove_app_dependencies || true
 
 # Clean all directory
 ynh_secure_remove $final_path
-ynh_secure_remove /var/lib/matrix-synapse
-ynh_secure_remove /var/log/matrix-synapse
-ynh_secure_remove /var/log/turnserver
-ynh_secure_remove /etc/matrix-synapse
-ynh_secure_remove /etc/default/matrix-synapse
+ynh_secure_remove /var/lib/matrix-$YNH_APP_INSTANCE_NAME
+ynh_secure_remove /var/log/matrix-$YNH_APP_INSTANCE_NAME
+ynh_secure_remove /etc/matrix-$YNH_APP_INSTANCE_NAME
+ynh_secure_remove /etc/default/matrix-$YNH_APP_INSTANCE_NAME
+ynh_secure_remove /etc/default/coturn-$YNH_APP_INSTANCE_NAME
+
+# Remove nginx config
+ynh_remove_nginx_config
 
 # Remove systemd service
-systemctl disable matrix-synapse.service
-ynh_secure_remove /etc/systemd/system/matrix-synapse.service
+systemctl disable matrix-$YNH_APP_INSTANCE_NAME.service
+systemctl disable coturn-$YNH_APP_INSTANCE_NAME.service
+ynh_secure_remove /etc/systemd/system/matrix-$YNH_APP_INSTANCE_NAME.service
+ynh_secure_remove /etc/systemd/system/coturn-$app.service
 systemctl daemon-reload
 
 # Remove database and user
 ynh_psql_remove_db $synapse_db_name $synapse_db_user
 
 # Remove user
-ynh_system_user_delete matrix-synapse
+ynh_system_user_delete matrix-$YNH_APP_INSTANCE_NAME
 
 # Remove logrotate
 ynh_remove_logrotate
 
 # Remove Monitoring
-yunohost service remove matrix-synapse
-
-# Reload nginx
-systemctl reload nginx.service
-
+yunohost service remove matrix-$YNH_APP_INSTANCE_NAME

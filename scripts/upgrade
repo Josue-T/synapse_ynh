@@ -12,15 +12,17 @@ source ./_common.sh
 
 # Retrieve arguments
 domain=$(ynh_app_setting_get $app special_domain)
-path=$(ynh_app_setting_get $app special_path)
+path_url=$(ynh_app_setting_get $app special_path)
 final_path=$(ynh_app_setting_get $app final_path)
 synapse_old_version=$(ynh_app_setting_get $app synapse_version)
 synapse_db_pwd=$(ynh_app_setting_get $app synapse_db_pwd)
 is_public=$(ynh_app_setting_get $app is_public)
-synapse_port=$(ynh_app_setting_get $app synapse_port)
+port=$(ynh_app_setting_get $app synapse_port)
 synapse_tls_port=$(ynh_app_setting_get $app synapse_tls_port)
 turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
+turnserver_alt_tls_port=$(ynh_app_setting_get $app turnserver_alt_tls_port)
 turnserver_pwd=$(ynh_app_setting_get $app turnserver_pwd)
+cli_port=$(ynh_app_setting_get $app cli_port)
 
 # To be sure that the migration is sucessfull we check that the old synapse version is compatible with the synapse_port_db script.
 if [[ -z $synapse_old_version ]] && [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.25") != 1 ]] && [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.26") != 1 ]]
@@ -28,7 +30,7 @@ then
 	ynh_die "Update from this synapse version is not available now. You need to wait for the next update."
 fi
 
-systemctl stop matrix-synapse.service
+systemctl stop matrix-$app.service
 
 if [[ $(ynh_app_setting_get $app disable_backup_before_upgrade) != '1' ]]
 then
@@ -45,11 +47,11 @@ then
 
 	##  We move from debian package to new package with python virtualenv
 	# Change settings
-	path="/_matrix"
+	path_url="/_matrix"
 	domain=$(ynh_app_setting_get $app domain)
 	final_path="/opt/yunohost/matrix-synapse"
 	ynh_app_setting_set $app special_domain $domain
-	ynh_app_setting_set $app special_path $path
+	ynh_app_setting_set $app special_path $path_url
 	ynh_app_setting_set $app final_path $final_path
 	ynh_app_setting_delete $app domain
 	ynh_app_setting_delete $app path
@@ -91,7 +93,8 @@ then
 	systemctl disable matrix-synapse.service
 
 	cp ../conf/default_matrix-synapse /etc/default/matrix-synapse
-	cp ../conf/matrix-synapse.service /etc/systemd/system/
+	cp ../conf/matrix-synapse.service /etc/systemd/system/matrix-synapse.service
+	ynh_replace_string __APP__ $app /etc/systemd/system/matrix-synapse.service
 	systemctl daemon-reload
 	systemctl enable matrix-synapse.service
 
@@ -125,23 +128,52 @@ then
 	deactivate
 fi
 
-# If the turnserver log is not ready configured we configure it now
-test -e /var/log/turnserver || (mkdir -p /var/log/turnserver && ynh_use_logrotate /var/log/turnserver)
+# Disable default config for turnserver and create a new service
+if [[ ! -e /etc/matrix-$app/coturn.conf ]]
+then
+    systemctl stop coturn.service
+    
+    # Set by default the system config for coturn
+    echo "" > /etc/turnserver.conf
+    ynh_replace_string "TURNSERVER_ENABLED=1" "TURNSERVER_ENABLED=0" /etc/default/coturn
+    
+    # Set a port for each service in turnserver
+    turnserver_alt_tls_port=$(ynh_find_port $((turnserver_tls_port+1)))
+    cli_port=$(ynh_find_port 5766)
+    
+    ynh_app_setting_set $app turnserver_alt_tls_port $turnserver_alt_tls_port
+    ynh_app_setting_set $app cli_port $cli_port
+    
+    yunohost firewall allow --no-upnp Both $turnserver_alt_tls_port > /dev/null 2>&1
+    
+    # Configure systemd
+    cp ../conf/default_coturn /etc/default/coturn-$app
+    cp ../conf/coturn-synapse.service /etc/systemd/system/coturn-$app.service
+    ynh_replace_string __APP__ $app /etc/systemd/system/coturn-$app.service
+
+    systemctl daemon-reload
+    systemctl enable coturn-$app.service
+    
+    # Clean logrotate file for all old instances
+    ynh_remove_logrotate
+    ynh_use_logrotate /var/log/matrix-$app
+fi
 
 # Fix issue about certificates access
-if [[ ! $(grep "ssl-cert:x:[0-9]*:.*matrix-synapse" /etc/group) ]]
+if [[ ! $(grep "ssl-cert:x:[0-9]*:.*matrix-$app" /etc/group) ]]
 then
     adduser $synapse_user ssl-cert
     adduser turnserver ssl-cert
 fi
 
-test -e /etc/matrix-synapse/dh.pem || cp /etc/yunohost/certs/$domain/dh.pem /etc/matrix-synapse/dh.pem
+# If we don't have the dh file in synapse config dir we copy it
+test -e /etc/matrix-$app/dh.pem || cp /etc/yunohost/certs/$domain/dh.pem /etc/matrix-$app/dh.pem
 
 # Upgrade manually Synapse
 install_source
 
 # Update nginx config
-config_nginx
+ynh_add_nginx_config
 
 # Configure Synapse
 config_synapse
@@ -155,7 +187,7 @@ set_permission
 # Set new settings
 ynh_app_setting_set $app synapse_version $APP_VERSION
 
-# Recharge la configuration Nginx
-systemctl reload nginx.service
-systemctl start matrix-synapse.service
-systemctl restart coturn.service
+# Restart service
+systemctl restart coturn-$app.service
+ynh_check_starting "Synapse now listening on port 8448" "matrix-$app" "/var/log/matrix-$app/homeserver.log" 60
+
