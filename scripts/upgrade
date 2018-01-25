@@ -2,12 +2,13 @@
 
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
-source ./psql.sh
 
 # Stop script if errors
 ynh_abort_if_errors
 
 # Import common cmd
+source ./psql.sh
+source ./experimental_helper.sh
 source ./_common.sh
 
 # Retrieve arguments
@@ -185,9 +186,8 @@ config_coturn
 set_permission
 
 # Set new settings
-ynh_app_setting_set $app synapse_version $APP_VERSION
+ynh_app_setting_set $app synapse_version $upstream_version
 
 # Restart service
 systemctl restart coturn-$app.service
-ynh_check_starting "Synapse now listening on port 8448" "matrix-$app" "/var/log/matrix-$app/homeserver.log" 60
-
+ynh_check_starting "Synapse now listening on port 8448" "/var/log/matrix-$app/homeserver.log" 300 "matrix-$app"

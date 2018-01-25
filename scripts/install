@@ -2,12 +2,13 @@
 
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
-source ./psql.sh
 
 # Stop script if errors
 ynh_abort_if_errors
 
 # Import common cmd
+source ./psql.sh
+source ./experimental_helper.sh
 source ./_common.sh
 
 # Retrieve arguments
@@ -17,7 +18,7 @@ path_url="/_matrix"
 final_path="/opt/yunohost/matrix-$app"
 
 # Check domain/path availability
-test $(ynh_webpath_available $domain $path_url) == 'True' || ynh_die "$domain is not available as domain, please use an other domain."
+ynh_webpath_available $domain $path_url || ynh_die "$domain is not available as domain, please use an other domain."
 test ! -e "/etc/nginx/conf.d/$domain.d/synapse*.conf" || ynh_die "$domain is not available as domain, please use an other domain."
 
 # Check Final Path availability
@@ -42,7 +43,7 @@ synapse_db_pwd=$(ynh_string_random 30)
 ynh_app_setting_set $app special_domain $domain
 ynh_app_setting_set $app special_path $path_url
 ynh_app_setting_set $app final_path $final_path
-ynh_app_setting_set $app synapse_version $APP_VERSION
+ynh_app_setting_set $app synapse_version $upstream_version
 ynh_app_setting_set $app synapse_db_pwd $synapse_db_pwd
 ynh_app_setting_set $app is_public $is_public
 ynh_app_setting_set $app synapse_port $port
@@ -82,16 +83,10 @@ python $final_path/add_sso_conf.py
 
 # Create systemd service for synapse and turnserver
 cp ../conf/default_matrix-synapse /etc/default/matrix-$app
-cp ../conf/matrix-synapse.service /etc/systemd/system/matrix-$app.service
-ynh_replace_string __APP__ $app /etc/systemd/system/matrix-$app.service
+ynh_add_systemd_config matrix-$app matrix-synapse.service
 
 cp ../conf/default_coturn /etc/default/coturn-$app
-cp ../conf/coturn-synapse.service /etc/systemd/system/coturn-$app.service
-ynh_replace_string __APP__ $app /etc/systemd/system/coturn-$app.service
-
-systemctl daemon-reload
-systemctl enable matrix-$app.service
-systemctl enable coturn-$app.service
+ynh_add_systemd_config coturn-$app coturn-synapse.service
 
 # Config nginx
 ynh_add_nginx_config
@@ -113,4 +108,4 @@ yunohost service add matrix-$app
 
 # Reload service
 systemctl restart coturn-$app.service
-ynh_check_starting "Synapse now listening on port 8448" "matrix-$app" "/var/log/matrix-$app/homeserver.log" 60
+ynh_check_starting "Synapse now listening on port 8448" "/var/log/matrix-$app/homeserver.log" 300 "matrix-$app"

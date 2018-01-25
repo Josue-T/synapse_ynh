@@ -128,6 +128,10 @@ Synapse is published under the Apache License : https://github.com/matrix-org/sy
 To do
 -----
 
+- helper app version
+- helper systemd
+- helper ynh_check_starting
+
 - Doc (issue about domain)
 - Test arm
 - Riot doc

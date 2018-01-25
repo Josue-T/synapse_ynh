@@ -7,8 +7,9 @@ source /usr/share/yunohost/helpers
 ynh_abort_if_errors
 
 # Import common cmd
-source ../settings/scripts/_common.sh
 source ../settings/scripts/psql.sh
+source ../settings/scripts/experimental_helper.sh
+source ../settings/scripts/_common.sh
 
 # Retrieve arguments
 domain=$(ynh_app_setting_get $app special_domain)
@@ -72,4 +73,4 @@ yunohost service add matrix-$app
 # Restart service
 systemctl reload nginx.service
 systemctl restart coturn-$app.service
-ynh_check_starting "Synapse now listening on port 8448" "matrix-$app" "/var/log/matrix-$app/homeserver.log" 60
+ynh_check_starting "Synapse now listening on port 8448" "/var/log/matrix-$app/homeserver.log" 300 "matrix-$app"

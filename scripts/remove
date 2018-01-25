@@ -2,12 +2,13 @@
 
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
-source ./psql.sh
 
 # Stop script if errors
 set -u
 
 # Import common cmd
+source ./psql.sh
+source ./experimental_helper.sh
 source ./_common.sh
 
 # Retrieve app settings
@@ -54,11 +55,8 @@ ynh_secure_remove /etc/default/coturn-$YNH_APP_INSTANCE_NAME
 ynh_remove_nginx_config
 
 # Remove systemd service
-systemctl disable matrix-$YNH_APP_INSTANCE_NAME.service
-systemctl disable coturn-$YNH_APP_INSTANCE_NAME.service
-ynh_secure_remove /etc/systemd/system/matrix-$YNH_APP_INSTANCE_NAME.service
-ynh_secure_remove /etc/systemd/system/coturn-$app.service
-systemctl daemon-reload
+ynh_remove_systemd_config matrix-$YNH_APP_INSTANCE_NAME
+ynh_remove_systemd_config coturn-$YNH_APP_INSTANCE_NAME
 
 # Remove database and user
 ynh_psql_remove_db $synapse_db_name $synapse_db_user
