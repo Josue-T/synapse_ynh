@@ -1,6 +1,11 @@
 #!/bin/bash
 
-# Source YunoHost helpers
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
 source /usr/share/yunohost/helpers
 
 # Stop script if errors
@@ -11,7 +16,20 @@ source ../settings/scripts/psql.sh
 source ../settings/scripts/experimental_helper.sh
 source ../settings/scripts/_common.sh
 
-# Retrieve arguments
+#=================================================
+# SET ALL CONSTANT
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
+synapse_user="matrix-$app"
+synapse_db_name="matrix_$app"
+synapse_db_user="matrix_$app"
+upstream_version=$(ynh_app_upstream_version)
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
 domain=$(ynh_app_setting_get $app special_domain)
 path_url=$(ynh_app_setting_get $app special_path)
 final_path=$(ynh_app_setting_get $app final_path)
@@ -23,29 +41,61 @@ turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
 turnserver_alt_tls_port=$(ynh_app_setting_get $app turnserver_alt_tls_port)
 turnserver_pwd=$(ynh_app_setting_get $app turnserver_pwd)
 
-# Check domain/path availability
+#=================================================
+# CHECK IF THE APP CAN BE RESTORED
+#=================================================
+
 ynh_webpath_available $domain $path_url || ynh_die "$domain/$path_url is not available, please use an other domain."
+
+#=================================================
+# STANDARD RESTORATION STEPS
+#=================================================
+# RESTORE ALL FILES
+#=================================================
+
+# Restore all config and data
+ynh_restore
+
+#=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
+
+# WARRNING : theses command are used in INSTALL, UPGRADE, RESTORE
+# For any update do it in all files
+ynh_install_app_dependencies coturn build-essential python2.7-dev libffi-dev python-pip python-setuptools sqlite3 libssl-dev python-virtualenv libxml2-dev libxslt1-dev python-lxml libjpeg-dev libpq-dev postgresql acl
+pip install --upgrade pip
+pip install --upgrade virtualenv
+
+#=================================================
+# RECREATE THE DEDICATED USER
+#=================================================
+
+ynh_system_user_create $synapse_user /var/lib/matrix-$app
+adduser $synapse_user ssl-cert
+adduser turnserver ssl-cert
+
+#=================================================
+# SPECIFIC RESTORATION
+#=================================================
+# OPEN THE PORT
+#=================================================
 
 # Ouvre le port dans le firewall
 yunohost firewall allow --no-upnp TCP $synapse_tls_port > /dev/null 2>&1
 yunohost firewall allow --no-upnp Both $turnserver_tls_port > /dev/null 2>&1
 yunohost firewall allow --no-upnp Both $turnserver_alt_tls_port > /dev/null 2>&1
 
-# Install all dependances
-install_dependances
-
-# Create user
-ynh_system_user_create $synapse_user /var/lib/matrix-$app
-adduser $synapse_user ssl-cert
-adduser turnserver ssl-cert
-
-# Restore all config and data
-ynh_restore
+#=================================================
+# SETUP SSOWAT
+#=================================================
 
 # Open access to server without a button the home
 python $final_path/add_sso_conf.py
 
-# Restore postgresql database
+#=================================================
+# RESTORE THE POSTGRESQL DATABASE
+#=================================================
+
 ynh_psql_test_if_first_run
 ynh_psql_create_user $synapse_db_user $synapse_db_pwd
 ynh_psql_execute_as_root \
@@ -57,20 +107,46 @@ ynh_psql_execute_as_root \
  OWNER $synapse_db_user;"
 su -c "psql $synapse_db_name" postgres < ${YNH_CWD}/dump.sql
 
-# Enable systemd service
+#=================================================
+# RESTORE SYSTEMD
+#=================================================
+
 systemctl daemon-reload
 systemctl enable matrix-$app.service
 
-# Configuration de logrotate
+#=================================================
+# SETUP LOGROTATE
+#=================================================
+
 ynh_use_logrotate /var/log/matrix-$app
 
-# Set the permission
-set_permission
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# SECURE FILES AND DIRECTORIES
+#=================================================
 
-# register yunohost service
+# WARRNING : theses command are used in INSTALL, UPGRADE, RESTORE
+# For any update do it in all files
+chown $synapse_user:root -R $final_path
+chown $synapse_user:root -R /var/lib/matrix-$app
+chown $synapse_user:root -R /var/log/matrix-$app
+chown $synapse_user:root -R /etc/matrix-$app
+chmod u=rwX,g=rX,o= -R /etc/matrix-$app
+chmod 600 /etc/matrix-$app/dh.pem
+setfacl -R -m user:turnserver:rX  /etc/matrix-$app
+setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
+
+#=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
+
 yunohost service add matrix-$app
 
-# Restart service
+#=================================================
+# RELOAD NGINX, SYNAPSE AND COTURN
+#=================================================
+
 systemctl reload nginx.service
 systemctl restart coturn-$app.service
 ynh_check_starting "Synapse now listening on port 8448" "/var/log/matrix-$app/homeserver.log" 300 "matrix-$app"

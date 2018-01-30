@@ -1,9 +1,14 @@
 #!/bin/bash
 
-# Source YunoHost helpers
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
 source /usr/share/yunohost/helpers
 
-# Stop script if errors
+# Don't execute the command witch don't have all variable set
 set -u
 
 # Import common cmd
@@ -11,17 +16,39 @@ source ./psql.sh
 source ./experimental_helper.sh
 source ./_common.sh
 
-# Retrieve app settings
+#=================================================
+# SET ALL CONSTANT
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
+synapse_user="matrix-$app"
+synapse_db_name="matrix_$app"
+synapse_db_user="matrix_$app"
+upstream_version=$(ynh_app_upstream_version)
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
 domain=$(ynh_app_setting_get $app special_domain)
 final_path=$(ynh_app_setting_get $app final_path)
 synapse_tls_port=$(ynh_app_setting_get $app synapse_tls_port)
 turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
 turnserver_alt_tls_port=$(ynh_app_setting_get $app turnserver_alt_tls_port)
 
-systemctl stop matrix-$YNH_APP_INSTANCE_NAME.service || true
-systemctl stop coturn-$app.service || true
+#=================================================
+# STANDARD REMOVE
+#=================================================
+# STOP AND REMOVE SERVICE
+#=================================================
 
-# Close firewall ports
+ynh_remove_systemd_config matrix-$YNH_APP_INSTANCE_NAME
+ynh_remove_systemd_config coturn-$YNH_APP_INSTANCE_NAME
+
+#=================================================
+# CLOSE A PORT
+#=================================================
+
 closeport() {
     if yunohost firewall list | grep -q "\- $port$"
     then
@@ -37,13 +64,23 @@ closeport
 port=$turnserver_alt_tls_port
 closeport
 
+#=================================================
+# SETUP SSOWAT
+#=================================================
+
 # Remove the skipped url
 python $final_path/remove_sso_conf.py
 
-# Remove depandance
+#=================================================
+# REMOVE DEPENDENCIES
+#=================================================
+
 ynh_remove_app_dependencies || true
 
-# Clean all directory
+#=================================================
+# REMOVE APP DIR
+#=================================================
+
 ynh_secure_remove $final_path
 ynh_secure_remove /var/lib/matrix-$YNH_APP_INSTANCE_NAME
 ynh_secure_remove /var/log/matrix-$YNH_APP_INSTANCE_NAME
@@ -51,21 +88,32 @@ ynh_secure_remove /etc/matrix-$YNH_APP_INSTANCE_NAME
 ynh_secure_remove /etc/default/matrix-$YNH_APP_INSTANCE_NAME
 ynh_secure_remove /etc/default/coturn-$YNH_APP_INSTANCE_NAME
 
-# Remove nginx config
+#=================================================
+# REMOVE NGINX CONFIGURATION
+#=================================================
+
 ynh_remove_nginx_config
 
-# Remove systemd service
-ynh_remove_systemd_config matrix-$YNH_APP_INSTANCE_NAME
-ynh_remove_systemd_config coturn-$YNH_APP_INSTANCE_NAME
+#=================================================
+# REMOVE THE POSTGRESQL DATABASE
+#=================================================
 
-# Remove database and user
 ynh_psql_remove_db $synapse_db_name $synapse_db_user
 
-# Remove user
+#=================================================
+# REMOVE DEDICATED USER
+#=================================================
+
 ynh_system_user_delete matrix-$YNH_APP_INSTANCE_NAME
 
-# Remove logrotate
+#=================================================
+# REMOVE LOGROTATE CONFIGURATION
+#=================================================
+
 ynh_remove_logrotate
 
-# Remove Monitoring
+#=================================================
+# REMOVE SERVICE FROM ADMIN PANEL
+#=================================================
+
 yunohost service remove matrix-$YNH_APP_INSTANCE_NAME

@@ -1,70 +1,118 @@
 #!/bin/bash
 
-# Source YunoHost helpers
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
 source /usr/share/yunohost/helpers
 
 # Stop script if errors
 ynh_abort_if_errors
 
-# Import common cmd
+# Import common fonctions
 source ./psql.sh
 source ./experimental_helper.sh
 source ./_common.sh
 
-# Retrieve arguments
+#=================================================
+# SET ALL CONSTANT
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
+synapse_user="matrix-$app"
+synapse_db_name="matrix_$app"
+synapse_db_user="matrix_$app"
+upstream_version=$(ynh_app_upstream_version)
+
+#=================================================
+# RETRIEVE ARGUMENTS FROM THE MANIFEST
+#=================================================
+
 domain=$YNH_APP_ARG_DOMAIN
 is_public=$YNH_APP_ARG_IS_PUBLIC
 path_url="/_matrix"
 final_path="/opt/yunohost/matrix-$app"
 
-# Check domain/path availability
+#=================================================
+# CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
+#=================================================
+
 ynh_webpath_available $domain $path_url || ynh_die "$domain is not available as domain, please use an other domain."
 test ! -e "/etc/nginx/conf.d/$domain.d/synapse*.conf" || ynh_die "$domain is not available as domain, please use an other domain."
 
 # Check Final Path availability
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
-# Ouvre le port dans le firewall
+#=================================================
+# STORE SETTINGS FROM MANIFEST
+#=================================================
+
+ynh_app_setting_set $app special_domain $domain
+ynh_app_setting_set $app special_path $path_url
+ynh_app_setting_set $app final_path $final_path
+ynh_app_setting_set $app synapse_version $upstream_version
+ynh_app_setting_set $app is_public $is_public
+
+#=================================================
+# STANDARD MODIFICATIONS
+#=================================================
+# FIND AND OPEN A PORT
+#=================================================
+
+# Find a free port
 synapse_tls_port=$(ynh_find_port 8448)
 port=$(ynh_find_port 8008)
 turnserver_tls_port=$(ynh_find_port 5349)
 turnserver_alt_tls_port=$(ynh_find_port $((turnserver_tls_port+1)))
 cli_port=$(ynh_find_port 5766)
 
+# Open this port
 yunohost firewall allow --no-upnp TCP $synapse_tls_port > /dev/null 2>&1
 yunohost firewall allow --no-upnp Both $turnserver_tls_port > /dev/null 2>&1
 yunohost firewall allow --no-upnp Both $turnserver_alt_tls_port > /dev/null 2>&1
 
-# Find password for turnserver and database
-turnserver_pwd=$(ynh_string_random 30)
-synapse_db_pwd=$(ynh_string_random 30)
-
-# Enregistre les infos dans la config YunoHost
-ynh_app_setting_set $app special_domain $domain
-ynh_app_setting_set $app special_path $path_url
-ynh_app_setting_set $app final_path $final_path
-ynh_app_setting_set $app synapse_version $upstream_version
-ynh_app_setting_set $app synapse_db_pwd $synapse_db_pwd
-ynh_app_setting_set $app is_public $is_public
+# Store opened ports
 ynh_app_setting_set $app synapse_port $port
 ynh_app_setting_set $app synapse_tls_port $synapse_tls_port
 ynh_app_setting_set $app turnserver_tls_port $turnserver_tls_port
 ynh_app_setting_set $app turnserver_alt_tls_port $turnserver_alt_tls_port
-ynh_app_setting_set $app turnserver_pwd $turnserver_pwd
 ynh_app_setting_set $app cli_port $cli_port
+
+#=================================================
+# CREATE A DH FILE
+#=================================================
 
 # Make dh cert for synapse if it not exist
 test ! -e /etc/matrix-$app/dh.pem && \
     mkdir -p /etc/matrix-$app && \
     openssl dhparam -out /etc/matrix-$app/dh.pem 2048 > /dev/null
 
-# Install all dependances
-install_dependances
+#=================================================
+# INSTALL DEPENDENCIES
+#=================================================
 
-# Create user
+# WARRNING : theses command are used in INSTALL, UPGRADE, RESTORE
+# For any update do it in all files
+ynh_install_app_dependencies coturn build-essential python2.7-dev libffi-dev python-pip python-setuptools sqlite3 libssl-dev python-virtualenv libxml2-dev libxslt1-dev python-lxml libjpeg-dev libpq-dev postgresql acl
+pip install --upgrade pip
+pip install --upgrade virtualenv
+
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+
 ynh_system_user_create $synapse_user /var/lib/matrix-$app
 adduser $synapse_user ssl-cert
 adduser turnserver ssl-cert
+
+#=================================================
+# CREATE A POSTGRESQL DATABASE
+#=================================================
+
+synapse_db_pwd=$(ynh_string_random 30)
+ynh_app_setting_set $app synapse_db_pwd $synapse_db_pwd
 
 # Create postgresql database
 ynh_psql_test_if_first_run
@@ -72,14 +120,51 @@ ynh_psql_create_user $synapse_db_user $synapse_db_pwd
 ynh_psql_execute_as_root \
 "CREATE DATABASE $synapse_db_name ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' template=template0 OWNER $synapse_db_user;"
 
-# Create directory and Install synapse in virtualenv
-setup_dir
-install_source
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
 
-# Open access to server without a button the home
-cp ../conf/add_sso_conf.py $final_path
-cp ../conf/remove_sso_conf.py $final_path
-python $final_path/add_sso_conf.py
+# Create empty dir for synapse
+
+# WARRNING : theses command are used in INSTALL, UPGRADE
+# For any update do it in all files
+mkdir -p /var/lib/matrix-$app
+mkdir -p /var/log/matrix-$app
+mkdir -p /etc/matrix-$app/conf.d
+mkdir -p $final_path
+
+# Install synapse in virtualenv
+
+# WARRNING : theses command are used in INSTALL, UPGRADE (2 times)
+# For any update do it in all files
+if [ -n "$(uname -m | grep arm)" ]
+then
+    ynh_setup_source $final_path/ "armv7"
+else
+    # Install virtualenv if it don't exist
+    test -e $final_path/bin || virtualenv -p python2.7 $final_path
+
+    # Install synapse in virtualenv
+    PS1=""
+    cp ../conf/virtualenv_activate $final_path/bin/activate
+    ynh_replace_string __FINAL_PATH__ $final_path $final_path/bin/activate
+    source $final_path/bin/activate
+    pip install --upgrade pip
+    pip install --upgrade setuptools
+    pip install --upgrade cffi ndg-httpsclient psycopg2 lxml
+    pip install --upgrade https://github.com/matrix-org/synapse/archive/v$upstream_version.tar.gz
+    
+    # Fix issue with msgpack see https://github.com/YunoHost-Apps/synapse_ynh/issues/29
+    test -e $final_path/lib/python2.7/site-packages/msgpack/__init__.py || (\
+            pip uninstall -y msgpack-python msgpack; \
+            pip install msgpack-python)
+    
+    deactivate
+fi
+
+#=================================================
+# SETUP SYSTEMD
+#=================================================
 
 # Create systemd service for synapse and turnserver
 cp ../conf/default_matrix-synapse /etc/default/matrix-$app
@@ -88,24 +173,109 @@ ynh_add_systemd_config matrix-$app matrix-synapse.service
 cp ../conf/default_coturn /etc/default/coturn-$app
 ynh_add_systemd_config coturn-$app coturn-synapse.service
 
-# Config nginx
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+
 ynh_add_nginx_config
 
+#=================================================
+# SET SYNAPSE CONFIG
+#=================================================
+
+# Find password for turnserver and database
+turnserver_pwd=$(ynh_string_random 30)
+ynh_app_setting_set $app turnserver_pwd $turnserver_pwd
+
 # Configure Synapse
-config_synapse
 
-# Configure Coturn
-config_coturn
+# WARRNING : theses command are used in INSTALL, UPGRADE (2 times)
+# For any update do it in all files
+ynh_backup_if_checksum_is_different /etc/matrix-$app/homeserver.yaml
+ynh_backup_if_checksum_is_different /etc/matrix-$app/log.yaml
+cp ../conf/homeserver.yaml /etc/matrix-$app/homeserver.yaml
+cp ../conf/log.yaml /etc/matrix-$app/log.yaml
 
-# Configuration de logrotate
+ynh_replace_string __APP__ $app /etc/matrix-$app/homeserver.yaml
+ynh_replace_string __DOMAIN__ $domain /etc/matrix-$app/homeserver.yaml
+ynh_replace_string __SYNAPSE_DB_USER__ $synapse_db_user /etc/matrix-$app/homeserver.yaml
+ynh_replace_string __SYNAPSE_DB_PWD__ $synapse_db_pwd /etc/matrix-$app/homeserver.yaml
+ynh_replace_string __PORT__ $port /etc/matrix-$app/homeserver.yaml
+ynh_replace_string __TLS_PORT__ $synapse_tls_port /etc/matrix-$app/homeserver.yaml
+ynh_replace_string __TURNSERVER_TLS_PORT__ $turnserver_tls_port /etc/matrix-$app/homeserver.yaml
+ynh_replace_string __TURNPWD__ $turnserver_pwd /etc/matrix-$app/homeserver.yaml
+
+ynh_replace_string __APP__ $app /etc/matrix-$app/log.yaml
+
+if [ "$is_public" = "0" ]
+then
+    ynh_replace_string __ALLOWED_ACCESS__ False /etc/matrix-$app/homeserver.yaml
+else
+    ynh_replace_string __ALLOWED_ACCESS__ True /etc/matrix-$app/homeserver.yaml
+fi
+
+ynh_store_file_checksum /etc/matrix-$app/homeserver.yaml
+ynh_store_file_checksum /etc/matrix-$app/log.yaml
+
+#=================================================
+# SET COTURN CONFIG
+#=================================================
+
+# WARRNING : theses command are used in INSTALL, UPGRADE
+# For any update do it in all files
+ynh_backup_if_checksum_is_different /etc/matrix-$app/coturn.conf
+cp ../conf/turnserver.conf /etc/matrix-$app/coturn.conf
+
+ynh_replace_string __APP__ $app /etc/matrix-$app/coturn.conf
+ynh_replace_string __TURNPWD__ $turnserver_pwd /etc/matrix-$app/coturn.conf
+ynh_replace_string __DOMAIN__ $domain /etc/matrix-$app/coturn.conf
+ynh_replace_string __TLS_PORT__ $turnserver_tls_port /etc/matrix-$app/coturn.conf
+ynh_replace_string __TLS_ALT_PORT__ $turnserver_alt_tls_port /etc/matrix-$app/coturn.conf
+ynh_replace_string __CLI_PORT__ $cli_port /etc/matrix-$app/coturn.conf
+
+ynh_store_file_checksum /etc/matrix-$app/coturn.conf
+
+#=================================================
+# SETUP LOGROTATE
+#=================================================
+
 ynh_use_logrotate /var/log/matrix-$app
 
-# Set Permission for all directory
-set_permission
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# SETUP SSOWAT
+#=================================================
 
-# register yunohost service
+# Open access to server without a button the home
+cp ../conf/add_sso_conf.py $final_path
+cp ../conf/remove_sso_conf.py $final_path
+python $final_path/add_sso_conf.py
+
+#=================================================
+# SECURE FILES AND DIRECTORIES
+#=================================================
+
+# WARRNING : theses command are used in INSTALL, UPGRADE (2 times), RESTORE
+# For any update do it in all files
+chown $synapse_user:root -R $final_path
+chown $synapse_user:root -R /var/lib/matrix-$app
+chown $synapse_user:root -R /var/log/matrix-$app
+chown $synapse_user:root -R /etc/matrix-$app
+chmod u=rwX,g=rX,o= -R /etc/matrix-$app
+chmod 600 /etc/matrix-$app/dh.pem
+setfacl -R -m user:turnserver:rX  /etc/matrix-$app
+setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
+
+#=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
+
 yunohost service add matrix-$app
 
-# Reload service
+#=================================================
+# RELOAD SERVICES
+#=================================================
+
 systemctl restart coturn-$app.service
 ynh_check_starting "Synapse now listening on port 8448" "/var/log/matrix-$app/homeserver.log" 300 "matrix-$app"
