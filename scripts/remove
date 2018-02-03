@@ -8,9 +8,6 @@
 
 source /usr/share/yunohost/helpers
 
-# Don't execute the command witch don't have all variable set
-set -u
-
 # Import common cmd
 source ./psql.sh
 source ./experimental_helper.sh
@@ -42,8 +39,8 @@ turnserver_alt_tls_port=$(ynh_app_setting_get $app turnserver_alt_tls_port)
 # STOP AND REMOVE SERVICE
 #=================================================
 
-ynh_remove_systemd_config matrix-$YNH_APP_INSTANCE_NAME
-ynh_remove_systemd_config coturn-$YNH_APP_INSTANCE_NAME
+ynh_remove_systemd_config matrix-$app
+ynh_remove_systemd_config coturn-$app
 
 #=================================================
 # CLOSE A PORT
@@ -75,18 +72,18 @@ python $final_path/remove_sso_conf.py
 # REMOVE DEPENDENCIES
 #=================================================
 
-ynh_remove_app_dependencies || true
+ynh_remove_app_dependencies
 
 #=================================================
 # REMOVE APP DIR
 #=================================================
 
 ynh_secure_remove $final_path
-ynh_secure_remove /var/lib/matrix-$YNH_APP_INSTANCE_NAME
-ynh_secure_remove /var/log/matrix-$YNH_APP_INSTANCE_NAME
-ynh_secure_remove /etc/matrix-$YNH_APP_INSTANCE_NAME
-ynh_secure_remove /etc/default/matrix-$YNH_APP_INSTANCE_NAME
-ynh_secure_remove /etc/default/coturn-$YNH_APP_INSTANCE_NAME
+ynh_secure_remove /var/lib/matrix-$app
+ynh_secure_remove /var/log/matrix-$app
+ynh_secure_remove /etc/matrix-$app
+ynh_secure_remove /etc/default/matrix-$app
+ynh_secure_remove /etc/default/coturn-$app
 
 #=================================================
 # REMOVE NGINX CONFIGURATION
@@ -104,7 +101,7 @@ ynh_psql_remove_db $synapse_db_name $synapse_db_user
 # REMOVE DEDICATED USER
 #=================================================
 
-ynh_system_user_delete matrix-$YNH_APP_INSTANCE_NAME
+ynh_system_user_delete $synapse_user
 
 #=================================================
 # REMOVE LOGROTATE CONFIGURATION
@@ -116,4 +113,5 @@ ynh_remove_logrotate
 # REMOVE SERVICE FROM ADMIN PANEL
 #=================================================
 
-yunohost service remove matrix-$YNH_APP_INSTANCE_NAME
+yunohost service remove matrix-$app
+yunohost service remove coturn-$app

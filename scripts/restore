@@ -90,6 +90,7 @@ yunohost firewall allow --no-upnp Both $turnserver_alt_tls_port > /dev/null 2>&1
 #=================================================
 
 # Open access to server without a button the home
+# The script "add_sso_conf.py" will just add en entry for the path "/_matrix" in the sso conf.json.persistent file in the cathegory "skipped_urls".
 python $final_path/add_sso_conf.py
 
 #=================================================
@@ -141,7 +142,8 @@ setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add matrix-$app
+yunohost service add matrix-$app -l "/var/log/matrix-$app/homeserver.log"
+yunohost service add coturn-$app
 
 #=================================================
 # RELOAD NGINX, SYNAPSE AND COTURN

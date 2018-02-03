@@ -243,30 +243,31 @@ then
 
     # WARRNING : theses command are used in INSTALL, UPGRADE (2 times)
     # For any update do it in all files
-    ynh_backup_if_checksum_is_different /etc/matrix-$app/homeserver.yaml
-    ynh_backup_if_checksum_is_different /etc/matrix-$app/log.yaml
-    cp ../conf/homeserver.yaml /etc/matrix-$app/homeserver.yaml
+
+    homeserver_config_path="/etc/matrix-$app/homeserver.yaml"
+
+    cp ../conf/homeserver.yaml "$homeserver_config_path"
     cp ../conf/log.yaml /etc/matrix-$app/log.yaml
 
-    ynh_replace_string __APP__ $app /etc/matrix-$app/homeserver.yaml
-    ynh_replace_string __DOMAIN__ $domain /etc/matrix-$app/homeserver.yaml
-    ynh_replace_string __SYNAPSE_DB_USER__ $synapse_db_user /etc/matrix-$app/homeserver.yaml
-    ynh_replace_string __SYNAPSE_DB_PWD__ $synapse_db_pwd /etc/matrix-$app/homeserver.yaml
-    ynh_replace_string __PORT__ $port /etc/matrix-$app/homeserver.yaml
-    ynh_replace_string __TLS_PORT__ $synapse_tls_port /etc/matrix-$app/homeserver.yaml
-    ynh_replace_string __TURNSERVER_TLS_PORT__ $turnserver_tls_port /etc/matrix-$app/homeserver.yaml
-    ynh_replace_string __TURNPWD__ $turnserver_pwd /etc/matrix-$app/homeserver.yaml
+    ynh_replace_string __APP__ $app "$homeserver_config_path"
+    ynh_replace_string __DOMAIN__ $domain "$homeserver_config_path"
+    ynh_replace_string __SYNAPSE_DB_USER__ $synapse_db_user "$homeserver_config_path"
+    ynh_replace_string __SYNAPSE_DB_PWD__ $synapse_db_pwd "$homeserver_config_path"
+    ynh_replace_string __PORT__ $port "$homeserver_config_path"
+    ynh_replace_string __TLS_PORT__ $synapse_tls_port "$homeserver_config_path"
+    ynh_replace_string __TURNSERVER_TLS_PORT__ $turnserver_tls_port "$homeserver_config_path"
+    ynh_replace_string __TURNPWD__ $turnserver_pwd "$homeserver_config_path"
 
-    ynh_replace_string __APP__ $app /etc/matrix-$app/log.yaml
+    ynh_replace_string __APP__ $app "$homeserver_config_path"
 
     if [ "$is_public" = "0" ]
     then
-        ynh_replace_string __ALLOWED_ACCESS__ False /etc/matrix-$app/homeserver.yaml
+        ynh_replace_string __ALLOWED_ACCESS__ False "$homeserver_config_path"
     else
-        ynh_replace_string __ALLOWED_ACCESS__ True /etc/matrix-$app/homeserver.yaml
+        ynh_replace_string __ALLOWED_ACCESS__ True "$homeserver_config_path"
     fi
 
-    ynh_store_file_checksum /etc/matrix-$app/homeserver.yaml
+    ynh_store_file_checksum "$homeserver_config_path"
     ynh_store_file_checksum /etc/matrix-$app/log.yaml
 
     #=================================================
@@ -359,17 +360,23 @@ else
     PS1=""
     cp ../conf/virtualenv_activate $final_path/bin/activate
     ynh_replace_string __FINAL_PATH__ $final_path $final_path/bin/activate
+    
+    # We set all necessary environement variable to create a python virtualenvironnement. 
     source $final_path/bin/activate
     pip install --upgrade pip
     pip install --upgrade setuptools
     pip install --upgrade cffi ndg-httpsclient psycopg2 lxml
-    pip install --upgrade https://github.com/matrix-org/synapse/archive/v$upstream_version.tar.gz
+    wget -nv -O synapse_source.tar.gz https://github.com/matrix-org/synapse/archive/v$upstream_version.tar.gz
+    echo "${src_sum} synapse_source.tar.gz" | sha256sum -c --status \
+        || ynh_die "Corrupt source"
+    pip install --upgrade synapse_source.tar.gz
     
     # Fix issue with msgpack see https://github.com/YunoHost-Apps/synapse_ynh/issues/29
     test -e $final_path/lib/python2.7/site-packages/msgpack/__init__.py || (\
             pip uninstall -y msgpack-python msgpack; \
             pip install msgpack-python)
     
+    # This fonction was defined while we call "source $final_path/bin/activate". By this fonction de undo what does "$final_path/bin/activate"
     deactivate
 fi
 
@@ -385,30 +392,33 @@ ynh_add_nginx_config
 
 # WARRNING : theses command are used in INSTALL, UPGRADE (2 times)
 # For any update do it in all files
-ynh_backup_if_checksum_is_different /etc/matrix-$app/homeserver.yaml
+homeserver_config_path="/etc/matrix-$app/homeserver.yaml"
+
+ynh_backup_if_checksum_is_different "$homeserver_config_path"
 ynh_backup_if_checksum_is_different /etc/matrix-$app/log.yaml
-cp ../conf/homeserver.yaml /etc/matrix-$app/homeserver.yaml
+
+cp ../conf/homeserver.yaml "$homeserver_config_path"
 cp ../conf/log.yaml /etc/matrix-$app/log.yaml
 
-ynh_replace_string __APP__ $app /etc/matrix-$app/homeserver.yaml
-ynh_replace_string __DOMAIN__ $domain /etc/matrix-$app/homeserver.yaml
-ynh_replace_string __SYNAPSE_DB_USER__ $synapse_db_user /etc/matrix-$app/homeserver.yaml
-ynh_replace_string __SYNAPSE_DB_PWD__ $synapse_db_pwd /etc/matrix-$app/homeserver.yaml
-ynh_replace_string __PORT__ $port /etc/matrix-$app/homeserver.yaml
-ynh_replace_string __TLS_PORT__ $synapse_tls_port /etc/matrix-$app/homeserver.yaml
-ynh_replace_string __TURNSERVER_TLS_PORT__ $turnserver_tls_port /etc/matrix-$app/homeserver.yaml
-ynh_replace_string __TURNPWD__ $turnserver_pwd /etc/matrix-$app/homeserver.yaml
+ynh_replace_string __APP__ $app "$homeserver_config_path"
+ynh_replace_string __DOMAIN__ $domain "$homeserver_config_path"
+ynh_replace_string __SYNAPSE_DB_USER__ $synapse_db_user "$homeserver_config_path"
+ynh_replace_string __SYNAPSE_DB_PWD__ $synapse_db_pwd "$homeserver_config_path"
+ynh_replace_string __PORT__ $port "$homeserver_config_path"
+ynh_replace_string __TLS_PORT__ $synapse_tls_port "$homeserver_config_path"
+ynh_replace_string __TURNSERVER_TLS_PORT__ $turnserver_tls_port "$homeserver_config_path"
+ynh_replace_string __TURNPWD__ $turnserver_pwd "$homeserver_config_path"
 
-ynh_replace_string __APP__ $app /etc/matrix-$app/log.yaml
+ynh_replace_string __APP__ $app "$homeserver_config_path"
 
 if [ "$is_public" = "0" ]
 then
-    ynh_replace_string __ALLOWED_ACCESS__ False /etc/matrix-$app/homeserver.yaml
+    ynh_replace_string __ALLOWED_ACCESS__ False "$homeserver_config_path"
 else
-    ynh_replace_string __ALLOWED_ACCESS__ True /etc/matrix-$app/homeserver.yaml
+    ynh_replace_string __ALLOWED_ACCESS__ True "$homeserver_config_path"
 fi
 
-ynh_store_file_checksum /etc/matrix-$app/homeserver.yaml
+ynh_store_file_checksum "$homeserver_config_path"
 ynh_store_file_checksum /etc/matrix-$app/log.yaml
 
 #=================================================
@@ -417,17 +427,21 @@ ynh_store_file_checksum /etc/matrix-$app/log.yaml
 
 # WARRNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
-ynh_backup_if_checksum_is_different /etc/matrix-$app/coturn.conf
-cp ../conf/turnserver.conf /etc/matrix-$app/coturn.conf
 
-ynh_replace_string __APP__ $app /etc/matrix-$app/coturn.conf
-ynh_replace_string __TURNPWD__ $turnserver_pwd /etc/matrix-$app/coturn.conf
-ynh_replace_string __DOMAIN__ $domain /etc/matrix-$app/coturn.conf
-ynh_replace_string __TLS_PORT__ $turnserver_tls_port /etc/matrix-$app/coturn.conf
-ynh_replace_string __TLS_ALT_PORT__ $turnserver_alt_tls_port /etc/matrix-$app/coturn.conf
-ynh_replace_string __CLI_PORT__ $cli_port /etc/matrix-$app/coturn.conf
+coturn_config_path="/etc/matrix-$app/coturn.conf"
 
-ynh_store_file_checksum /etc/matrix-$app/coturn.conf
+ynh_backup_if_checksum_is_different "$coturn_config_path"
+
+cp ../conf/turnserver.conf "$coturn_config_path"
+
+ynh_replace_string __APP__ $app "$coturn_config_path"
+ynh_replace_string __TURNPWD__ $turnserver_pwd "$coturn_config_path"
+ynh_replace_string __DOMAIN__ $domain "$coturn_config_path"
+ynh_replace_string __TLS_PORT__ $turnserver_tls_port "$coturn_config_path"
+ynh_replace_string __TLS_ALT_PORT__ $turnserver_alt_tls_port "$coturn_config_path"
+ynh_replace_string __CLI_PORT__ $cli_port "$coturn_config_path"
+
+ynh_store_file_checksum "$coturn_config_path"
 
 #=================================================
 # GENERIC FINALIZATION
