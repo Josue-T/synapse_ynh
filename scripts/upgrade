@@ -336,8 +336,11 @@ then
     adduser turnserver ssl-cert
 fi
 
-# If we don't have the dh file in synapse config dir we copy it
-test -e /etc/matrix-$app/dh.pem || cp /etc/yunohost/certs/$domain/dh.pem /etc/matrix-$app/dh.pem
+# In the old synapse instance we stored the dh.pem in /etc/yunohost/certs/DOMAIN.TLD/ but it was problematics with lets'encrypt witch made a link to the key. While the letsencrypt key was changed the dh.pem file was lost. So we decided to move to /etc/matrix-synapse/ witch is a directory witch is not managed by any other component.
+# Here we check if the dh.pem file is already moved. If not we try to copy the file from the old place. If the file in the old place was already removed (by letsencrypt) we create a new one.
+test -e /etc/matrix-$app/dh.pem || \
+    cp /etc/yunohost/certs/$domain/dh.pem /etc/matrix-$app/dh.pem || \
+        openssl dhparam -out /etc/matrix-$app/dh.pem 2048 > /dev/null
 
 #=================================================
 # STANDARD UPGRADE STEPS
