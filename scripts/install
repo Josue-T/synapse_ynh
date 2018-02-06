@@ -221,7 +221,7 @@ ynh_replace_string __TLS_PORT__ $synapse_tls_port "$homeserver_config_path"
 ynh_replace_string __TURNSERVER_TLS_PORT__ $turnserver_tls_port "$homeserver_config_path"
 ynh_replace_string __TURNPWD__ $turnserver_pwd "$homeserver_config_path"
 
-ynh_replace_string __APP__ $app "$homeserver_config_path"
+ynh_replace_string __APP__ $app "/etc/matrix-$app/log.yaml"
 
 if [ "$is_public" = "0" ]
 then
@@ -231,7 +231,7 @@ else
 fi
 
 ynh_store_file_checksum "$homeserver_config_path"
-ynh_store_file_checksum /etc/matrix-$app/log.yaml
+ynh_store_file_checksum "/etc/matrix-$app/log.yaml"
 
 #=================================================
 # SET COTURN CONFIG
