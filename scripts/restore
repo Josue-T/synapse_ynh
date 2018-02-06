@@ -91,7 +91,7 @@ yunohost firewall allow --no-upnp Both $turnserver_alt_tls_port > /dev/null 2>&1
 
 # Open access to server without a button the home
 # The script "add_sso_conf.py" will just add en entry for the path "/_matrix" in the sso conf.json.persistent file in the cathegory "skipped_urls".
-python $final_path/add_sso_conf.py
+python $final_path/add_sso_conf.py || ynh_die "Your file /etc/ssowat/conf.json.persistent don't respect the json synaxe. Please fix the synaxe to install this app. For more information see here : https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
 
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE
