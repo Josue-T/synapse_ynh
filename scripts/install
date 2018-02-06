@@ -264,7 +264,7 @@ ynh_use_logrotate /var/log/matrix-$app
 # The script "add_sso_conf.py" will just add en entry for the path "/_matrix" in the sso conf.json.persistent file in the cathegory "skipped_urls".
 cp ../conf/add_sso_conf.py $final_path
 cp ../conf/remove_sso_conf.py $final_path
-python $final_path/add_sso_conf.py
+python $final_path/add_sso_conf.py || ynh_die "Your file /etc/ssowat/conf.json.persistent don't respect the json synaxe. Please fix the synaxe to install this app. For more information see here : https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
 
 #=================================================
 # SECURE FILES AND DIRECTORIES
