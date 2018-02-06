@@ -1,3 +1,0 @@
-#!/bin/bash
-
-src_sum="234dd5fa44895e855d11fbf50de9184d057977b10b296f594d2c3758f693eff3"
