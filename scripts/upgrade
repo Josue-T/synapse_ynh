@@ -100,19 +100,6 @@ then
     ynh_app_setting_delete $app skipped_uris
 
     #=================================================
-    # CREATE A POSTGRESQL DATABASE
-    #=================================================
-
-    synapse_db_pwd=$(ynh_string_random 30)
-    ynh_app_setting_set $app synapse_db_pwd $synapse_db_pwd
-
-    # Create postgresql database
-    ynh_psql_test_if_first_run
-    ynh_psql_create_user $synapse_db_user $synapse_db_pwd
-    ynh_psql_execute_as_root \
-    "CREATE DATABASE $synapse_db_name ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' template=template0 OWNER $synapse_db_user;"
-    
-    #=================================================
     # REMOVE OLD DEPENDDANCE
     #=================================================
 
@@ -134,6 +121,19 @@ then
     ynh_install_app_dependencies coturn build-essential python2.7-dev libffi-dev python-pip python-setuptools sqlite3 libssl-dev python-virtualenv libxml2-dev libxslt1-dev python-lxml libjpeg-dev libpq-dev postgresql acl
     pip install --upgrade pip
     pip install --upgrade virtualenv
+
+    #=================================================
+    # CREATE A POSTGRESQL DATABASE
+    #=================================================
+
+    synapse_db_pwd=$(ynh_string_random 30)
+    ynh_app_setting_set $app synapse_db_pwd $synapse_db_pwd
+
+    # Create postgresql database
+    ynh_psql_test_if_first_run
+    ynh_psql_create_user $synapse_db_user $synapse_db_pwd
+    ynh_psql_execute_as_root \
+    "CREATE DATABASE $synapse_db_name ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' template=template0 OWNER $synapse_db_user;"
 
     #=================================================
     # CREATE EMPTY DIR FOR SYNAPSE
