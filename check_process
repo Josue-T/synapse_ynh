@@ -12,7 +12,7 @@
         setup_public=1
         upgrade=1
         upgrade=1   from_commit=a62bce7dbc6bc0e1f1b4e872286ff124747ea009
-        upgrade=1   from_commit=bfc07c81c1bcac1b939838209bba6934fec35625
+        upgrade=1   from_commit=f050f88fbfe7bad1bf74d4584ec62ffcf28248e7
         backup_restore=1
         multi_instance=1
         incorrect_path=0
@@ -33,5 +33,5 @@
 ;;; Upgrade options
 	; commit=a62bce7dbc6bc0e1f1b4e872286ff124747ea009
 		name=Before multi_instance
-	; commit=bfc07c81c1bcac1b939838209bba6934fec35625
+	; commit=f050f88fbfe7bad1bf74d4584ec62ffcf28248e7
 		name=Old version package
