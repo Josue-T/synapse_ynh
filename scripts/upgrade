@@ -141,10 +141,10 @@ then
     
     # WARRNING : theses command are used in INSTALL, UPGRADE
     # For any update do it in all files
-    mkdir -p /var/lib/matrix-$app || true # If the dir aready exist the command could fail
-    mkdir -p /var/log/matrix-$app || true # If the dir aready exist the command could fail
-    mkdir -p /etc/matrix-$app/conf.d || true # If the dir aready exist the command could fail
-    mkdir -p $final_path || true # If the dir aready exist the command could fail
+    mkdir -p /var/lib/matrix-$app
+    mkdir -p /var/log/matrix-$app
+    mkdir -p /etc/matrix-$app/conf.d
+    mkdir -p $final_path
 fi
 
 #=================================================
@@ -331,9 +331,7 @@ then
     # MAKE A CLEAN LOGROTATE CONFIG
     #=================================================
 
-    # Clean logrotate file for all old instances
-    ynh_remove_logrotate
-    ynh_use_logrotate /var/log/matrix-$app
+    ynh_use_logrotate /var/log/matrix-$app --non-append
 fi
 
 #=================================================
@@ -412,4 +410,4 @@ ynh_app_setting_set $app synapse_version $upstream_version
 #=================================================
 
 systemctl restart coturn-$app.service
-ynh_check_starting "Synapse now listening on port 8448" "/var/log/matrix-$app/homeserver.log" 300 "matrix-$app"
+ynh_check_starting "Synapse now listening on port $synapse_tls_port" "/var/log/matrix-$app/homeserver.log" 300 "matrix-$app"
