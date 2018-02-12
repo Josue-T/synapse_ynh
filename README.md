@@ -1,14 +1,25 @@
 Synapse for YunoHost
 ====================
 
-Yunohost chattroom with matrix : [https://riot.im/app/#/room/#yunohost:matrix.org](https://riot.im/app/#/room/#yunohost:matrix.org)
+![](https://matrix.org/blog/wp-content/uploads/2015/01/logo1.png)
+
+[![Integration level](https://dash.yunohost.org/integration/synapse.svg)](https://ci-apps.yunohost.org/jenkins/job/synapse%20%28Community%29/lastBuild/consoleFull)
+
+[![Install Synapse with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=synapse)
 
 [Yunohost project](https://yunohost.org/#/)
 
-[![Integration level](https://dash.yunohost.org/integration/synapse.svg)](https://ci-apps.yunohost.org/jenkins/job/synapse%20%28Community%29/lastBuild/consoleFull) 
+Overview
+--------
 
-Setup
------
+Instant messaging server matrix network.
+
+Yunohost chattroom with matrix : [https://riot.im/app/#/room/#yunohost:matrix.org](https://riot.im/app/#/room/#yunohost:matrix.org)
+
+Shipped version: 0.26.0
+
+Configuration
+-------------
 
 ### Install for ARM arch (or slow arch)
 
@@ -19,13 +30,9 @@ After that you can install it without problem.
 The package use a prebuild python virtualenvironnement. The binary are taken from this repos : https://github.com/Josue-T/synapse_python_build
 The script to build the binary is also available.
 
-### Package update package
-
-`sudo yunohost app upgrade synapse -u https://github.com/YunoHost-Apps/synapse_ynh`
-
 ### Web client
 
-If you want a web client you can also install riot with this package : https://github.com/YunoHost-Apps/riot_ynh . But 
+If you want a web client you can also install riot with this package : https://github.com/YunoHost-Apps/riot_ynh .
 
 ### Access by federation
 
@@ -50,24 +57,50 @@ We have put some coarse mitigations into place to try to protect against this
 situation, but it's still not good practice to do it in the first place.  See
 https://github.com/vector-im/riot-web/issues/1977 for more details.
 
-Install
--------
+Documentation
+-------------
 
-From command line:
+- Official documentation: https://github.com/matrix-org/synapse
+- YunoHost documentation: to be created ; feel free to help!
 
-`sudo yunohost app install -l synapse https://github.com/YunoHost-Apps/synapse_ynh`
+YunoHost specific features
+--------------------------
 
-Upgrade
--------
+### Multi-users support
 
-From command line:
+Supported with LDAP.
 
-`sudo yunohost app upgrade synapse -u https://github.com/YunoHost-Apps/synapse_ynh`
+### Supported architectures
 
-Issue
+- Tested on x86_64
+- Tested on ARM (with specific build)
+
+Limitations
+-----------
+
+Synapse take a lot of ressurce. So in slow architecture (like small ARM board), this app could take a lot of CPU and RAM.
+
+This app don't contains any real good web interface. So it's recommended to use Riot client to connect to this app. This app is available [here](https://github.com/YunoHost-Apps/riot_ynh)
+
+Links
 -----
 
-Any issue is welcome here : https://github.com/YunoHost-Apps/synapse_ynh/issues
+- Report a bug: https://github.com/YunoHost-Apps/synapse_ynh/issues
+- Matrix website: https://matrix.org/
+- YunoHost website: https://yunohost.org/
+
+Developers infos
+----------------
+
+Please do your pull request to the testing branch.
+
+To try the testing branch, please proceed like that:
+
+```bash
+sudo yunohost app install https://github.com/YunoHost-Apps/synapse_ynh/tree/testing --verbose
+or
+sudo yunohost app upgrade synapse -u https://github.com/YunoHost-Apps/synapse_ynh/tree/testing --verbose
+```
 
 Administation
 -------------
@@ -124,19 +157,3 @@ License
 -------
 
 Synapse is published under the Apache License : https://github.com/matrix-org/synapse/blob/master/LICENSE
-
-To do
------
-
-- helper app version
-- helper systemd
-- helper ynh_check_starting
-
-- Doc (issue about domain)
-- Test arm
-- Riot doc
-- Test production
-
-### Todo for official App
-
-- Improve documentation
