@@ -54,8 +54,11 @@ then
 fi
 
 #=================================================
-# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+# BACKUP BEFORE UPGRADE
 #=================================================
+
+# We stop the service before to set ynh_clean_setup
+systemctl stop matrix-$app.service
 
 # Backup the current version of the app
 if [[ $(ynh_app_setting_get $app disable_backup_before_upgrade) != '1' ]]
@@ -65,12 +68,6 @@ then
         ynh_restore_upgradebackup
     }
 fi
-
-# We stop the service before to enable TRAP because if this command fail the restoration might be not possible.
-systemctl stop matrix-$app.service
-
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
 
 #=================================================
 # UPGRADE FROM DIFFERENTS PACKAGE EVOLUTION
