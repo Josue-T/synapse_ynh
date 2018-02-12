@@ -47,6 +47,7 @@ ynh_remove_systemd_config coturn-$app
 #=================================================
 
 closeport() {
+    local port=$1
     if yunohost firewall list | grep -q "\- $port$"
     then
             echo "Close port $port"
@@ -54,12 +55,9 @@ closeport() {
     fi
 }
 
-port=$synapse_tls_port
-closeport
-port=$turnserver_tls_port
-closeport
-port=$turnserver_alt_tls_port
-closeport
+closeport $synapse_tls_port
+closeport $turnserver_tls_port
+closeport $turnserver_alt_tls_port
 
 #=================================================
 # SETUP SSOWAT
