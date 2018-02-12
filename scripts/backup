@@ -39,20 +39,20 @@ final_path=$(ynh_app_setting_get $app final_path)
 # BACKUP THE NGINX CONFIGURATION
 #=================================================
 
-ynh_backup "/etc/nginx/conf.d/${domain}.d/${app}.conf" "nginx.conf"
+ynh_backup "/etc/nginx/conf.d/${domain}.d/${app}.conf"
 
 #=================================================
 # BACKUP SYNAPSE CONFIG
 #=================================================
 
-ynh_backup "/etc/matrix-$app" "synapse_config"
+ynh_backup "/etc/matrix-$app"
 
 #=================================================
 # BACKUP COTURN CONFIG
 #=================================================
 
-ynh_backup "/etc/turnserver.conf" "coturn_config"
-ynh_backup "/etc/default/coturn" "coturn_config_default"
+ynh_backup "/etc/turnserver.conf"
+ynh_backup "/etc/default/coturn"
 
 #=================================================
 # BACKUP SYSTEMD
@@ -85,4 +85,4 @@ ynh_psql_dump_db "$synapse_db_name" > ${YNH_CWD}/dump.sql
 # BACKUP SYNAPSE LOG
 #=================================================
 
-ynh_backup "/var/log/matrix-$app" "log"
+ynh_backup "/var/log/matrix-$app"
