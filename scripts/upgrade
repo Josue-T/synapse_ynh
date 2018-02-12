@@ -318,7 +318,7 @@ then
     ynh_app_setting_set $app turnserver_alt_tls_port $turnserver_alt_tls_port
     ynh_app_setting_set $app cli_port $cli_port
     
-    yunohost firewall allow --no-upnp Both $turnserver_alt_tls_port > /dev/null 2>&1
+    yunohost firewall allow Both $turnserver_alt_tls_port > /dev/null 2>&1
 
     # Configure systemd
     cp ../conf/default_coturn /etc/default/coturn-$app

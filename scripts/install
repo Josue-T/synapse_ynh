@@ -73,9 +73,9 @@ turnserver_alt_tls_port=$(ynh_find_port $((turnserver_tls_port+1)))
 cli_port=$(ynh_find_port 5766)
 
 # Open this port
-yunohost firewall allow --no-upnp TCP $synapse_tls_port > /dev/null 2>&1
-yunohost firewall allow --no-upnp Both $turnserver_tls_port > /dev/null 2>&1
-yunohost firewall allow --no-upnp Both $turnserver_alt_tls_port > /dev/null 2>&1
+yunohost firewall allow TCP $synapse_tls_port > /dev/null 2>&1
+yunohost firewall allow Both $turnserver_tls_port > /dev/null 2>&1
+yunohost firewall allow Both $turnserver_alt_tls_port > /dev/null 2>&1
 
 # Store opened ports
 ynh_app_setting_set $app synapse_port $port

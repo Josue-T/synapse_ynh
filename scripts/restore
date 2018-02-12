@@ -78,9 +78,9 @@ adduser turnserver ssl-cert
 #=================================================
 
 # Ouvre le port dans le firewall
-yunohost firewall allow --no-upnp TCP $synapse_tls_port > /dev/null 2>&1
-yunohost firewall allow --no-upnp Both $turnserver_tls_port > /dev/null 2>&1
-yunohost firewall allow --no-upnp Both $turnserver_alt_tls_port > /dev/null 2>&1
+yunohost firewall allow TCP $synapse_tls_port > /dev/null 2>&1
+yunohost firewall allow Both $turnserver_tls_port > /dev/null 2>&1
+yunohost firewall allow Both $turnserver_alt_tls_port > /dev/null 2>&1
 
 #=================================================
 # SETUP SSOWAT
