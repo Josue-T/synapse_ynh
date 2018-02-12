@@ -3,11 +3,11 @@ Synapse for YunoHost
 
 ![](https://matrix.org/blog/wp-content/uploads/2015/01/logo1.png)
 
-[![Integration level](https://dash.yunohost.org/integration/synapse.svg)](https://ci-apps.yunohost.org/jenkins/job/synapse%20%28Community%29/lastBuild/consoleFull)
-
+[![Integration level](https://dash.yunohost.org/integration/synapse.svg)](https://ci-apps.yunohost.org/jenkins/job/synapse%20%28Community%29/lastBuild/consoleFull)  
 [![Install Synapse with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=synapse)
 
-[Yunohost project](https://yunohost.org/#/)
+> *This package allow you to install wordpress quickly and simply on a YunoHost server.  
+If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to know how to install and enjoy it.*
 
 Overview
 --------
@@ -16,7 +16,7 @@ Instant messaging server matrix network.
 
 Yunohost chattroom with matrix : [https://riot.im/app/#/room/#yunohost:matrix.org](https://riot.im/app/#/room/#yunohost:matrix.org)
 
-Shipped version: 0.26.0
+**Shipped version:** 0.26.0
 
 Configuration
 -------------
@@ -89,18 +89,10 @@ Links
 - Matrix website: https://matrix.org/
 - YunoHost website: https://yunohost.org/
 
-Developers infos
-----------------
+Additionnal informations
+-----
 
-Please do your pull request to the testing branch.
 
-To try the testing branch, please proceed like that:
-
-```bash
-sudo yunohost app install https://github.com/YunoHost-Apps/synapse_ynh/tree/testing --verbose
-or
-sudo yunohost app upgrade synapse -u https://github.com/YunoHost-Apps/synapse_ynh/tree/testing --verbose
-```
 
 Administation
 -------------
@@ -126,8 +118,7 @@ To solve the issue [#30](https://github.com/YunoHost-Apps/synapse_ynh/issues/30)
 
 `yunohost app setting synapse disable_backup_before_upgrade -v 1`
 
-Multi instance support
-----------------------
+### Multi instance support
 
 To give a possiblity to have multiple domain you can use synapse in multiple instance. In this case all instance will run on differents port so it's really important to use put a SRV record in your domain. You can get the port that your need to put in your SRV record by this following command :
 ```
@@ -136,9 +127,7 @@ yunohost app setting synapse__<instancenumber> synapse_tls_port
 
 Before to install a second instance of the app it's really recommend to update all instance already installed.
 
-
-Migration from old package
---------------------------
+### Migration from old package
 
 The old synapse package had some problem, the package has been reviewed in the summer 2017. The old package was made with the debian package with the synapse apt repos. The database used sqlite. To improve the performance and to have a better compatibility the new package use python virtual environment and postgresql as database. The Upgrade was made to make the migration from the old package to the new package. The part of this script is available here : https://github.com/YunoHost-Apps/synapse_ynh/blob/master/scripts/upgrade#L40-L119 .
 
@@ -153,7 +142,21 @@ To do a backup before the upgrade use this command : `sudo yunohost backup creat
 
 If anything fail while you are doing the upgrade please make an issue here : https://github.com/YunoHost-Apps/synapse_ynh/issues
 
-License
--------
+### License
 
 Synapse is published under the Apache License : https://github.com/matrix-org/synapse/blob/master/LICENSE
+
+---
+
+Developers infos
+----------------
+
+Please do your pull request to the testing branch.
+
+To try the testing branch, please proceed like that:
+
+```bash
+sudo yunohost app install https://github.com/YunoHost-Apps/synapse_ynh/tree/testing --verbose
+or
+sudo yunohost app upgrade synapse -u https://github.com/YunoHost-Apps/synapse_ynh/tree/testing --verbose
+```
