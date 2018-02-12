@@ -31,7 +31,7 @@ upstream_version=$(ynh_app_upstream_version)
 #=================================================
 
 domain=$(ynh_app_setting_get $app special_domain)
-final_path="/opt/yunohost/matrix-$app"
+final_path=$(ynh_app_setting_get $app final_path)
 
 #=================================================
 # STANDARD BACKUP STEPS
@@ -79,7 +79,7 @@ ynh_backup "/var/lib/matrix-$app" "data" 1
 # BACKUP THE POSTGRESQL DATABASE
 #=================================================
 
-sudo su -c "pg_dump $synapse_db_name" postgres > ${YNH_CWD}/dump.sql
+ynh_psql_dump_db "$synapse_db_name" > ${YNH_CWD}/dump.sql
 
 #=================================================
 # BACKUP SYNAPSE LOG

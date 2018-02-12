@@ -34,12 +34,9 @@ domain=$(ynh_app_setting_get $app special_domain)
 path_url=$(ynh_app_setting_get $app special_path)
 final_path=$(ynh_app_setting_get $app final_path)
 synapse_db_pwd=$(ynh_app_setting_get $app synapse_db_pwd)
-is_public=$(ynh_app_setting_get $app is_public)
-port=$(ynh_app_setting_get $app synapse_port)
 synapse_tls_port=$(ynh_app_setting_get $app synapse_tls_port)
 turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
 turnserver_alt_tls_port=$(ynh_app_setting_get $app turnserver_alt_tls_port)
-turnserver_pwd=$(ynh_app_setting_get $app turnserver_pwd)
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
@@ -106,7 +103,7 @@ ynh_psql_execute_as_root \
  LC_CTYPE='C'
  template=template0
  OWNER $synapse_db_user;"
-su -c "psql $synapse_db_name" postgres < ${YNH_CWD}/dump.sql
+ynh_psql_execute_file_as_root "${YNH_CWD}/dump.sql" "$synapse_db_name"
 
 #=================================================
 # RESTORE SYSTEMD
