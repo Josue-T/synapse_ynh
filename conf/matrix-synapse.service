@@ -3,11 +3,11 @@ Description=Synapse Matrix homeserver
 
 [Service]
 Type=simple
-User=matrix-synapse
-WorkingDirectory=/var/lib/matrix-synapse
-EnvironmentFile=/etc/default/matrix-synapse
-ExecStartPre=/opt/yunohost/matrix-synapse/bin/python -m synapse.app.homeserver --config-path=/etc/matrix-synapse/homeserver.yaml --config-path=/etc/matrix-synapse/conf.d/ --generate-keys
-ExecStart=/opt/yunohost/matrix-synapse/bin/python -m synapse.app.homeserver --config-path=/etc/matrix-synapse/homeserver.yaml --config-path=/etc/matrix-synapse/conf.d/
+User=matrix-__APP__
+WorkingDirectory=/var/lib/matrix-__APP__
+EnvironmentFile=/etc/default/matrix-__APP__
+ExecStartPre=/opt/yunohost/matrix-__APP__/bin/python -m synapse.app.homeserver --config-path=/etc/matrix-__APP__/homeserver.yaml --config-path=/etc/matrix-__APP__/conf.d/ --generate-keys
+ExecStart=/opt/yunohost/matrix-__APP__/bin/python -m synapse.app.homeserver --config-path=/etc/matrix-__APP__/homeserver.yaml --config-path=/etc/matrix-__APP__/conf.d/
 Restart=always
 RestartSec=3
 

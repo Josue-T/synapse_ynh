@@ -1,42 +1,88 @@
 #!/bin/bash
 
-# Source YunoHost helpers
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
 source /usr/share/yunohost/helpers
 
 # Stop script if errors
 ynh_abort_if_errors
 
 # Import common cmd
-source ../settings/scripts/_common.sh
 source ../settings/scripts/psql.sh
+source ../settings/scripts/experimental_helper.sh
+source ../settings/scripts/_common.sh
 
-# Retrieve arguments
+#=================================================
+# SET ALL CONSTANT
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
+synapse_user="matrix-$app"
+synapse_db_name="matrix_$app"
+synapse_db_user="matrix_$app"
+upstream_version=$(ynh_app_upstream_version)
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
 domain=$(ynh_app_setting_get $app special_domain)
-final_path="/opt/yunohost/matrix-synapse"
+final_path=$(ynh_app_setting_get $app final_path)
 
-# Copy Nginx config
-ynh_backup "/etc/nginx/conf.d/${domain}.d/${app}.conf" "nginx.conf"
+#=================================================
+# STANDARD BACKUP STEPS
+#=================================================
+# BACKUP THE NGINX CONFIGURATION
+#=================================================
 
-# Backup synapse config
-ynh_backup "/etc/matrix-synapse" "synapse_config"
+ynh_backup "/etc/nginx/conf.d/${domain}.d/${app}.conf"
 
-# Backup coturn server
-ynh_backup "/etc/turnserver.conf" "coturn_config"
-ynh_backup "/etc/default/coturn" "coturn_config_default"
+#=================================================
+# BACKUP SYNAPSE CONFIG
+#=================================================
 
-# Backup synapse database
-ynh_backup "/var/lib/matrix-synapse" "data" 1
+ynh_backup "/etc/matrix-$app"
 
-# Backup Postgresql database
-sudo su -c "pg_dump $synapse_db_name" postgres > ${YNH_CWD}/dump.sql
+#=================================================
+# BACKUP COTURN CONFIG
+#=================================================
 
-# Copy the logs
-ynh_backup "/var/log/matrix-synapse" "log"
-ynh_backup "/var/log/turnserver" "log_turnserver"
+ynh_backup "/etc/turnserver.conf"
+ynh_backup "/etc/default/coturn"
 
-# Backup systemd service
-ynh_backup "/etc/default/matrix-synapse"
-ynh_backup "/etc/systemd/system/matrix-synapse.service"
+#=================================================
+# BACKUP SYSTEMD
+#=================================================
 
-# Backup synapse binary
+ynh_backup "/etc/default/matrix-$app"
+ynh_backup "/etc/systemd/system/matrix-$app.service"
+ynh_backup "/etc/default/coturn-$app"
+ynh_backup "/etc/systemd/system/coturn-$app.service"
+
+#=================================================
+# BACKUP THE APP MAIN DIR
+#=================================================
+
 ynh_backup "$final_path" "bin"
+
+#=================================================
+# BACKUP SYNAPSE DATA
+#=================================================
+
+ynh_backup "/var/lib/matrix-$app" "data" 1
+
+#=================================================
+# BACKUP THE POSTGRESQL DATABASE
+#=================================================
+
+ynh_psql_dump_db "$synapse_db_name" > ${YNH_CWD}/dump.sql
+
+#=================================================
+# BACKUP SYNAPSE LOG
+#=================================================
+
+ynh_backup "/var/log/matrix-$app"

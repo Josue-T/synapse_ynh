@@ -117,7 +117,6 @@ ynh_psql_drop_user() {
 	su --command="dropuser \"${user}\"" postgres
 }
 
-
 ynh_psql_test_if_first_run() {
 	if [ -f /etc/yunohost/psql ];
 	then

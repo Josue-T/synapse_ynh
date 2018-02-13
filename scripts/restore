@@ -1,48 +1,99 @@
 #!/bin/bash
 
-# Source YunoHost helpers
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
 source /usr/share/yunohost/helpers
 
 # Stop script if errors
 ynh_abort_if_errors
 
 # Import common cmd
-source ../settings/scripts/_common.sh
 source ../settings/scripts/psql.sh
+source ../settings/scripts/experimental_helper.sh
+source ../settings/scripts/_common.sh
 
-# Retrieve arguments
+#=================================================
+# SET ALL CONSTANT
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
+synapse_user="matrix-$app"
+synapse_db_name="matrix_$app"
+synapse_db_user="matrix_$app"
+upstream_version=$(ynh_app_upstream_version)
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
 domain=$(ynh_app_setting_get $app special_domain)
-path=$(ynh_app_setting_get $app special_path)
+path_url=$(ynh_app_setting_get $app special_path)
 final_path=$(ynh_app_setting_get $app final_path)
 synapse_db_pwd=$(ynh_app_setting_get $app synapse_db_pwd)
-is_public=$(ynh_app_setting_get $app is_public)
-synapse_port=$(ynh_app_setting_get $app synapse_port)
 synapse_tls_port=$(ynh_app_setting_get $app synapse_tls_port)
 turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
-turnserver_pwd=$(ynh_app_setting_get $app turnserver_pwd)
+turnserver_alt_tls_port=$(ynh_app_setting_get $app turnserver_alt_tls_port)
 
-# Check domain/path availability
-ynh_webpath_available $domain $path || ynh_die "$domain/$path is not available, please use an other domain."
+#=================================================
+# CHECK IF THE APP CAN BE RESTORED
+#=================================================
 
-# Ouvre le port dans le firewall
-yunohost firewall allow --no-upnp TCP $synapse_tls_port > /dev/null 2>&1
-yunohost firewall allow --no-upnp Both $turnserver_tls_port > /dev/null 2>&1
+ynh_webpath_available $domain $path_url || ynh_die "$domain/$path_url is not available, please use an other domain."
 
-# Install all dependances
-install_dependances
-
-# Create user
-ynh_system_user_create $synapse_user /var/lib/matrix-synapse
-adduser $synapse_user ssl-cert
-adduser turnserver ssl-cert
+#=================================================
+# STANDARD RESTORATION STEPS
+#=================================================
+# RESTORE ALL FILES
+#=================================================
 
 # Restore all config and data
 ynh_restore
 
-# Open access to server without a button the home
-python $final_path/add_sso_conf.py
+#=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
 
-# Restore postgresql database
+# WARRNING : theses command are used in INSTALL, UPGRADE, RESTORE
+# For any update do it in all files
+ynh_install_app_dependencies coturn build-essential python2.7-dev libffi-dev python-pip python-setuptools sqlite3 libssl-dev python-virtualenv libxml2-dev libxslt1-dev python-lxml libjpeg-dev libpq-dev postgresql acl
+pip install --upgrade pip
+pip install --upgrade virtualenv
+
+#=================================================
+# RECREATE THE DEDICATED USER
+#=================================================
+
+ynh_system_user_create $synapse_user /var/lib/matrix-$app
+adduser $synapse_user ssl-cert
+adduser turnserver ssl-cert
+
+#=================================================
+# SPECIFIC RESTORATION
+#=================================================
+# OPEN THE PORT
+#=================================================
+
+# Ouvre le port dans le firewall
+yunohost firewall allow TCP $synapse_tls_port > /dev/null 2>&1
+yunohost firewall allow Both $turnserver_tls_port > /dev/null 2>&1
+yunohost firewall allow Both $turnserver_alt_tls_port > /dev/null 2>&1
+
+#=================================================
+# SETUP SSOWAT
+#=================================================
+
+# Open access to server without a button the home
+# The script "add_sso_conf.py" will just add en entry for the path "/_matrix" in the sso conf.json.persistent file in the cathegory "skipped_urls".
+python $final_path/add_sso_conf.py || ynh_die "Your file /etc/ssowat/conf.json.persistent don't respect the json synaxe. Please fix the synaxe to install this app. For more information see here : https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
+
+#=================================================
+# RESTORE THE POSTGRESQL DATABASE
+#=================================================
+
 ynh_psql_test_if_first_run
 ynh_psql_create_user $synapse_db_user $synapse_db_pwd
 ynh_psql_execute_as_root \
@@ -52,23 +103,49 @@ ynh_psql_execute_as_root \
  LC_CTYPE='C'
  template=template0
  OWNER $synapse_db_user;"
-su -c "psql $synapse_db_name" postgres < ${YNH_CWD}/dump.sql
+ynh_psql_execute_file_as_root "${YNH_CWD}/dump.sql" "$synapse_db_name"
 
-# Enable systemd service
+#=================================================
+# RESTORE SYSTEMD
+#=================================================
+
 systemctl daemon-reload
-systemctl enable matrix-synapse.service
+systemctl enable matrix-$app.service
 
-# Configuration de logrotate
-ynh_use_logrotate /var/log/matrix-synapse
-ynh_use_logrotate /var/log/turnserver
+#=================================================
+# SETUP LOGROTATE
+#=================================================
 
-# Set the permission
-set_permission
+ynh_use_logrotate /var/log/matrix-$app
 
-# register yunohost service
-yunohost service add matrix-synapse
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# SECURE FILES AND DIRECTORIES
+#=================================================
 
-# Reload webserver
+# WARRNING : theses command are used in INSTALL, UPGRADE, RESTORE
+# For any update do it in all files
+chown $synapse_user:root -R $final_path
+chown $synapse_user:root -R /var/lib/matrix-$app
+chown $synapse_user:root -R /var/log/matrix-$app
+chown $synapse_user:root -R /etc/matrix-$app
+chmod u=rwX,g=rX,o= -R /etc/matrix-$app
+chmod 600 /etc/matrix-$app/dh.pem
+setfacl -R -m user:turnserver:rX  /etc/matrix-$app
+setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
+
+#=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
+
+yunohost service add matrix-$app -l "/var/log/matrix-$app/homeserver.log"
+yunohost service add coturn-$app
+
+#=================================================
+# RELOAD NGINX, SYNAPSE AND COTURN
+#=================================================
+
 systemctl reload nginx.service
-systemctl restart matrix-synapse.service
-systemctl restart coturn.service
+systemctl restart coturn-$app.service
+ynh_check_starting "Synapse now listening on port $synapse_tls_port" "/var/log/matrix-$app/homeserver.log" 300 "matrix-$app"
