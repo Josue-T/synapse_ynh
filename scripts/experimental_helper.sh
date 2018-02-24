@@ -6,7 +6,7 @@
 ynh_read_manifest () {
 	manifest="$1"
 	key="$2"
-	python3 -c "import sys, json;print(json.load(open('$manifest'))['$key'])"
+	python3 -c "import sys, json;print(json.load(open('$manifest', encoding='utf-8'))['$key'])"
 }
 
 # Read the upstream version from the manifest 
