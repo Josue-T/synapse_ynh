@@ -45,6 +45,13 @@ for example
 ```
 _matrix._tcp.example.com. 3600    IN      SRV     10 0 8448 synapse.example.com.
 ```
+
+If it is not autocratically done, you need to open this port (8448) in our ISP box.
+
+### Turnserver
+
+For Voip and video conferencing a turnserver is also installed (and configured). The turnserver listen on the UDP and TCP port 5349 and 5350 (for the first synapse instance). To have a full functional turnserver you need to open theses ports (if it is not autocratically done) in your ISP box.
+
 ### Important Security Note
 
 We do not recommend running Riot from the same domain name as your Matrix
