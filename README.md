@@ -43,14 +43,21 @@ _matrix._tcp.<yourdomain.com> <ttl> IN SRV 10 0 <port> <synapse.server.name>
 ```
 for example
 ```
-_matrix._tcp.example.com. 3600    IN      SRV     10 0 8448 synapse.example.com.
+_matrix._tcp.example.com. 3600    IN      SRV     10 0 SYNAPSE_PORT synapse.example.com.
 ```
+You need to replace SYNAPSE_PORT by the real port. This port could be got by the command : `yunohost app setting SYNAPSE_INSTANCE_NAME synapse_tls_port`
 
-If it is not autocratically done, you need to open this port (8448) in our ISP box.
+If it is not automatically done, you need to open this in our ISP box.
 
 ### Turnserver
 
-For Voip and video conferencing a turnserver is also installed (and configured). The turnserver listen on the UDP and TCP port 5349 and 5350 (for the first synapse instance). To have a full functional turnserver you need to open theses ports (if it is not autocratically done) in your ISP box.
+For Voip and video conferencing a turnserver is also installed (and configured). The turnserver listen on two UDP and TCP ports. You can get it by these command :
+```
+yunohost app setting synapse turnserver_tls_port
+yunohost app setting synapse turnserver_alt_tls_port
+
+```
+To have a full functional turnserver you need to open theses ports (if it is not autocratically done) in your ISP box.
 
 ### Important Security Note
 
