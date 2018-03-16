@@ -1,2 +1,2 @@
-SOURCE_URL=https://github.com/matrix-org/synapse/archive/v0.26.0.tar.gz
-SOURCE_SUM=234dd5fa44895e855d11fbf50de9184d057977b10b296f594d2c3758f693eff3 
+SOURCE_URL=https://github.com/matrix-org/synapse/archive/v0.26.1.tar.gz
+SOURCE_SUM=52cf9322e6cc4d4b8a745a3acb369fe828f471ab3de674e8f636c9d2abeaf5da 
