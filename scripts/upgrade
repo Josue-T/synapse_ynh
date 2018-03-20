@@ -240,7 +240,7 @@ then
 
     cp ../conf/add_sso_conf.py $final_path
     cp ../conf/remove_sso_conf.py $final_path
-    python $final_path/add_sso_conf.py || echo "Error while sso config, please add '/_matrix' in /etc/ssowat/conf.json.persistent"
+    python3 $final_path/add_sso_conf.py || echo "Error while sso config, please add '/_matrix' in /etc/ssowat/conf.json.persistent"
 
     #=================================================
     # CREATE DEDICATED USER
