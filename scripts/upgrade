@@ -48,7 +48,11 @@ cli_port=$(ynh_app_setting_get $app cli_port)
 #=================================================
 
 # To be sure that the migration is sucessfull we check that the old synapse version is compatible with the synapse_port_db script.
-if [[ -z $synapse_old_version ]] && [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.25") != 1 ]] && [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.26") != 1 ]]
+# We need to make the user able to do the migration to the new package.
+# While the official synapse version is updated, the idea is to test the migration with the new version.
+# If the migration pass we can update this next line with the new synapse package.
+# For more information see comment : https://github.com/YunoHost-Apps/synapse_ynh/pull/40#pullrequestreview-108680051
+if [[ -z $synapse_old_version ]] && [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.27") != 1 ]] && [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.26") != 1 ]]
 then
 	ynh_die "Update from this synapse version is not available now. You need to wait for the next update."
 fi
@@ -240,7 +244,7 @@ then
 
     cp ../conf/add_sso_conf.py $final_path
     cp ../conf/remove_sso_conf.py $final_path
-    python $final_path/add_sso_conf.py || echo "Error while sso config, please add '/_matrix' in /etc/ssowat/conf.json.persistent"
+    python3 $final_path/add_sso_conf.py || echo "Error while sso config, please add '/_matrix' in /etc/ssowat/conf.json.persistent"
 
     #=================================================
     # CREATE DEDICATED USER
@@ -285,6 +289,11 @@ then
 
     # We get the last version of the synapse_port_db script because an old version could be buggy.
     cp ../sources/synapse_port_db /opt/yunohost/matrix-synapse/bin/synapse_port_db
+
+    # Fix "PS1: unbound variable" On ARM architecture
+    PS1=""
+    cp ../conf/virtualenv_activate $final_path/bin/activate
+    ynh_replace_string __FINAL_PATH__ $final_path $final_path/bin/activate
 
     # Migrate database (in virtualenv)
     source $final_path/bin/activate

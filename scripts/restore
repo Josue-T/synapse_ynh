@@ -88,7 +88,7 @@ yunohost firewall allow Both $turnserver_alt_tls_port > /dev/null 2>&1
 
 # Open access to server without a button the home
 # The script "add_sso_conf.py" will just add en entry for the path "/_matrix" in the sso conf.json.persistent file in the cathegory "skipped_urls".
-python $final_path/add_sso_conf.py || ynh_die "Your file /etc/ssowat/conf.json.persistent don't respect the json synaxe. Please fix the synaxe to install this app. For more information see here : https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
+python3 $final_path/add_sso_conf.py || ynh_die "Your file /etc/ssowat/conf.json.persistent don't respect the json synaxe. Please fix the synaxe to install this app. For more information see here : https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
 
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE
@@ -149,3 +149,19 @@ yunohost service add coturn-$app
 systemctl reload nginx.service
 systemctl restart coturn-$app.service
 ynh_check_starting "Synapse now listening on port $synapse_tls_port" "/var/log/matrix-$app/homeserver.log" 300 "matrix-$app"
+
+#=================================================
+# SEND A README FOR THE ADMIN
+#=================================================
+
+message="To federate this app you need to add this line in your DNS configuration:
+
+_matrix._tcp.$domain. 3600    IN      SRV     10 0 $synapse_tls_port $domain.
+
+You also need to open the TCP port $synapse_tls_port on your ISP box if it's not automatically done.
+
+Your synapse server also implements a turnserver (for VoIP), to have this fully functional open the TCP and UDP port $turnserver_tls_port and $turnserver_alt_tls_port (if it's not automatically done).
+
+If you're facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/synapse_ynh"
+
+ynh_send_readme_to_admin "$message"
