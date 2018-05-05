@@ -80,6 +80,7 @@ adduser turnserver ssl-cert
 yunohost firewall allow TCP $synapse_tls_port > /dev/null 2>&1
 yunohost firewall allow Both $turnserver_tls_port > /dev/null 2>&1
 yunohost firewall allow Both $turnserver_alt_tls_port > /dev/null 2>&1
+yunohost firewall allow Both '49152:49192' > /dev/null 2>&1
 
 #=================================================
 # SETUP SSOWAT

@@ -76,6 +76,7 @@ cli_port=$(ynh_find_port 5766)
 yunohost firewall allow TCP $synapse_tls_port > /dev/null 2>&1
 yunohost firewall allow Both $turnserver_tls_port > /dev/null 2>&1
 yunohost firewall allow Both $turnserver_alt_tls_port > /dev/null 2>&1
+yunohost firewall allow Both '49152:49192' > /dev/null 2>&1
 
 # Store opened ports
 ynh_app_setting_set $app synapse_port $port
@@ -249,6 +250,23 @@ ynh_replace_string __DOMAIN__ $domain "$coturn_config_path"
 ynh_replace_string __TLS_PORT__ $turnserver_tls_port "$coturn_config_path"
 ynh_replace_string __TLS_ALT_PORT__ $turnserver_alt_tls_port "$coturn_config_path"
 ynh_replace_string __CLI_PORT__ $cli_port "$coturn_config_path"
+
+# Get public IP and set as external IP for coturn
+public_ip4="$(curl ip.yunohost.org)"
+public_ip6="$(curl ipv6.yunohost.org)"
+if ynh_validate_ip4 "$public_ip4"
+then
+    ynh_replace_string '__IPV4__' "$public_ip4" "$coturn_config_path"
+else
+    ynh_replace_string '__IPV4__,' "" "$coturn_config_path"
+fi
+
+if ynh_valide_ip6 "$public_ip6"
+then
+    ynh_replace_string '__IPV6__' "$public_ip6" "$coturn_config_path"
+else
+    ynh_replace_string ',__IPV6__' "" "$coturn_config_path"
+fi
 
 ynh_store_file_checksum "$coturn_config_path"
 
