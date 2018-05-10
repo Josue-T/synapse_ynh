@@ -240,16 +240,18 @@ ynh_replace_string __TLS_ALT_PORT__ $turnserver_alt_tls_port "$coturn_config_pat
 ynh_replace_string __CLI_PORT__ $cli_port "$coturn_config_path"
 
 # Get public IP and set as external IP for coturn
-public_ip4="$(curl ip.yunohost.org)"
-public_ip6="$(curl ipv6.yunohost.org)"
-if ynh_validate_ip4 "$public_ip4"
+# note : '|| true' is used to ignore the errors if we can't get the public ipv4 or ipv6
+public_ip4="$(curl ip.yunohost.org)" || true
+public_ip6="$(curl ipv6.yunohost.org)" || true
+
+if [[ -n "$public_ip4" ]] && ynh_validate_ip4 "$public_ip4"
 then
     ynh_replace_string '__IPV4__' "$public_ip4" "$coturn_config_path"
 else
     ynh_replace_string '__IPV4__,' "" "$coturn_config_path"
 fi
 
-if ynh_valide_ip6 "$public_ip6"
+if [[ -n "$public_ip6" ]] && ynh_valide_ip6 "$public_ip6"
 then
     ynh_replace_string '__IPV6__' "$public_ip6" "$coturn_config_path"
 else
