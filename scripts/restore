@@ -127,7 +127,12 @@ ynh_store_file_checksum "$coturn_config_path"
 yunohost firewall allow TCP $synapse_tls_port > /dev/null 2>&1
 yunohost firewall allow Both $turnserver_tls_port > /dev/null 2>&1
 yunohost firewall allow Both $turnserver_alt_tls_port > /dev/null 2>&1
-yunohost firewall allow Both '49152:49192' > /dev/null 2>&1
+
+# Open the range 49152-49192 only if it as not been open by an other instance
+if ! yunohost firewall list | grep -q "\- 49152:49192$"
+then
+    yunohost firewall allow Both 49152:49192 > /dev/null 2>&1
+fi
 
 #=================================================
 # SETUP SSOWAT
