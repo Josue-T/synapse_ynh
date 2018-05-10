@@ -57,6 +57,8 @@ yunohost app setting synapse turnserver_tls_port
 yunohost app setting synapse turnserver_alt_tls_port
 
 ```
+The turnserver will also chose a port dynamicly when a new call start. The is between 49152 - 49192.
+
 To have a fully functional turnserver you need to open these ports (if it is not automatically done) on your ISP box.
 
 ### Important Security Note
