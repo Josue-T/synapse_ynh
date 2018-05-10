@@ -71,6 +71,53 @@ adduser $synapse_user ssl-cert
 adduser turnserver ssl-cert
 
 #=================================================
+# RECONFIGURE THE TURNSERVER
+#=================================================
+
+# To be sure that a the restoration the IP adress in coturn config is same than the real adress we remake the coturn config
+
+# Retrive specific settings
+turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
+turnserver_alt_tls_port=$(ynh_app_setting_get $app turnserver_alt_tls_port)
+turnserver_pwd=$(ynh_app_setting_get $app turnserver_pwd)
+cli_port=$(ynh_app_setting_get $app cli_port)
+
+# WARRNING : theses command are used in INSTALL, UPGRADE
+# For any update do it in all files
+
+coturn_config_path="/etc/matrix-$app/coturn.conf"
+
+cp ../settings/conf/turnserver.conf "$coturn_config_path"
+
+ynh_replace_string __APP__ $app "$coturn_config_path"
+ynh_replace_string __TURNPWD__ $turnserver_pwd "$coturn_config_path"
+ynh_replace_string __DOMAIN__ $domain "$coturn_config_path"
+ynh_replace_string __TLS_PORT__ $turnserver_tls_port "$coturn_config_path"
+ynh_replace_string __TLS_ALT_PORT__ $turnserver_alt_tls_port "$coturn_config_path"
+ynh_replace_string __CLI_PORT__ $cli_port "$coturn_config_path"
+
+# Get public IP and set as external IP for coturn
+# note : '|| true' is used to ignore the errors if we can't get the public ipv4 or ipv6
+public_ip4="$(curl ip.yunohost.org)" || true
+public_ip6="$(curl ipv6.yunohost.org)" || true
+
+if [[ -n "$public_ip4" ]] && ynh_validate_ip4 "$public_ip4"
+then
+    ynh_replace_string '__IPV4__' "$public_ip4" "$coturn_config_path"
+else
+    ynh_replace_string '__IPV4__,' "" "$coturn_config_path"
+fi
+
+if [[ -n "$public_ip6" ]] && ynh_valide_ip6 "$public_ip6"
+then
+    ynh_replace_string '__IPV6__' "$public_ip6" "$coturn_config_path"
+else
+    ynh_replace_string ',__IPV6__' "" "$coturn_config_path"
+fi
+
+ynh_store_file_checksum "$coturn_config_path"
+
+#=================================================
 # SPECIFIC RESTORATION
 #=================================================
 # OPEN THE PORT
