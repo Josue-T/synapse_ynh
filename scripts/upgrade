@@ -120,7 +120,6 @@ then
     # WARRNING : theses command are used in INSTALL, UPGRADE, RESTORE
     # For any update do it in all files
     ynh_install_app_dependencies coturn build-essential python2.7-dev libffi-dev python-pip python-setuptools sqlite3 libssl-dev python-virtualenv libxml2-dev libxslt1-dev python-lxml libjpeg-dev libpq-dev postgresql acl
-    pip install --upgrade pip
     pip install --upgrade virtualenv
 
     #=================================================
@@ -171,7 +170,6 @@ else
     
     # We set all necessary environement variable to create a python virtualenvironnement. 
     source $final_path/bin/activate
-    pip install --upgrade pip
     pip install --upgrade setuptools
     pip install --upgrade cffi ndg-httpsclient psycopg2 lxml
     
