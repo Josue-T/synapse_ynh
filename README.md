@@ -61,6 +61,8 @@ The turnserver will also chose a port dynamicly when a new call start. The is be
 
 To have a fully functional turnserver you need to open these ports (if it is not automatically done) on your ISP box.
 
+To prevent the situation when the server is behind a NAT, the public IP is written in the turnserver config. By this the turnserver can send his real public IP to the client. For more information see [the coturn example config file](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf#L102-L120). So if you IP change the turnserver config might be obsolete. To fix that you just need to upgrade the app manually. By this the config will be automatically fixed.
+
 ### Important Security Note
 
 We do not recommend running Riot from the same domain name as your Matrix
