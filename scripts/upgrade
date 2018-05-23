@@ -52,7 +52,7 @@ cli_port=$(ynh_app_setting_get $app cli_port)
 # While the official synapse version is updated, the idea is to test the migration with the new version.
 # If the migration pass we can update this next line with the new synapse package.
 # For more information see comment : https://github.com/YunoHost-Apps/synapse_ynh/pull/40#pullrequestreview-108680051
-if [[ -z $synapse_old_version ]] && [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.27") != 1 ]] && [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.26") != 1 ]]
+if [[ -z $synapse_old_version ]] && [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.27") != 1 ]] && [[ $(dpkg -l | grep -c -E "ii.*matrix-synapse.*0.28") != 1 ]]
 then
 	ynh_die "Update from this synapse version is not available now. You need to wait for the next update."
 fi
@@ -120,7 +120,6 @@ then
     # WARRNING : theses command are used in INSTALL, UPGRADE, RESTORE
     # For any update do it in all files
     ynh_install_app_dependencies coturn build-essential python2.7-dev libffi-dev python-pip python-setuptools sqlite3 libssl-dev python-virtualenv libxml2-dev libxslt1-dev python-lxml libjpeg-dev libpq-dev postgresql acl
-    pip install --upgrade pip
     pip install --upgrade virtualenv
 
     #=================================================
@@ -171,7 +170,6 @@ else
     
     # We set all necessary environement variable to create a python virtualenvironnement. 
     source $final_path/bin/activate
-    pip install --upgrade pip
     pip install --upgrade setuptools
     pip install --upgrade cffi ndg-httpsclient psycopg2 lxml
     
