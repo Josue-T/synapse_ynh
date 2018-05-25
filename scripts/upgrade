@@ -82,7 +82,12 @@ fi
 
 if [ -n "$(uname -m | grep arm)" ]
 then
-    ynh_setup_source $final_path/ "armv7"
+    if [ "$(lsb_release --codename --short)" == "jessie" ]
+    then
+        ynh_setup_source $final_path/ "armv7_jessie"
+    else
+        ynh_setup_source $final_path/ "armv7_stretch"
+    fi
 else
     # Install virtualenv if it don't exist
     test -e $final_path/bin || virtualenv -p python2.7 $final_path
