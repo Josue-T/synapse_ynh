@@ -170,14 +170,14 @@ ynh_use_logrotate /var/log/matrix-$app
 # SECURE FILES AND DIRECTORIES
 #=================================================
 
-# WARNING : these commands are used in INSTALL, UPGRADE, RESTORE
+# WARNING : theses command are used in INSTALL, UPGRADE, RESTORE (3 times)
 # For any update do it in all files
 chown $synapse_user:root -R $final_path
 chown $synapse_user:root -R /var/lib/matrix-$app
 chown $synapse_user:root -R /var/log/matrix-$app
 chown $synapse_user:root -R /etc/matrix-$app
 chmod u=rwX,g=rX,o= -R /etc/matrix-$app
-chmod 600 /etc/matrix-$app/dh.pem
+chmod 600 /etc/matrix-$app/{$domain.signing.key,$domain.tls.crt,$domain.tls.dh,$domain.tls.key}
 setfacl -R -m user:turnserver:rX  /etc/matrix-$app
 setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
 

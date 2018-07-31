@@ -25,6 +25,7 @@ synapse_user="matrix-$app"
 synapse_db_name="matrix_$app"
 synapse_db_user="matrix_$app"
 upstream_version=$(ynh_app_upstream_version)
+report_stats="False"
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
@@ -58,6 +59,7 @@ ynh_app_setting_set $app special_path $path_url
 ynh_app_setting_set $app final_path $final_path
 ynh_app_setting_set $app synapse_version $upstream_version
 ynh_app_setting_set $app is_public $is_public
+ynh_app_setting_set $app report_stats $report_stats
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -83,15 +85,6 @@ ynh_app_setting_set $app synapse_tls_port $synapse_tls_port
 ynh_app_setting_set $app turnserver_tls_port $turnserver_tls_port
 ynh_app_setting_set $app turnserver_alt_tls_port $turnserver_alt_tls_port
 ynh_app_setting_set $app cli_port $cli_port
-
-#=================================================
-# CREATE A DH FILE
-#=================================================
-
-# Make dh cert for synapse if it not exist
-test ! -e /etc/matrix-$app/dh.pem && \
-    mkdir -p /etc/matrix-$app && \
-    openssl dhparam -out /etc/matrix-$app/dh.pem 2048 > /dev/null
 
 #=================================================
 # INSTALL DEPENDENCIES
@@ -177,6 +170,30 @@ else
 fi
 
 #=================================================
+# CREATE SYNAPSE KEYS
+#=================================================
+
+# Go in virtualenvironnement
+source $final_path/bin/activate
+
+# Get the dh.pem if exist
+test -e /etc/matrix-$app/dh.pem && mv /etc/matrix-$app/dh.pem $domain.tls.dh
+
+# Generate config and keys
+python -m synapse.app.homeserver --keys-directory /etc/matrix-$app/ --generate-config --generate-keys --server-name $domain --report-stats=no -c homeserver.yml
+
+# This fonction was defined while we call "source $final_path/bin/activate". By this fonction de undo what does "$final_path/bin/activate"
+deactivate
+
+# Get randoms values from config
+registration_shared_secret=$(egrep "registration_shared_secret" homeserver.yml | cut -d'"' -f2)
+form_secret=$(egrep "form_secret" homeserver.yml | cut -d'"' -f2)
+
+# store in yunohost settings
+ynh_app_setting_set $app registration_shared_secret "$registration_shared_secret"
+ynh_app_setting_set $app form_secret "$form_secret"
+
+#=================================================
 # SETUP SYSTEMD
 #=================================================
 
@@ -219,6 +236,9 @@ ynh_replace_string __PORT__ $port "$homeserver_config_path"
 ynh_replace_string __TLS_PORT__ $synapse_tls_port "$homeserver_config_path"
 ynh_replace_string __TURNSERVER_TLS_PORT__ $turnserver_tls_port "$homeserver_config_path"
 ynh_replace_string __TURNPWD__ $turnserver_pwd "$homeserver_config_path"
+ynh_replace_string __REGISTRATION_SECRET__ "$registration_shared_secret" "$homeserver_config_path"
+ynh_replace_string __FORM_SECRET__ "$form_secret" "$homeserver_config_path"
+ynh_replace_string __REPORT_STATS__ "$report_stats" "$homeserver_config_path"
 
 ynh_replace_string __APP__ $app "/etc/matrix-$app/log.yaml"
 
@@ -303,14 +323,14 @@ python3 $final_path/add_sso_conf.py || ynh_die "Your file /etc/ssowat/conf.json.
 # SECURE FILES AND DIRECTORIES
 #=================================================
 
-# WARRNING : theses command are used in INSTALL, UPGRADE (2 times), RESTORE
+# WARNING : theses command are used in INSTALL, UPGRADE, RESTORE (3 times)
 # For any update do it in all files
 chown $synapse_user:root -R $final_path
 chown $synapse_user:root -R /var/lib/matrix-$app
 chown $synapse_user:root -R /var/log/matrix-$app
 chown $synapse_user:root -R /etc/matrix-$app
 chmod u=rwX,g=rX,o= -R /etc/matrix-$app
-chmod 600 /etc/matrix-$app/dh.pem
+chmod 600 /etc/matrix-$app/{$domain.signing.key,$domain.tls.crt,$domain.tls.dh,$domain.tls.key}
 setfacl -R -m user:turnserver:rX  /etc/matrix-$app
 setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
 
