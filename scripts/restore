@@ -71,6 +71,53 @@ adduser $synapse_user ssl-cert
 adduser turnserver ssl-cert
 
 #=================================================
+# RECONFIGURE THE TURNSERVER
+#=================================================
+
+# To be sure that at the restoration the IP address in coturn config is the same as the real address we remake the coturn config
+
+# Retrieve specific settings
+turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
+turnserver_alt_tls_port=$(ynh_app_setting_get $app turnserver_alt_tls_port)
+turnserver_pwd=$(ynh_app_setting_get $app turnserver_pwd)
+cli_port=$(ynh_app_setting_get $app cli_port)
+
+# WARNING : these commands are used in INSTALL, UPGRADE
+# For any update do it in all files
+
+coturn_config_path="/etc/matrix-$app/coturn.conf"
+
+cp ../settings/conf/turnserver.conf "$coturn_config_path"
+
+ynh_replace_string __APP__ $app "$coturn_config_path"
+ynh_replace_string __TURNPWD__ $turnserver_pwd "$coturn_config_path"
+ynh_replace_string __DOMAIN__ $domain "$coturn_config_path"
+ynh_replace_string __TLS_PORT__ $turnserver_tls_port "$coturn_config_path"
+ynh_replace_string __TLS_ALT_PORT__ $turnserver_alt_tls_port "$coturn_config_path"
+ynh_replace_string __CLI_PORT__ $cli_port "$coturn_config_path"
+
+# Get public IP and set as external IP for coturn
+# note : '|| true' is used to ignore the errors if we can't get the public ipv4 or ipv6
+public_ip4="$(curl ip.yunohost.org)" || true
+public_ip6="$(curl ipv6.yunohost.org)" || true
+
+if [[ -n "$public_ip4" ]] && ynh_validate_ip4 "$public_ip4"
+then
+    ynh_replace_string '__IPV4__' "$public_ip4" "$coturn_config_path"
+else
+    ynh_replace_string '__IPV4__,' "" "$coturn_config_path"
+fi
+
+if [[ -n "$public_ip6" ]] && ynh_valide_ip6 "$public_ip6"
+then
+    ynh_replace_string '__IPV6__' "$public_ip6" "$coturn_config_path"
+else
+    ynh_replace_string ',__IPV6__' "" "$coturn_config_path"
+fi
+
+ynh_store_file_checksum "$coturn_config_path"
+
+#=================================================
 # SPECIFIC RESTORATION
 #=================================================
 # OPEN THE PORT
@@ -123,7 +170,7 @@ ynh_use_logrotate /var/log/matrix-$app
 # SECURE FILES AND DIRECTORIES
 #=================================================
 
-# WARRNING : theses command are used in INSTALL, UPGRADE, RESTORE
+# WARNING : these commands are used in INSTALL, UPGRADE, RESTORE
 # For any update do it in all files
 chown $synapse_user:root -R $final_path
 chown $synapse_user:root -R /var/lib/matrix-$app
@@ -153,13 +200,16 @@ ynh_check_starting "Synapse now listening on port $synapse_tls_port" "/var/log/m
 # SEND A README FOR THE ADMIN
 #=================================================
 
+# WARRNING : theses command are used in INSTALL, RESTORE
+# For any update do it in all files
+
 message="To federate this app you need to add this line in your DNS configuration:
 
 _matrix._tcp.$domain. 3600    IN      SRV     10 0 $synapse_tls_port $domain.
 
 You also need to open the TCP port $synapse_tls_port on your ISP box if it's not automatically done.
 
-Your synapse server also implements a turnserver (for VoIP), to have this fully functional open the TCP and UDP port $turnserver_tls_port and $turnserver_alt_tls_port (if it's not automatically done).
+Your synapse server also implements a turnserver (for VoIP), to have this fully functional please read the 'Turnserver' section in the README available here: https://github.com/YunoHost-Apps/synapse_ynh .
 
 If you're facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/synapse_ynh"
 

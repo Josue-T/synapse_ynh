@@ -77,7 +77,7 @@ fi
 
 # Install/upgrade synapse in virtualenv
 
-# WARRNING : theses command are used in INSTALL, UPGRADE
+# WARNING : these commands are used in INSTALL, UPGRADE
 # For any update do it in all files
 
 if [ -n "$(uname -m | grep arm)" ]
@@ -91,26 +91,26 @@ else
     PS1=""
     cp ../conf/virtualenv_activate $final_path/bin/activate
     ynh_replace_string __FINAL_PATH__ $final_path $final_path/bin/activate
-    
-    # We set all necessary environement variable to create a python virtualenvironnement. 
+
+    # We set all necessary environement variable to create a python virtualenvironnement.
     source $final_path/bin/activate
     pip install --upgrade setuptools
     pip install --upgrade cffi ndg-httpsclient psycopg2 lxml
-    
+
     # Download and check the checksum for the synapse source
     src_url=$(grep 'SOURCE_URL=' "$YNH_CWD/../conf/python_source.src" | cut -d= -f2-)
     src_sum=$(grep 'SOURCE_SUM=' "$YNH_CWD/../conf/python_source.src" | cut -d= -f2-)
-    
+
     wget -nv -O synapse_source.tar.gz "$src_url"
     echo "${src_sum} synapse_source.tar.gz" | sha256sum -c --status \
         || ynh_die "Corrupt source"
     pip install --upgrade synapse_source.tar.gz
-    
+
     # Fix issue with msgpack see https://github.com/YunoHost-Apps/synapse_ynh/issues/29
     test -e $final_path/lib/python2.7/site-packages/msgpack/__init__.py || (\
             pip uninstall -y msgpack-python msgpack; \
             pip install msgpack-python)
-    
+
     # This fonction was defined while we call "source $final_path/bin/activate". By this fonction de undo what does "$final_path/bin/activate"
     deactivate
 fi
@@ -172,7 +172,7 @@ then
 
     ynh_app_setting_set $app turnserver_alt_tls_port $turnserver_alt_tls_port
     ynh_app_setting_set $app cli_port $cli_port
-    
+
     yunohost firewall allow Both $turnserver_alt_tls_port > /dev/null 2>&1
 
     # Configure systemd
@@ -221,8 +221,6 @@ ynh_add_nginx_config
 
 coturn_config_path="/etc/matrix-$app/coturn.conf"
 
-ynh_backup_if_checksum_is_different "$coturn_config_path"
-
 cp ../conf/turnserver.conf "$coturn_config_path"
 
 ynh_replace_string __APP__ $app "$coturn_config_path"
@@ -232,7 +230,36 @@ ynh_replace_string __TLS_PORT__ $turnserver_tls_port "$coturn_config_path"
 ynh_replace_string __TLS_ALT_PORT__ $turnserver_alt_tls_port "$coturn_config_path"
 ynh_replace_string __CLI_PORT__ $cli_port "$coturn_config_path"
 
+# Get public IP and set as external IP for coturn
+# note : '|| true' is used to ignore the errors if we can't get the public ipv4 or ipv6
+public_ip4="$(curl ip.yunohost.org)" || true
+public_ip6="$(curl ipv6.yunohost.org)" || true
+
+if [[ -n "$public_ip4" ]] && ynh_validate_ip4 "$public_ip4"
+then
+    ynh_replace_string '__IPV4__' "$public_ip4" "$coturn_config_path"
+else
+    ynh_replace_string '__IPV4__,' "" "$coturn_config_path"
+fi
+
+if [[ -n "$public_ip6" ]] && ynh_validate_ip6 "$public_ip6"
+then
+    ynh_replace_string '__IPV6__' "$public_ip6" "$coturn_config_path"
+else
+    ynh_replace_string ',__IPV6__' "" "$coturn_config_path"
+fi
+
 ynh_store_file_checksum "$coturn_config_path"
+
+#=================================================
+# ADD SCRIPT FOR COTURN CRON
+#=================================================
+
+# WARRNING : theses command are used in INSTALL, UPGRADE
+# For any update do it in all files
+
+cp ../sources/Coturn_config_rotate.sh $final_path/
+ynh_replace_string __APP__ $app "$final_path/Coturn_config_rotate.sh"
 
 #=================================================
 # GENERIC FINALIZATION

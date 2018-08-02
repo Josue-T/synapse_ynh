@@ -48,13 +48,6 @@ ynh_backup "/etc/nginx/conf.d/${domain}.d/${app}.conf"
 ynh_backup "/etc/matrix-$app"
 
 #=================================================
-# BACKUP COTURN CONFIG
-#=================================================
-
-ynh_backup "/etc/turnserver.conf"
-ynh_backup "/etc/default/coturn"
-
-#=================================================
 # BACKUP SYSTEMD
 #=================================================
 
