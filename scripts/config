@@ -1,0 +1,66 @@
+#!/bin/bash
+
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source /usr/share/yunohost/helpers
+
+# Stop script if errors
+ynh_abort_if_errors
+
+# Import common fonctions
+source ./psql.sh
+source ./experimental_helper.sh
+source ./_common.sh
+
+#=================================================
+# RETRIEVE ARGUMENTS
+#=================================================
+
+app=$YNH_APP_ID
+
+#=================================================
+# SHOW_CONFIG FUNCTION FOR 'SHOW' COMMAND
+#=================================================
+
+show_config() {
+    # here you are supposed to read some config file/database/other then print the values
+    # echo "YNH_CONFIG_${PANEL_ID}_${SECTION_ID}_${OPTION_ID}=value"
+    echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS=$(ynh_app_setting_get $app report_stats)"
+
+    backup_before_upgrade=$(ynh_app_setting_get $app disable_backup_before_upgrade)
+    if [[ ${backup_before_upgrade:-0} -eq 1 ]]
+    then
+        echo "YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE=False"
+    else
+        echo "YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE=True"
+    fi
+}
+
+#=================================================
+# MODIFY THE CONFIGURATION
+#=================================================
+
+apply_config() {
+    ynh_app_setting_set $app report_stats $YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS
+
+    if ${YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE,,}
+    then
+        ynh_app_setting_set $app disable_backup_before_upgrade 0
+    else
+        ynh_app_setting_set $app disable_backup_before_upgrade 1
+    fi
+}
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# SELECT THE ACTION FOLLOWING THE GIVEN ARGUMENT
+#=================================================
+case $1 in
+    show) show_config;;
+    apply) apply_config;;
+esac
