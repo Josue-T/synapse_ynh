@@ -150,7 +150,7 @@ fi
 # UPDATE SYNAPSE CONFIG
 #=================================================
 
-# WARRNING : theses command are used in INSTALL, UPGRADE
+# WARNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
 
 homeserver_config_path="/etc/matrix-$app/homeserver.yaml"
@@ -239,7 +239,7 @@ ynh_add_nginx_config
 # UPDATE COTURN CONFIG
 #=================================================
 
-# WARRNING : theses command are used in INSTALL, UPGRADE
+# WARNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
 
 coturn_config_path="/etc/matrix-$app/coturn.conf"
@@ -278,7 +278,7 @@ ynh_store_file_checksum "$coturn_config_path"
 # ADD SCRIPT FOR COTURN CRON
 #=================================================
 
-# WARRNING : theses command are used in INSTALL, UPGRADE
+# WARNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
 
 cp ../sources/Coturn_config_rotate.sh $final_path/
