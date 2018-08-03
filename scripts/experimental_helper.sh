@@ -35,49 +35,6 @@ ynh_app_package_version () {
     echo "${version_key/*~ynh/}"
 }
 
-####### Solve issue https://dev.yunohost.org/issues/1006
-
-# Build and install a package from an equivs control file
-#
-# example: generate an empty control file with `equivs-control`, adjust its
-#          content and use helper to build and install the package:
-#              ynh_package_install_from_equivs /path/to/controlfile
-#
-# usage: ynh_package_install_from_equivs controlfile
-# | arg: controlfile - path of the equivs control file
-ynh_package_install_from_equivs () {
-    controlfile=$1
-
-    # Check if the equivs package is installed. Or install it.
-    ynh_package_is_installed 'equivs' \
-        || ynh_package_install equivs
-
-    # retrieve package information
-    pkgname=$(grep '^Package: ' $controlfile | cut -d' ' -f 2)	# Retrieve the name of the debian package
-    pkgversion=$(grep '^Version: ' $controlfile | cut -d' ' -f 2)	# And its version number
-    [[ -z "$pkgname" || -z "$pkgversion" ]] \
-        && echo "Invalid control file" && exit 1	# Check if this 2 variables aren't empty.
-
-    # Update packages cache
-    ynh_package_update
-
-    # Build and install the package
-    TMPDIR=$(mktemp -d)
-    # Note that the cd executes into a sub shell
-    # Create a fake deb package with equivs-build and the given control file
-    # Install the fake package without its dependencies with dpkg
-    # Install missing dependencies with ynh_package_install
-    (cp "$controlfile" "${TMPDIR}/control" && cd "$TMPDIR" \
-     && equivs-build ./control 1>/dev/null \
-     && sudo dpkg --force-depends \
-          -i "./${pkgname}_${pkgversion}_all.deb" 2>&1 \
-     && ynh_package_install -f) || ynh_die "Unable to install dependencies"
-    [[ -n "$TMPDIR" ]] && rm -rf $TMPDIR	# Remove the temp dir.
-
-    # check if the package is actually installed
-    ynh_package_is_installed "$pkgname"
-}
-
 # Start or restart a service and follow its booting
 #
 # usage: ynh_check_starting "Line to match" [Log file] [Timeout] [Service name]
@@ -126,61 +83,6 @@ ynh_check_starting () {
 
 	echo ""
 	ynh_clean_check_starting
-}
-
-# Create a dedicated systemd config
-#
-# usage: ynh_add_systemd_config [Service name] [Source file]
-# | arg: Service name
-# | arg: Systemd source file (for example appname.service)
-#
-# This will use a template in ../conf/systemd.service
-# and will replace the following keywords with 
-# global variables that should be defined before calling
-# this helper :
-#
-#   __APP__       by  $app
-#   __FINALPATH__ by  $final_path
-#
-# usage: ynh_add_systemd_config
-ynh_add_systemd_config () {
-	local service_name="${1:-$app}"
-
-	finalsystemdconf="/etc/systemd/system/$service_name.service"
-	ynh_backup_if_checksum_is_different "$finalsystemdconf"
-	sudo cp ../conf/${2:-systemd.service} "$finalsystemdconf"
-
-	# To avoid a break by set -u, use a void substitution ${var:-}. If the variable is not set, it's simply set with an empty variable.
-	# Substitute in a nginx config file only if the variable is not empty
-	if test -n "${final_path:-}"; then
-		ynh_replace_string "__FINALPATH__" "$final_path" "$finalsystemdconf"
-	fi
-	if test -n "${app:-}"; then
-		ynh_replace_string "__APP__" "$app" "$finalsystemdconf"
-	fi
-	ynh_store_file_checksum "$finalsystemdconf"
-
-	sudo chown root: "$finalsystemdconf"
-	sudo systemctl enable $service_name
-	sudo systemctl daemon-reload
-}
-
-# Remove the dedicated systemd config
-#
-# usage: ynh_remove_systemd_config [Service name]
-# | arg: Service name
-#
-# usage: ynh_remove_systemd_config
-ynh_remove_systemd_config () {
-	local service_name="${1:-$app}"
-
-	local finalsystemdconf="/etc/systemd/system/$service_name.service"
-	if [ -e "$finalsystemdconf" ]; then
-		sudo systemctl stop $service_name
-		sudo systemctl disable $service_name
-		ynh_secure_remove "$finalsystemdconf"
-		sudo systemctl daemon-reload
-	fi
 }
 
 # Send an email to inform the administrator
