@@ -46,6 +46,7 @@ show_config() {
 
 apply_config() {
     ynh_app_setting_set $app report_stats $YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS
+    ynh_replace_string 'report_stats: .*$' "report_stats: $YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS" "/etc/matrix-$app/homeserver.yaml"
 
     if ${YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE,,}
     then
