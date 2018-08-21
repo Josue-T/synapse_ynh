@@ -170,10 +170,6 @@ then
 
     yunohost firewall allow Both $turnserver_alt_tls_port > /dev/null 2>&1
 
-    # Configure systemd
-    cp ../conf/default_coturn /etc/default/coturn-$app
-    ynh_add_systemd_config coturn-$app coturn-synapse.service
-
     #=================================================
     # MAKE A CLEAN LOGROTATE CONFIG
     #=================================================
@@ -255,6 +251,17 @@ ynh_store_file_checksum "$coturn_config_path"
 
 cp ../sources/Coturn_config_rotate.sh $final_path/
 ynh_replace_string __APP__ $app "$final_path/Coturn_config_rotate.sh"
+
+#=================================================
+# UPDATE SYSTEMD
+#=================================================
+
+# Create systemd service for synapse and turnserver
+cp ../conf/default_matrix-synapse /etc/default/matrix-$app
+ynh_add_systemd_config matrix-$app matrix-synapse.service
+
+cp ../conf/default_coturn /etc/default/coturn-$app
+ynh_add_systemd_config coturn-$app coturn-synapse.service
 
 #=================================================
 # GENERIC FINALIZATION
