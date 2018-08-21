@@ -114,7 +114,7 @@ else
             pip uninstall -y msgpack-python msgpack; \
             pip install msgpack-python)
 
-    # This fonction was defined while we call "source $final_path/bin/activate". By this fonction de undo what does "$final_path/bin/activate"
+    # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
     deactivate
 fi
 
@@ -134,10 +134,10 @@ then
     # Generate config and keys
     python -m synapse.app.homeserver --keys-directory /etc/matrix-$app/ --generate-config --generate-keys --server-name $domain --report-stats=no -c homeserver.yml
 
-    # This fonction was defined while we call "source $final_path/bin/activate". By this fonction de undo what does "$final_path/bin/activate"
+    # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
     deactivate
 
-    # Get randoms values from config
+    # Get random values from config
     registration_shared_secret=$(egrep "registration_shared_secret" homeserver.yml | cut -d'"' -f2)
     form_secret=$(egrep "form_secret" homeserver.yml | cut -d'"' -f1)
 
