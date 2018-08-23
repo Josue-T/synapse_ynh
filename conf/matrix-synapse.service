@@ -1,5 +1,6 @@
 [Unit]
 Description=Synapse Matrix homeserver
+After=network.target
 
 [Service]
 Type=simple
