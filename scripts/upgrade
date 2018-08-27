@@ -42,6 +42,9 @@ turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
 turnserver_alt_tls_port=$(ynh_app_setting_get $app turnserver_alt_tls_port)
 turnserver_pwd=$(ynh_app_setting_get $app turnserver_pwd)
 cli_port=$(ynh_app_setting_get $app cli_port)
+registration_shared_secret=$(ynh_app_setting_get $app registration_shared_secret)
+form_secret=$(ynh_app_setting_get $app form_secret)
+report_stats=$(ynh_app_setting_get $app report_stats)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -98,28 +101,51 @@ else
     pip install --upgrade cffi ndg-httpsclient psycopg2 lxml
 
     # Download and check the checksum for the synapse source
-    src_url=$(grep 'SOURCE_URL=' "$YNH_CWD/../conf/python_source.src" | cut -d= -f2-)
-    src_sum=$(grep 'SOURCE_SUM=' "$YNH_CWD/../conf/python_source.src" | cut -d= -f2-)
-
-    wget -nv -O synapse_source.tar.gz "$src_url"
-    echo "${src_sum} synapse_source.tar.gz" | sha256sum -c --status \
-        || ynh_die "Corrupt source"
-    pip install --upgrade synapse_source.tar.gz
+    ynh_setup_source "/tmp" "python_source"
+    pip install --upgrade "/tmp/synapse_source.tar.gz"
 
     # Fix issue with msgpack see https://github.com/YunoHost-Apps/synapse_ynh/issues/29
     test -e $final_path/lib/python2.7/site-packages/msgpack/__init__.py || (\
             pip uninstall -y msgpack-python msgpack; \
             pip install msgpack-python)
 
-    # This fonction was defined while we call "source $final_path/bin/activate". By this fonction de undo what does "$final_path/bin/activate"
+    # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
     deactivate
+fi
+
+#=================================================
+# MIGRATION 1 : USE SYNAPSE OWN KEYS
+#=================================================
+
+if [[ -z "$registration_shared_secret" ]]
+then
+    # Go in virtualenvironnement
+    source $final_path/bin/activate
+
+    # Get the dh.pem if exist
+    test -e /etc/matrix-$app/dh.pem && mv /etc/matrix-$app/dh.pem /etc/matrix-$app/$domain.tls.dh
+    test -e /etc/matrix-$app/homeserver.signing.key && mv /etc/matrix-$app/homeserver.signing.key /etc/matrix-$app/$domain.signing.key
+
+    # Generate config and keys
+    python -m synapse.app.homeserver --keys-directory /etc/matrix-$app/ --generate-config --generate-keys --server-name $domain --report-stats=no -c homeserver.yml
+
+    # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
+    deactivate
+
+    # Get random values from config
+    registration_shared_secret=$(egrep "registration_shared_secret" homeserver.yml | cut -d'"' -f2)
+    form_secret=$(egrep "form_secret" homeserver.yml | cut -d'"' -f1)
+
+    # store in yunohost settings
+    ynh_app_setting_set $app registration_shared_secret "$registration_shared_secret"
+    ynh_app_setting_set $app form_secret "$form_secret"
 fi
 
 #=================================================
 # UPDATE SYNAPSE CONFIG
 #=================================================
 
-# WARRNING : theses command are used in INSTALL, UPGRADE
+# WARNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
 
 homeserver_config_path="/etc/matrix-$app/homeserver.yaml"
@@ -135,6 +161,9 @@ ynh_replace_string __PORT__ $port "$homeserver_config_path"
 ynh_replace_string __TLS_PORT__ $synapse_tls_port "$homeserver_config_path"
 ynh_replace_string __TURNSERVER_TLS_PORT__ $turnserver_tls_port "$homeserver_config_path"
 ynh_replace_string __TURNPWD__ $turnserver_pwd "$homeserver_config_path"
+ynh_replace_string __REGISTRATION_SECRET__ "$registration_shared_secret" "$homeserver_config_path"
+ynh_replace_string __FORM_SECRET__ "$form_secret" "$homeserver_config_path"
+ynh_replace_string __REPORT_STATS__ "$report_stats" "$homeserver_config_path"
 
 ynh_replace_string __APP__ $app "/etc/matrix-$app/log.yaml"
 
@@ -149,7 +178,7 @@ ynh_store_file_checksum "$homeserver_config_path"
 ynh_store_file_checksum "/etc/matrix-$app/log.yaml"
 
 #=================================================
-# MIGRATION 1 : MULTINSTANCE SUPPORT
+# MIGRATION 2 : MULTINSTANCE SUPPORT
 #=================================================
 
 if [[ ! -e /etc/matrix-$app/coturn.conf ]]
@@ -183,8 +212,7 @@ then
 fi
 
 #=================================================
-# MIGRATION 2 : USE STANDARD ACCESS FOR CERTIFCATE
-# AND USE INDEPENDANT DH FILE
+# MIGRATION 3 : USE STANDARD ACCESS FOR CERTIFCATE
 #=================================================
 
 # Fix issue about certificates access
@@ -193,12 +221,6 @@ then
     adduser $synapse_user ssl-cert
     adduser turnserver ssl-cert
 fi
-
-# In the old synapse instance we stored the dh.pem in /etc/yunohost/certs/DOMAIN.TLD/ but it was problematics with lets'encrypt witch made a link to the key. While the letsencrypt key was changed the dh.pem file was lost. So we decided to move to /etc/matrix-synapse/ witch is a directory witch is not managed by any other component.
-# Here we check if the dh.pem file is already moved. If not we try to copy the file from the old place. If the file in the old place was already removed (by letsencrypt) we create a new one.
-test -e /etc/matrix-$app/dh.pem || \
-    cp /etc/yunohost/certs/$domain/dh.pem /etc/matrix-$app/dh.pem || \
-        openssl dhparam -out /etc/matrix-$app/dh.pem 2048 > /dev/null
 
 #=================================================
 # STANDARD UPGRADE STEPS
@@ -212,7 +234,7 @@ ynh_add_nginx_config
 # UPDATE COTURN CONFIG
 #=================================================
 
-# WARRNING : theses command are used in INSTALL, UPGRADE
+# WARNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
 
 coturn_config_path="/etc/matrix-$app/coturn.conf"
@@ -251,7 +273,7 @@ ynh_store_file_checksum "$coturn_config_path"
 # ADD SCRIPT FOR COTURN CRON
 #=================================================
 
-# WARRNING : theses command are used in INSTALL, UPGRADE
+# WARNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
 
 cp ../sources/Coturn_config_rotate.sh $final_path/
@@ -274,14 +296,15 @@ ynh_add_systemd_config coturn-$app coturn-synapse.service
 # SECURE FILES AND DIRECTORIES
 #=================================================
 
-# WARRNING : theses command are used in INSTALL, UPGRADE (2 times), RESTORE
+# WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
 # For any update do it in all files
 chown $synapse_user:root -R $final_path
+chmod 770 $final_path/Coturn_config_rotate.sh
 chown $synapse_user:root -R /var/lib/matrix-$app
 chown $synapse_user:root -R /var/log/matrix-$app
 chown $synapse_user:root -R /etc/matrix-$app
 chmod u=rwX,g=rX,o= -R /etc/matrix-$app
-chmod 600 /etc/matrix-$app/dh.pem
+chmod 600 /etc/matrix-$app/{$domain.signing.key,$domain.tls.crt,$domain.tls.dh,$domain.tls.key}
 setfacl -R -m user:turnserver:rX  /etc/matrix-$app
 setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
 

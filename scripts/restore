@@ -57,7 +57,7 @@ ynh_restore
 # REINSTALL DEPENDENCIES
 #=================================================
 
-# WARRNING : theses command are used in INSTALL, UPGRADE, RESTORE
+# WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
 # For any update do it in all files
 ynh_install_app_dependencies coturn build-essential python2.7-dev libffi-dev python-pip python-setuptools sqlite3 libssl-dev python-virtualenv libxml2-dev libxslt1-dev python-lxml libjpeg-dev libpq-dev postgresql acl
 pip install --upgrade virtualenv
@@ -170,14 +170,15 @@ ynh_use_logrotate /var/log/matrix-$app
 # SECURE FILES AND DIRECTORIES
 #=================================================
 
-# WARNING : these commands are used in INSTALL, UPGRADE, RESTORE
+# WARNING : theses command are used in INSTALL, UPGRADE, RESTORE (3 times)
 # For any update do it in all files
 chown $synapse_user:root -R $final_path
+chmod 770 $final_path/Coturn_config_rotate.sh
 chown $synapse_user:root -R /var/lib/matrix-$app
 chown $synapse_user:root -R /var/log/matrix-$app
 chown $synapse_user:root -R /etc/matrix-$app
 chmod u=rwX,g=rX,o= -R /etc/matrix-$app
-chmod 600 /etc/matrix-$app/dh.pem
+chmod 600 /etc/matrix-$app/{$domain.signing.key,$domain.tls.crt,$domain.tls.dh,$domain.tls.key}
 setfacl -R -m user:turnserver:rX  /etc/matrix-$app
 setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
 
@@ -200,7 +201,7 @@ ynh_check_starting "Synapse now listening on port $synapse_tls_port" "/var/log/m
 # SEND A README FOR THE ADMIN
 #=================================================
 
-# WARRNING : theses command are used in INSTALL, RESTORE
+# WARNING : theses command are used in INSTALL, RESTORE
 # For any update do it in all files
 
 message="To federate this app you need to add this line in your DNS configuration:
