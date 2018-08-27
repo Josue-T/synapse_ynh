@@ -1,7 +1,7 @@
 [{
         "id": "update_turnserver_ip",
         "name": "Update turnserver ip",
-        "command": "/opt/yunohost/matrix-$YNH_APP_ID/Coturn_config_rotate.sh",
+        "command": "/opt/yunohost/matrix-$YNH_APP_INSTANCE_NAME/Coturn_config_rotate.sh",
         "user": "root",
         "accepted_return_codes": [0],
         "description": {
