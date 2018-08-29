@@ -91,7 +91,7 @@ else
     test -e $final_path/bin || virtualenv -p python2.7 $final_path
 
     # Install synapse in virtualenv
-    PS1=""
+    PS1=${PS1:-}
     cp ../conf/virtualenv_activate $final_path/bin/activate
     ynh_replace_string __FINAL_PATH__ $final_path $final_path/bin/activate
 
@@ -120,6 +120,7 @@ fi
 if [[ -z "$registration_shared_secret" ]]
 then
     # Go in virtualenvironnement
+    PS1=${PS1:-}
     source $final_path/bin/activate
 
     # Get the dh.pem if exist
