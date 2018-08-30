@@ -26,7 +26,7 @@
                 "id": "backup_before_upgrade",
                 "type": "bool",
                 "help": "True to do a backup before every upgrade",
-                "default": false
+                "default": true
             }]
         }]
     }]
