@@ -140,7 +140,6 @@ else
     test -e $final_path/bin/python3 || python3 -m venv $final_path
 
     # Install synapse in virtualenv
-    PS1=${PS1:-}
     cp ../conf/virtualenv_activate $final_path/bin/activate
     ynh_replace_string __FINAL_PATH__ $final_path $final_path/bin/activate
 
