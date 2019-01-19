@@ -107,7 +107,7 @@ else
 
     # We set all necessary environement variable to create a python virtualenvironnement.
     source $final_path/bin/activate
-    pip3 install --upgrade setuptools
+    pip3 install --upgrade setuptools wheel
     pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml
 
     # Download and check the checksum for the synapse source
