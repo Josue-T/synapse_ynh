@@ -1,7 +1,7 @@
 ;; General
     ; Manifest
         domain="domain.tld"    (DOMAIN)
-        path="/_matrix/client/#/login"	(PATH)
+        path="/_matrix/static/"	(PATH)
         is_public=1 (PUBLIC|public=1|private=0)
     ; Checks
         pkg_linter=1
