@@ -1,5 +1,5 @@
-SOURCE_URL=https://github.com/matrix-org/synapse/archive/v0.34.0.1.tar.gz
-SOURCE_SUM=69cc92ac9b3fd5097c2fa4da9c99e481bb18c9e861d5917b2acd70a0dbade0ef
+SOURCE_URL=https://github.com/matrix-org/synapse/archive/v0.99.0.tar.gz
+SOURCE_SUM=63f6203757b48be38265c08b831a0640319b0b70bf1d06f7f95a65499ca00184
 SOURCE_FORMAT=tar.gz
 SOURCE_FILENAME=synapse_source.tar.gz
 SOURCE_EXTRACT=false
