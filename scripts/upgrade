@@ -228,7 +228,7 @@ fi
 # WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
 # For any update do it in all files
 
-# Make dh cert for synapse if it not exist
+# Make dh cert for synapse if it doesn't exist
 if [[ ! -e /etc/ssl/private/dh2048.pem ]]
 then
     openssl dhparam -out /etc/ssl/private/dh2048.pem -outform PEM -2 2048 -dsaparam 2> /dev/null
