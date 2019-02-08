@@ -119,7 +119,7 @@ else
 fi
 
 #=================================================
-# MIGRATION 1 : USE SYNAPSE OWN KEYS
+# MIGRATION 1 : GENERATE SYNAPSE SECRET
 #=================================================
 
 if [[ -z "$registration_shared_secret" ]]
@@ -128,10 +128,6 @@ then
     PS1=${PS1:-}
     source $final_path/bin/activate
 
-    # Get the dh.pem if exist
-    test -e /etc/matrix-$app/dh.pem && mv /etc/matrix-$app/dh.pem /etc/matrix-$app/$domain.tls.dh
-    test -e /etc/matrix-$app/homeserver.signing.key && mv /etc/matrix-$app/homeserver.signing.key /etc/matrix-$app/$domain.signing.key
-
     # Generate config and keys
     python -m synapse.app.homeserver --keys-directory /etc/matrix-$app/ --generate-config --generate-keys --server-name $domain --report-stats=no -c homeserver.yml
 
@@ -139,8 +135,8 @@ then
     deactivate
 
     # Get random values from config
-    registration_shared_secret=$(egrep "registration_shared_secret" homeserver.yml | cut -d'"' -f2)
-    form_secret=$(egrep "form_secret" homeserver.yml | cut -d'"' -f1)
+    registration_shared_secret=$(egrep "^registration_shared_secret" homeserver.yml | cut -d'"' -f2)
+    form_secret=$(egrep "^form_secret" homeserver.yml | cut -d'"' -f1)
 
     # store in yunohost settings
     ynh_app_setting_set $app registration_shared_secret "$registration_shared_secret"
@@ -166,8 +162,8 @@ ynh_replace_string __SYNAPSE_DB_PWD__ $synapse_db_pwd "$homeserver_config_path"
 ynh_replace_string __PORT__ $port "$homeserver_config_path"
 ynh_replace_string __TLS_PORT__ $synapse_tls_port "$homeserver_config_path"
 ynh_replace_string __TURNSERVER_TLS_PORT__ $turnserver_tls_port "$homeserver_config_path"
-ynh_replace_string __TURNPWD__ $turnserver_pwd "$homeserver_config_path"
-ynh_replace_string __REGISTRATION_SECRET__ "$registration_shared_secret" "$homeserver_config_path"
+ynh_replace_special_string __TURNPWD__ $turnserver_pwd "$homeserver_config_path"
+ynh_replace_special_string __REGISTRATION_SECRET__ "$registration_shared_secret" "$homeserver_config_path"
 ynh_replace_string __FORM_SECRET__ "$form_secret" "$homeserver_config_path"
 ynh_replace_string __REPORT_STATS__ "$report_stats" "$homeserver_config_path"
 
@@ -226,6 +222,21 @@ if [[ ! $(grep "ssl-cert:x:[0-9]*:.*matrix-$app" /etc/group) ]]
 then
     adduser $synapse_user ssl-cert
     adduser turnserver ssl-cert
+fi
+
+#=================================================
+# MIGRATION 4 : CREATE A DH FILE
+#=================================================
+
+# WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
+# For any update do it in all files
+
+# Make dh cert for synapse if it not exist
+if [[ ! -e /etc/ssl/private/dh2048.pem ]]
+then
+    openssl dhparam -out /etc/ssl/private/dh2048.pem -outform PEM -2 2048 -dsaparam 2> /dev/null
+    chown root:ssl-cert /etc/ssl/private/dh2048.pem
+    chmod 640 /etc/ssl/private/dh2048.pem
 fi
 
 #=================================================
@@ -310,7 +321,7 @@ chown $synapse_user:root -R /var/lib/matrix-$app
 chown $synapse_user:root -R /var/log/matrix-$app
 chown $synapse_user:root -R /etc/matrix-$app
 chmod u=rwX,g=rX,o= -R /etc/matrix-$app
-chmod 600 /etc/matrix-$app/{$domain.signing.key,$domain.tls.crt,$domain.tls.dh,$domain.tls.key}
+chmod 600 /etc/matrix-$app/$domain.signing.key
 setfacl -R -m user:turnserver:rX  /etc/matrix-$app
 setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
 

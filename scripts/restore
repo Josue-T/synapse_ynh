@@ -54,6 +54,21 @@ ynh_webpath_available $domain $path_url || ynh_die "$domain/$path_url is not ava
 ynh_restore
 
 #=================================================
+# CREATE A DH FILE
+#=================================================
+
+# WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
+# For any update do it in all files
+
+# Make dh cert for synapse if it not exist
+if [[ ! -e /etc/ssl/private/dh2048.pem ]]
+then
+    openssl dhparam -out /etc/ssl/private/dh2048.pem -outform PEM -2 2048 -dsaparam 2> /dev/null
+    chown root:ssl-cert /etc/ssl/private/dh2048.pem
+    chmod 640 /etc/ssl/private/dh2048.pem
+fi
+
+#=================================================
 # REINSTALL DEPENDENCIES
 #=================================================
 
