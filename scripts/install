@@ -344,9 +344,13 @@ ynh_check_starting "Synapse now listening on port $synapse_tls_port" "/var/log/m
 # WARNING : theses command are used in INSTALL, RESTORE
 # For any update do it in all files
 
-message="To federate this app you need to add this line in your DNS configuration:
+message="If your server name is identical to the domain on wich synapse is installed, and the default port 8448 is used, your server is normally already accessible by the federation.
+
+If not, you may need to put the following line in the dns configuration:
 
 _matrix._tcp.$domain. 3600    IN      SRV     10 0 $synapse_tls_port $domain.
+
+For more details, see : https://github.com/matrix-org/synapse#setting-up-federation
 
 You also need to open the TCP port $synapse_tls_port on your ISP box if it's not automatically done.
 
