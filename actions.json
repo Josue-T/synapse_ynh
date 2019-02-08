@@ -25,4 +25,23 @@
         "description": {
             "en": "Close the ports range 49153:49193 with TCP and UDP. (Undo \"Open ports for turnserver\" action)"
         }
+},{
+        "id": "set_admin_user",
+        "name": "Set a user as admin",
+        "command": "[[ \"$(su --command=\"psql matrix_synapse\" postgres <<< \"UPDATE users SET admin = 1 WHERE name = '@$YNH_ACTION_USERNAME:$(yunohost app setting $YNH_APP_INSTANCE_NAME special_domain)'\")\" == 'UPDATE 1' ]]",
+        "user": "root",
+        "accepted_return_codes": [0],
+        "description": {
+            "en": "Set a synapse user as admin in the synapse server. It probably usefull only to manage the community function."
+        },
+        "arguments": [
+            {
+                "name": "username",
+                "type": "string",
+                "ask": {
+                    "en": "username of the user to set as admin"
+                },
+                "example": "bob"
+            }
+        ]
 }]
