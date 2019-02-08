@@ -13,6 +13,12 @@
                 "type": "bool",
                 "help": "True to send anonymous statistics about synapse to improve the performances",
                 "default": false
+            },{
+                "name": "Server public",
+                "id": "is_public",
+                "type": "bool",
+                "help": "Is it a public server",
+                "default": false
             }]
         }]
     },{

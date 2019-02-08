@@ -38,6 +38,13 @@ show_config() {
     else
         echo "YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE=True"
     fi
+    is_public=$(ynh_app_setting_get $app is_public)
+    if [[ ${is_public} -eq 1 ]]
+    then
+        echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=False"
+    else
+        echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=True"
+    fi
 }
 
 #=================================================
@@ -46,7 +53,6 @@ show_config() {
 
 apply_config() {
     ynh_app_setting_set $app report_stats $YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS
-    ynh_replace_string 'report_stats: .*$' "report_stats: $YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS" "/etc/matrix-$app/homeserver.yaml"
 
     if ${YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE,,}
     then
@@ -54,6 +60,63 @@ apply_config() {
     else
         ynh_app_setting_set $app disable_backup_before_upgrade 1
     fi
+
+    if ${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC,,}
+    then
+        ynh_app_setting_set $app is_public 1
+    else
+        ynh_app_setting_set $app is_public 0
+    fi
+
+    domain=$(ynh_app_setting_get $app special_domain)
+    synapse_db_pwd=$(ynh_app_setting_get $app synapse_db_pwd)
+    is_public=$(ynh_app_setting_get $app is_public)
+    port=$(ynh_app_setting_get $app synapse_port)
+    synapse_tls_port=$(ynh_app_setting_get $app synapse_tls_port)
+    turnserver_tls_port=$(ynh_app_setting_get $app turnserver_tls_port)
+    turnserver_pwd=$(ynh_app_setting_get $app turnserver_pwd)
+    registration_shared_secret=$(ynh_app_setting_get $app registration_shared_secret)
+    form_secret=$(ynh_app_setting_get $app form_secret)
+    report_stats=$(ynh_app_setting_get $app report_stats)
+    synapse_user="matrix-$app"
+    synapse_db_name="matrix_$app"
+    synapse_db_user="matrix_$app"
+
+    # Configure Synapse
+
+    # WARNING : theses command are used in INSTALL, UPGRADE, CONFIG (3 times)
+    # For any update do it in all files
+
+    homeserver_config_path="/etc/matrix-$app/homeserver.yaml"
+
+    ynh_backup_if_checksum_is_different "$homeserver_config_path"
+
+    cp ../conf/homeserver.yaml "$homeserver_config_path"
+    cp ../conf/log.yaml /etc/matrix-$app/log.yaml
+
+    ynh_replace_string __APP__ $app "$homeserver_config_path"
+    ynh_replace_string __DOMAIN__ $domain "$homeserver_config_path"
+    ynh_replace_string __SYNAPSE_DB_USER__ $synapse_db_user "$homeserver_config_path"
+    ynh_replace_string __SYNAPSE_DB_PWD__ $synapse_db_pwd "$homeserver_config_path"
+    ynh_replace_string __PORT__ $port "$homeserver_config_path"
+    ynh_replace_string __TLS_PORT__ $synapse_tls_port "$homeserver_config_path"
+    ynh_replace_string __TURNSERVER_TLS_PORT__ $turnserver_tls_port "$homeserver_config_path"
+    ynh_replace_string __TURNPWD__ $turnserver_pwd "$homeserver_config_path"
+    ynh_replace_string __REGISTRATION_SECRET__ "$registration_shared_secret" "$homeserver_config_path"
+    ynh_replace_string __FORM_SECRET__ "$form_secret" "$homeserver_config_path"
+    ynh_replace_string __REPORT_STATS__ "$report_stats" "$homeserver_config_path"
+
+    if [ "$is_public" = "0" ]
+    then
+        ynh_replace_string __ALLOWED_ACCESS__ False "$homeserver_config_path"
+    else
+        ynh_replace_string __ALLOWED_ACCESS__ True "$homeserver_config_path"
+    fi
+
+    ynh_store_file_checksum "$homeserver_config_path"
+    setfacl -R -m user:turnserver:rX  /etc/matrix-$app
+
+    systemctl restart matrix-$app
 }
 
 #=================================================

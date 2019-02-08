@@ -151,10 +151,13 @@ fi
 # UPDATE SYNAPSE CONFIG
 #=================================================
 
-# WARNING : theses command are used in INSTALL, UPGRADE
+# WARNING : theses command are used in INSTALL, UPGRADE, CONFIG
 # For any update do it in all files
 
 homeserver_config_path="/etc/matrix-$app/homeserver.yaml"
+
+ynh_backup_if_checksum_is_different "$homeserver_config_path"
+ynh_backup_if_checksum_is_different /etc/matrix-$app/log.yaml
 
 cp ../conf/homeserver.yaml "$homeserver_config_path"
 cp ../conf/log.yaml /etc/matrix-$app/log.yaml
