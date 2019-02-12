@@ -102,6 +102,12 @@ ynh_psql_remove_db $synapse_db_name $synapse_db_user
 ynh_system_user_delete $synapse_user
 
 #=================================================
+# REMOVE FAIL2BAN CONFIG
+#=================================================
+
+ynh_remove_fail2ban_config $synapse_user
+
+#=================================================
 # REMOVE LOGROTATE CONFIGURATION
 #=================================================
 
