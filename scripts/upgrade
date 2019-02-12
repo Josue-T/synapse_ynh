@@ -305,6 +305,15 @@ cp ../conf/default_coturn /etc/default/coturn-$app
 ynh_add_systemd_config coturn-$app coturn-synapse.service
 
 #=================================================
+# SETUP FAIL2BAN
+#=================================================
+
+# WARNING : theses command are used in INSTALL, UPGRADE
+# For any update do it in all files
+
+ynh_add_fail2ban_config
+
+#=================================================
 # GENERIC FINALIZATION
 #=================================================
 # SECURE FILES AND DIRECTORIES

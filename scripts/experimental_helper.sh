@@ -145,3 +145,98 @@ $(yunohost tools diagnosis | grep -B 100 "services:" | sed '/services:/d')"
 	# Send the email to the recipients
 	echo "$mail_message" | $mail_bin -a "Content-Type: text/plain; charset=UTF-8" -s "$mail_subject" "$recipients"
 }
+
+# Create a dedicated fail2ban config (jail and filter conf files)
+#
+# usage: ynh_add_fail2ban_config "list of others variables to replace"
+#
+# | arg: list of others variables to replace separeted by a space
+# |      for example : 'var_1 var_2 ...'
+#
+# This will use a template in ../conf/f2b_jail.conf and ../conf/f2b_filter.conf
+#   __APP__      by  $app
+#
+#  You can dynamically replace others variables by example :
+#   __VAR_1__    by $var_1
+#   __VAR_2__    by $var_2
+#
+# Note about the "failregex" option:
+#          regex to match the password failure messages in the logfile. The
+#          host must be matched by a group named "host". The tag "<HOST>" can
+#          be used for standard IP/hostname matching and is only an alias for
+#          (?:::f{4,6}:)?(?P<host>[\w\-.^_]+)
+#
+#          You can find some more explainations about how to make a regex here :
+#          https://www.fail2ban.org/wiki/index.php/MANUAL_0_8#Filters
+#
+# Note that the logfile need to exist before to call this helper !!
+#
+# Generally your template will look like that by example (for synapse):
+#
+# f2b_jail.conf:
+#     [__APP__]
+#     enabled = true
+#     port = http,https
+#     filter = __APP__
+#     logpath = /var/log/__APP__/logfile.log
+#     maxretry = 3
+#
+# f2b_filter.conf:
+#     [INCLUDES]
+#     before = common.conf
+#     [Definition]
+#
+#     # Part of regex definition (just used to make more easy to make the global regex)
+#     __synapse_start_line = .? \- synapse\..+ \-
+#
+#    # Regex definition.
+#    failregex = ^%(__synapse_start_line)s INFO \- POST\-(\d+)\- <HOST> \- \d+ \- Received request\: POST /_matrix/client/r0/login\??<SKIPLINES>%(__synapse_start_line)s INFO \- POST\-\1\- Got login request with identifier: \{u'type': u'm.id.user', u'user'\: u'(.+?)'\}, medium\: None, address: None, user\: u'\5'<SKIPLINES>%(__synapse_start_line)s WARNING \- \- (Attempted to login as @\5\:.+ but they do not exist|Failed password login for user @\5\:.+)$
+#
+#     ignoreregex =
+#
+# To validate your regex you can test with this command:
+# fail2ban-regex /var/log/YOUR_LOG_FILE_PATH /etc/fail2ban/filter.d/YOUR_APP.conf
+ynh_add_fail2ban_config () {
+  local others_var=${1:-}
+
+  finalfail2banjailconf="/etc/fail2ban/jail.d/$app.conf"
+  finalfail2banfilterconf="/etc/fail2ban/filter.d/$app.conf"
+  ynh_backup_if_checksum_is_different "$finalfail2banjailconf"
+  ynh_backup_if_checksum_is_different "$finalfail2banfilterconf"
+
+  cp ../conf/f2b_jail.conf $finalfail2banjailconf
+  cp ../conf/f2b_filter.conf $finalfail2banfilterconf
+
+  if test -n "${app:-}"; then
+    ynh_replace_string "__APP__" "$app" "$finalfail2banjailconf"
+    ynh_replace_string "__APP__" "$app" "$finalfail2banfilterconf"
+  fi
+
+  # Replace all other variable given as arguments
+  for var_to_replace in $others_var; do
+    # ${var_to_replace^^} make the content of the variable on upper-cases
+    # ${!var_to_replace} get the content of the variable named $var_to_replace
+    ynh_replace_string --match_string="__${var_to_replace^^}__" --replace_string="${!var_to_replace}" --target_file="$finalfail2banjailconf"
+    ynh_replace_string --match_string="__${var_to_replace^^}__" --replace_string="${!var_to_replace}" --target_file="$finalfail2banfilterconf"
+  done
+
+  ynh_store_file_checksum "$finalfail2banjailconf"
+  ynh_store_file_checksum "$finalfail2banfilterconf"
+
+  systemctl try-reload-or-restart fail2ban
+
+  local fail2ban_error="$(journalctl -u fail2ban | tail -n50 | grep "WARNING.*$app.*")"
+  if [[ -n "$fail2ban_error" ]]; then
+    echo "[ERR] Fail2ban failed to load the jail for $app" >&2
+    echo "WARNING${fail2ban_error#*WARNING}" >&2
+  fi
+}
+
+# Remove the dedicated fail2ban config (jail and filter conf files)
+#
+# usage: ynh_remove_fail2ban_config
+ynh_remove_fail2ban_config () {
+  ynh_secure_remove "/etc/fail2ban/jail.d/$app.conf"
+  ynh_secure_remove "/etc/fail2ban/filter.d/$app.conf"
+  systemctl try-reload-or-restart fail2ban
+}

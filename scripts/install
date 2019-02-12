@@ -348,6 +348,15 @@ systemctl restart coturn-$app.service
 ynh_check_starting "Synapse now listening on port $synapse_tls_port" "/var/log/matrix-$app/homeserver.log" 300 "matrix-$app"
 
 #=================================================
+# SETUP FAIL2BAN
+#=================================================
+
+# WARNING : theses command are used in INSTALL, UPGRADE
+# For any update do it in all files
+
+ynh_add_fail2ban_config
+
+#=================================================
 # SEND A README FOR THE ADMIN
 #=================================================
 
