@@ -218,7 +218,7 @@ ynh_app_setting_set $app turnserver_pwd $turnserver_pwd
 
 # Configure Synapse
 
-# WARNING : theses command are used in INSTALL, UPGRADE (2 times)
+# WARNING : theses command are used in INSTALL, UPGRADE, CONFIG (3 times)
 # For any update do it in all files
 
 homeserver_config_path="/etc/matrix-$app/homeserver.yaml"
