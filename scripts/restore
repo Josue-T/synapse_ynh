@@ -54,6 +54,21 @@ ynh_webpath_available $domain $path_url || ynh_die "$domain/$path_url is not ava
 ynh_restore
 
 #=================================================
+# CREATE A DH FILE
+#=================================================
+
+# WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
+# For any update do it in all files
+
+# Make dh cert for synapse if it doesn't exist
+if [[ ! -e /etc/ssl/private/dh2048.pem ]]
+then
+    openssl dhparam -out /etc/ssl/private/dh2048.pem -outform PEM -2 2048 -dsaparam 2> /dev/null
+    chown root:ssl-cert /etc/ssl/private/dh2048.pem
+    chmod 640 /etc/ssl/private/dh2048.pem
+fi
+
+#=================================================
 # REINSTALL DEPENDENCIES
 #=================================================
 
@@ -177,7 +192,7 @@ chown $synapse_user:root -R /var/lib/matrix-$app
 chown $synapse_user:root -R /var/log/matrix-$app
 chown $synapse_user:root -R /etc/matrix-$app
 chmod u=rwX,g=rX,o= -R /etc/matrix-$app
-chmod 600 /etc/matrix-$app/{$domain.signing.key,$domain.tls.crt,$domain.tls.dh,$domain.tls.key}
+chmod 600 /etc/matrix-$app/$domain.signing.key
 setfacl -R -m user:turnserver:rX  /etc/matrix-$app
 setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
 
@@ -194,7 +209,13 @@ yunohost service add coturn-$app
 
 systemctl reload nginx.service
 systemctl restart coturn-$app.service
-ynh_check_starting "Synapse now listening on port $synapse_tls_port" "/var/log/matrix-$app/homeserver.log" 300 "matrix-$app"
+ynh_check_starting "Synapse now listening on TCP port $synapse_tls_port" "/var/log/matrix-$app/homeserver.log" 300 "matrix-$app"
+
+#=================================================
+# SETUP FAIL2BAN
+#=================================================
+
+systemctl try-reload-or-restart fail2ban
 
 #=================================================
 # SEND A README FOR THE ADMIN
