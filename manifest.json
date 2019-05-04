@@ -29,6 +29,15 @@
 					"en": "Choose a domain for Synapse",
 					"fr": "Choisissez un domaine pour Synapse"
 				},
+				"example": "matrix.domain.org"
+			},
+			{
+				"name": "server_name",
+				"type": "string",
+				"ask": {
+					"en": "Choose a name for Matrix accounts",
+					"fr": "Choisissez un nom pour les comptes Matrix"
+				},
 				"example": "domain.org"
 			},
 			{
