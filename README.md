@@ -104,9 +104,9 @@ Supported with LDAP.
 ### Supported architectures
 
 
-* x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/synapse%20%28Official%29.svg)](https://ci-apps.yunohost.org/ci/apps/synapse/)
-* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/synapse%20%28Official%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/synapse/)
-* Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/ci/logs/synapse%20%28Official%29.svg)](https://ci-stretch.nohost.me/ci/apps/synapse/)
+* x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/synapse%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/synapse/)
+* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/synapse%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/synapse/)
+* Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/ci/logs/synapse%20%28Apps%29.svg)](https://ci-stretch.nohost.me/ci/apps/synapse/)
 
 ## Limitations
 
@@ -171,6 +171,7 @@ Synapse is published under the Apache License: https://github.com/matrix-org/syn
 
 - Report a bug: https://github.com/YunoHost-Apps/synapse_ynh/issues
 - Matrix website: https://matrix.org/
+- Synapse repository: https://github.com/matrix-org/synapse
 - YunoHost website: https://yunohost.org/
 
 ---
