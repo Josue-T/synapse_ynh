@@ -21,17 +21,19 @@ domain=$(ynh_app_setting_get --app=$app --key=special_domain)
 path_url=$(ynh_app_setting_get --app=$app --key=special_path)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 synapse_old_version=$(ynh_app_setting_get --app=$app --key=synapse_version)
-synapse_db_pwd=$(ynh_app_setting_get --app=$app --key=synapse_db_pwd)
 is_public=$(ynh_app_setting_get --app=$app --key=is_public)
 port=$(ynh_app_setting_get --app=$app --key=synapse_port)
 synapse_tls_port=$(ynh_app_setting_get --app=$app --key=synapse_tls_port)
 turnserver_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_tls_port)
 turnserver_alt_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_alt_tls_port)
-turnserver_pwd=$(ynh_app_setting_get --app=$app --key=turnserver_pwd)
 cli_port=$(ynh_app_setting_get --app=$app --key=cli_port)
+report_stats=$(ynh_app_setting_get --app=$app --key=report_stats)
+ynh_print_OFF
+synapse_db_pwd=$(ynh_app_setting_get --app=$app --key=synapse_db_pwd)
+turnserver_pwd=$(ynh_app_setting_get --app=$app --key=turnserver_pwd)
 registration_shared_secret=$(ynh_app_setting_get --app=$app --key=registration_shared_secret)
 form_secret=$(ynh_app_setting_get --app=$app --key=form_secret)
-report_stats=$(ynh_app_setting_get --app=$app --key=report_stats)
+ynh_print_ON
 
 #=================================================
 # SET ALL CONSTANT
@@ -134,8 +136,10 @@ fi
 # MIGRATION 1 : GENERATE SYNAPSE SECRET
 #=================================================
 
+ynh_print_OFF
 if [ -z "$registration_shared_secret" ]
 then
+    ynh_print_ON
     ynh_script_progression --message="Generating synapse secret..." --weight=1
 
     # Go in virtualenvironnement
@@ -149,13 +153,16 @@ then
     deactivate
 
     # Get random values from config
+    ynh_print_OFF
     registration_shared_secret=$(egrep "^registration_shared_secret" homeserver.yml | cut -d'"' -f2)
     form_secret=$(egrep "^form_secret" homeserver.yml | cut -d'"' -f1)
 
     # store in yunohost settings
     ynh_app_setting_set --app=$app --key=registration_shared_secret --value="$registration_shared_secret"
     ynh_app_setting_set --app=$app --key=form_secret --value="$form_secret"
+    ynh_print_ON
 fi
+ynh_print_ON
 
 #=================================================
 # UPDATE SYNAPSE CONFIG
@@ -176,14 +183,16 @@ cp ../conf/log.yaml /etc/matrix-$app/log.yaml
 ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="$homeserver_config_path"
 ynh_replace_string --match_string=__DOMAIN__ --replace_string=$domain --target_file="$homeserver_config_path"
 ynh_replace_string --match_string=__SYNAPSE_DB_USER__ --replace_string=$synapse_db_user --target_file="$homeserver_config_path"
-ynh_replace_string --match_string=__SYNAPSE_DB_PWD__ --replace_string=$synapse_db_pwd --target_file="$homeserver_config_path"
 ynh_replace_string --match_string=__PORT__ --replace_string=$port --target_file="$homeserver_config_path"
 ynh_replace_string --match_string=__TLS_PORT__ --replace_string=$synapse_tls_port --target_file="$homeserver_config_path"
 ynh_replace_string --match_string=__TURNSERVER_TLS_PORT__ --replace_string=$turnserver_tls_port --target_file="$homeserver_config_path"
+ynh_replace_string --match_string=__REPORT_STATS__ --replace_string="$report_stats" --target_file="$homeserver_config_path"
+ynh_print_OFF
+ynh_replace_string --match_string=__SYNAPSE_DB_PWD__ --replace_string=$synapse_db_pwd --target_file="$homeserver_config_path"
 ynh_replace_special_string --match_string=__TURNPWD__ --replace_string=$turnserver_pwd --target_file="$homeserver_config_path"
 ynh_replace_special_string --match_string=__REGISTRATION_SECRET__ --replace_string="$registration_shared_secret" --target_file="$homeserver_config_path"
 ynh_replace_string --match_string=__FORM_SECRET__ --replace_string="$form_secret" --target_file="$homeserver_config_path"
-ynh_replace_string --match_string=__REPORT_STATS__ --replace_string="$report_stats" --target_file="$homeserver_config_path"
+ynh_print_ON
 
 ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="/etc/matrix-$app/log.yaml"
 
@@ -287,11 +296,13 @@ coturn_config_path="/etc/matrix-$app/coturn.conf"
 cp ../conf/turnserver.conf "$coturn_config_path"
 
 ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="$coturn_config_path"
-ynh_replace_string --match_string=__TURNPWD__ --replace_string=$turnserver_pwd --target_file="$coturn_config_path"
 ynh_replace_string --match_string=__DOMAIN__ --replace_string=$domain --target_file="$coturn_config_path"
 ynh_replace_string --match_string=__TLS_PORT__ --replace_string=$turnserver_tls_port --target_file="$coturn_config_path"
 ynh_replace_string --match_string=__TLS_ALT_PORT__ --replace_string=$turnserver_alt_tls_port --target_file="$coturn_config_path"
 ynh_replace_string --match_string=__CLI_PORT__ --replace_string=$cli_port --target_file="$coturn_config_path"
+ynh_print_OFF
+ynh_replace_string --match_string=__TURNPWD__ --replace_string=$turnserver_pwd --target_file="$coturn_config_path"
+ynh_print_ON
 
 # Get public IP and set as external IP for coturn
 # note : '|| true' is used to ignore the errors if we can't get the public ipv4 or ipv6
