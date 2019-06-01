@@ -59,32 +59,17 @@ test ! -d $final_path \
 #=================================================
 # STANDARD RESTORATION STEPS
 #=================================================
-# RESTORE THE NGINX CONFIGURATION
+# RESTORE ALL CONFIG AND DATA
 #=================================================
 
-ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
-
-#=================================================
-# RESTORE THE APP MAIN DIR
-#=================================================
-ynh_script_progression --message="Restoring the app main directory..."
-
-ynh_restore_file --origin_path="$final_path"
-
-#=================================================
-# RESTORE SYNAPSE LOG
-#=================================================
-ynh_script_progression --message="Restoring synapse log..."
-
-ynh_restore_file --origin_path="/var/log/matrix-$app"
+ynh_script_progression --message="Restoring directory and configuration..." --weight=10
+ynh_restore
 
 #=================================================
 # RESTORE FAIL2BAN CONFIGURATION
 #=================================================
-ynh_script_progression --message="Restoring the fail2ban configuration..." --weight=6
 
-ynh_restore_file --origin_path="/etc/fail2ban/jail.d/$app.conf"
-ynh_restore_file --origin_path="/etc/fail2ban/filter.d/$app.conf"
+ynh_script_progression --message="Reload fail2ban..." --weight=6
 ynh_systemd_action --action=restart --service_name=fail2ban
 
 #=================================================
@@ -127,12 +112,7 @@ ynh_psql_execute_file_as_root --file="${YNH_CWD}/dump.sql" --database="$synapse_
 #=================================================
 # RESTORE SYSTEMD
 #=================================================
-ynh_script_progression --message="Restoring the systemd configuration..." --weight=2
-
-ynh_restore_file --origin_path="/etc/default/matrix-$app"
-ynh_restore_file --origin_path="/etc/systemd/system/matrix-$app.service"
-ynh_restore_file --origin_path="/etc/default/coturn-$app"
-ynh_restore_file --origin_path="/etc/systemd/system/coturn-$app.service"
+ynh_script_progression --message="Enable systemd services" --weight=2
 
 # systemctl daemon-reload
 systemctl enable matrix-$app.service
@@ -160,13 +140,6 @@ then
     chown root:ssl-cert /etc/ssl/private/dh2048.pem
     chmod 640 /etc/ssl/private/dh2048.pem
 fi
-
-#=================================================
-# RESTORE SYNAPSE CONFIG
-#=================================================
-ynh_script_progression --message="Restoring synapse configuration..."
-
-ynh_restore_file --origin_path="/etc/matrix-$app"
 
 #=================================================
 # RECONFIGURE THE TURNSERVER
@@ -240,13 +213,6 @@ python3 ../settings/conf/add_sso_conf.py || ynh_die --message="Your file /etc/ss
 ynh_script_progression --message="Configuring log rotation..."
 
 ynh_use_logrotate /var/log/matrix-$app
-
-#=================================================
-# RESTORE SYNAPSE DATA
-#=================================================
-ynh_script_progression --message="Restoring synapse data..."
-
-ynh_restore_file --origin_path="/var/lib/matrix-$app"
 
 #=================================================
 # GENERIC FINALIZATION
