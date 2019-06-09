@@ -48,7 +48,7 @@ final_path="/opt/yunohost/matrix-$app"
 #=================================================
 ynh_script_progression --message="Validating installation parameters..." --weight=2
 
-ynh_webpath_available --domain=$domain --path_url=$path_url || ynh_die --message="$domain is not available as domain, please use an other domain."
+[ $(ynh_webpath_available --domain=$domain --path_url=$path_url) == "True" ] || ynh_die --message="$domain is not available as domain, please use an other domain."
 test ! -e "/etc/nginx/conf.d/$domain.d/synapse*.conf" || ynh_die --message="$domain is not available as domain, please use an other domain."
 
 # Check Final Path availability
