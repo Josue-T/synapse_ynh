@@ -91,7 +91,7 @@ ynh_backup --src_path="/etc/systemd/system/coturn-$app.service"
 #=================================================
 ynh_script_progression --message="Backing up synapse data..." --weight=1
 
-ynh_backup --src_path="/var/lib/matrix-$app" --is_big
+ynh_backup --src_path="/var/lib/matrix-$app"
 
 #=================================================
 # BACKUP SYNAPSE LOG
