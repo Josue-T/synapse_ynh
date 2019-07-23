@@ -38,6 +38,9 @@
 					"en": "Is it a public server ?",
 					"fr": "Est-ce un serveur public ?"
 				},
+				"help": { 
+					"en": "A public server means that anybody will be able to register on this server."
+				}
 				"default": 0
 			}
 		]
