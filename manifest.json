@@ -40,7 +40,7 @@
 				},
 				"help": { 
 					"en": "A public server means that anybody will be able to register on this server.",
-					"fr": "Un serveur public signifie que n'importe qui poura s'enregistrer sur ce serveur"
+					"fr": "Un serveur public signifie que n'importe qui pourra s'enregistrer sur ce serveur."
 				},
 				"default": 0
 			}
