@@ -64,7 +64,7 @@ closeport $turnserver_alt_tls_port
 #=================================================
 
 # Remove the skipped url
-python3 $final_path/remove_sso_conf.py
+python3 ../conf/remove_sso_conf.py
 
 #=================================================
 # REMOVE DEPENDENCIES
