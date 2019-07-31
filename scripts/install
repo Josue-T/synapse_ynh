@@ -162,7 +162,7 @@ else
     source $final_path/bin/activate
     pip3 install --upgrade pip
     pip3 install --upgrade setuptools wheel
-    pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml
+    pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
     pip3 install --upgrade matrix-synapse==$upstream_version matrix-synapse-ldap3
 
     # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
@@ -313,9 +313,7 @@ ynh_replace_string __APP__ $app "$final_path/Coturn_config_rotate.sh"
 
 # Open access to server without a button the home
 # The script "add_sso_conf.py" will just add en entry for the path "/_matrix" in the sso conf.json.persistent file in the cathegory "skipped_urls".
-cp ../conf/add_sso_conf.py $final_path
-cp ../conf/remove_sso_conf.py $final_path
-python3 $final_path/add_sso_conf.py || ynh_die "Your file /etc/ssowat/conf.json.persistent don't respect the json synaxe. Please fix the synaxe to install this app. For more information see here : https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
+python3 ../conf/add_sso_conf.py || ynh_die "Your file /etc/ssowat/conf.json.persistent doesn't respect the json syntax. Please fix the syntax to install this app. For more information see here: https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
 
 #=================================================
 # SECURE FILES AND DIRECTORIES

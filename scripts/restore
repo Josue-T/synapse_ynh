@@ -122,7 +122,7 @@ else
     ynh_replace_string '__IPV4__,' "" "$coturn_config_path"
 fi
 
-if [[ -n "$public_ip6" ]] && ynh_valide_ip6 "$public_ip6"
+if [[ -n "$public_ip6" ]] && ynh_validate_ip6 "$public_ip6"
 then
     ynh_replace_string '__IPV6__' "$public_ip6" "$coturn_config_path"
 else
@@ -148,7 +148,7 @@ yunohost firewall allow Both $turnserver_alt_tls_port > /dev/null 2>&1
 
 # Open access to server without a button the home
 # The script "add_sso_conf.py" will just add en entry for the path "/_matrix" in the sso conf.json.persistent file in the cathegory "skipped_urls".
-python3 $final_path/add_sso_conf.py || ynh_die "Your file /etc/ssowat/conf.json.persistent don't respect the json synaxe. Please fix the synaxe to install this app. For more information see here : https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
+python3 ../settings/conf/add_sso_conf.py || ynh_die "Your file /etc/ssowat/conf.json.persistent doesn't respect the json syntax. Please fix the syntax to install this app. For more information see here: https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
 
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE
