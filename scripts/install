@@ -32,7 +32,11 @@ report_stats="False"
 #=================================================
 
 domain=$YNH_APP_ARG_DOMAIN
-server_name=$YNH_APP_ARG_SERVER_NAME
+if [ $server_name == "Same than the domain" ]; then
+    server_name=$domain
+else
+    server_name=$YNH_APP_ARG_SERVER_NAME
+fi
 is_public=$YNH_APP_ARG_IS_PUBLIC
 path_url="/_matrix"
 final_path="/opt/yunohost/matrix-$app"
