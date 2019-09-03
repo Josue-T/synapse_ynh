@@ -316,6 +316,15 @@ ynh_replace_string __APP__ $app "$final_path/Coturn_config_rotate.sh"
 python3 ../conf/add_sso_conf.py || ynh_die "Your file /etc/ssowat/conf.json.persistent doesn't respect the json syntax. Please fix the syntax to install this app. For more information see here: https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
 
 #=================================================
+# UPDATE HOOKS
+#=================================================
+
+# WARNING : theses command are used in INSTALL, UPGRADE
+# For any update do it in all files
+ynh_replace_string __APP__ $app ../hooks/post_cert_update
+ynh_replace_string __DOMAIN__ $domain ../hooks/post_cert_update
+
+#=================================================
 # SECURE FILES AND DIRECTORIES
 #=================================================
 

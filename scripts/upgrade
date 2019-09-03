@@ -335,6 +335,15 @@ setfacl -R -m user:turnserver:rX  /etc/matrix-$app
 setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
 
 #=================================================
+# UPDATE HOOKS
+#=================================================
+
+# WARNING : theses command are used in INSTALL, UPGRADE
+# For any update do it in all files
+ynh_replace_string __APP__ $app ../hooks/post_cert_update
+ynh_replace_string __DOMAIN__ $domain ../hooks/post_cert_update
+
+#=================================================
 # UPDATE VERSION SETTINGS
 #=================================================
 

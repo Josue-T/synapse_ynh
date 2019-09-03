@@ -81,6 +81,13 @@ ynh_psql_dump_db "$synapse_db_name" > ${YNH_CWD}/dump.sql
 ynh_backup "/var/log/matrix-$app"
 
 #=================================================
+# BACKUP HOOKS
+#=================================================
+
+# Copy hook
+ynh_backup --src_path "/etc/yunohost/hooks.d/post_cert_update/50-$app"
+
+#=================================================
 # BACKUP FAIL2BAN CONFIG
 #=================================================
 
