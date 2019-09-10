@@ -188,7 +188,7 @@ else
     ynh_replace_string --match_string='__IPV4__,' --replace_string="" --target_file="$coturn_config_path"
 fi
 
-if [ -n "$public_ip6" ] && ynh_valide_ip6 --ip_address="$public_ip6"
+if [ -n "$public_ip6" ] && ynh_validate_ip6 --ip_address="$public_ip6"
 then
     ynh_replace_string --match_string='__IPV6__' --replace_string="$public_ip6" --target_file="$coturn_config_path"
 else
