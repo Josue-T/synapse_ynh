@@ -221,7 +221,7 @@ python3 ../settings/conf/add_sso_conf.py || ynh_die --message="Your file /etc/ss
 #=================================================
 ynh_script_progression --message="Configuring log rotation..."
 
-ynh_use_logrotate /var/log/matrix-$app
+ynh_use_logrotate --logfile /var/log/matrix-$app
 
 #=================================================
 # GENERIC FINALIZATION
