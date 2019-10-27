@@ -41,7 +41,7 @@ If your server name is identical to the domain on which synapse is installed, an
 If not, you may need to put the following line in the dns configuration:
 
 ```
-_matrix._tcp.<server_name-you-choose-at-install> <ttl> IN SRV 10 0 <port> <domain-or-subdomain-of-synapse>
+_matrix._tcp.<server_name.tld> <ttl> IN SRV 10 0 <port> <domain-or-subdomain-of-synapse.tld>
 ```
 for example
 ```
