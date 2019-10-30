@@ -31,6 +31,7 @@ upstream_version=$(ynh_app_upstream_version)
 #=================================================
 
 domain=$(ynh_app_setting_get $app special_domain)
+server_name=$(ynh_app_setting_get $app server_name)
 path_url=$(ynh_app_setting_get $app special_path)
 final_path=$(ynh_app_setting_get $app final_path)
 synapse_old_version=$(ynh_app_setting_get $app synapse_version)
@@ -56,6 +57,10 @@ then
 	ynh_die "Update from this synapse version is not available. You need to remove this package and reinstall the new package version."
 fi
 
+if [ -z $server_name ]; then
+   server_name=$domain
+   ynh_app_setting_set $app server_name  $domain
+fi
 #=================================================
 # BACKUP BEFORE UPGRADE
 #=================================================
@@ -126,7 +131,7 @@ then
     source $final_path/bin/activate
 
     # Generate config and keys
-    python -m synapse.app.homeserver --keys-directory /etc/matrix-$app/ --generate-config --generate-keys --server-name $domain --report-stats=no -c homeserver.yml
+    python -m synapse.app.homeserver --keys-directory /etc/matrix-$app/ --generate-config --generate-keys --server-name $server_name --report-stats=no -c homeserver.yml
 
     # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
     deactivate
@@ -157,6 +162,7 @@ cp ../conf/log.yaml /etc/matrix-$app/log.yaml
 
 ynh_replace_string __APP__ $app "$homeserver_config_path"
 ynh_replace_string __DOMAIN__ $domain "$homeserver_config_path"
+ynh_replace_string __SERVER_NAME__ $server_name "$homeserver_config_path"
 ynh_replace_string __SYNAPSE_DB_USER__ $synapse_db_user "$homeserver_config_path"
 ynh_replace_string __SYNAPSE_DB_PWD__ $synapse_db_pwd "$homeserver_config_path"
 ynh_replace_string __PORT__ $port "$homeserver_config_path"
@@ -330,7 +336,7 @@ chown $synapse_user:root -R /var/lib/matrix-$app
 chown $synapse_user:root -R /var/log/matrix-$app
 chown $synapse_user:root -R /etc/matrix-$app
 chmod u=rwX,g=rX,o= -R /etc/matrix-$app
-chmod 600 /etc/matrix-$app/$domain.signing.key
+chmod 600 /etc/matrix-$app/$server_name.signing.key
 setfacl -R -m user:turnserver:rX  /etc/matrix-$app
 setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
 
