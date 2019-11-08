@@ -101,6 +101,14 @@ ynh_script_progression --message="Backing up synapse log..." --weight=1
 ynh_backup --src_path="/var/log/matrix-$app"
 
 #=================================================
+# BACKUP HOOKS
+#=================================================
+ynh_script_progression --message="Backing up synapse hook..." --weight=1
+
+# Copy hook
+ynh_backup --src_path "/etc/yunohost/hooks.d/post_cert_update/50-$app"
+
+#=================================================
 # END OF SCRIPT
 #=================================================
 
