@@ -244,7 +244,7 @@ then
     # MAKE A CLEAN LOGROTATE CONFIG
     #=================================================
 
-    ynh_use_logrotate --logfile /var/log/matrix-$app --non-append
+    ynh_use_logrotate --logfile /var/log/matrix-$app --nonappend
 fi
 
 #=================================================
