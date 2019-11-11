@@ -19,6 +19,12 @@
                 "type": "bool",
                 "help": "Is it a public server",
                 "default": false
+            },{
+                "name": "Server public",
+                "id": "allow_public_rooms",
+                "type": "bool",
+                "help": "If set to 'false', requires authentication to access the server's public rooms directory through the client API and forbids any other homeserver to fetch the server's public rooms directory via federation.",
+                "default": false
             }]
         }]
     },{
