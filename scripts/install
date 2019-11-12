@@ -222,10 +222,12 @@ deactivate
 ynh_print_OFF
 registration_shared_secret=$(egrep "^registration_shared_secret" homeserver.yml | cut -d'"' -f2)
 form_secret=$(egrep "^form_secret" homeserver.yml | cut -d'"' -f2)
+macaroon_secret_key=$(egrep "^macaroon_secret_key" homeserver.yml | cut -d'"' -f2)
 
 # store in yunohost settings
 ynh_app_setting_set --app=$app --key=registration_shared_secret --value="$registration_shared_secret"
 ynh_app_setting_set --app=$app --key=form_secret --value="$form_secret"
+ynh_app_setting_set --app=$app --key=macaroon_secret_key --value="$macaroon_secret_key"
 ynh_print_ON
 
 #=================================================
@@ -282,6 +284,7 @@ ynh_replace_string --match_string=__SYNAPSE_DB_PWD__ --replace_string=$synapse_d
 ynh_replace_special_string --match_string=__TURNPWD__ --replace_string=$turnserver_pwd --target_file="$homeserver_config_path"
 ynh_replace_special_string --match_string=__REGISTRATION_SECRET__ --replace_string="$registration_shared_secret" --target_file="$homeserver_config_path"
 ynh_replace_string --match_string=__FORM_SECRET__ --replace_string="$form_secret" --target_file="$homeserver_config_path"
+ynh_replace_string --match_string=__MACAROON_SECRET_KEY__ --replace_string="$macaroon_secret_key" --target_file="$homeserver_config_path"
 ynh_print_ON
 
 ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="/etc/matrix-$app/log.yaml"
