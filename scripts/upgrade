@@ -144,7 +144,7 @@ fi
 #=================================================
 
 ynh_print_OFF
-if [ -z "$registration_shared_secret" ]
+if [ -z "$registration_shared_secret" ] || [ "$form_secret" == "form_secret: " ]
 then
     ynh_print_ON
     ynh_script_progression --message="Generating synapse secret..." --weight=1
@@ -162,7 +162,7 @@ then
     # Get random values from config
     ynh_print_OFF
     registration_shared_secret=$(egrep "^registration_shared_secret" homeserver.yml | cut -d'"' -f2)
-    form_secret=$(egrep "^form_secret" homeserver.yml | cut -d'"' -f1)
+    form_secret=$(egrep "^form_secret" homeserver.yml | cut -d'"' -f2)
 
     # store in yunohost settings
     ynh_app_setting_set --app=$app --key=registration_shared_secret --value="$registration_shared_secret"
