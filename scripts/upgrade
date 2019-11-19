@@ -161,8 +161,8 @@ then
 
     # Get random values from config
     ynh_print_OFF
-    registration_shared_secret=$(egrep "^registration_shared_secret" homeserver.yml | cut -d'"' -f2)
-    form_secret=$(egrep "^form_secret" homeserver.yml | cut -d'"' -f2)
+    registration_shared_secret=$(egrep "^registration_shared_secret:" homeserver.yml | cut -d'"' -f2)
+    form_secret=$(egrep "^form_secret:" homeserver.yml | cut -d'"' -f2)
 
     # store in yunohost settings
     ynh_app_setting_set --app=$app --key=registration_shared_secret --value="$registration_shared_secret"
