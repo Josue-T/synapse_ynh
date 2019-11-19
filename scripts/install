@@ -280,11 +280,11 @@ ynh_replace_string --match_string=__TURNSERVER_TLS_PORT__ --replace_string=$turn
 ynh_replace_string --match_string=__REPORT_STATS__ --replace_string="$report_stats" --target_file="$homeserver_config_path"
 ynh_replace_string --match_string=__ALLOW_PUBLIC_ROOMS__ --replace_string="$allow_public_rooms" --target_file="$homeserver_config_path"
 ynh_print_OFF
-ynh_replace_string --match_string=__SYNAPSE_DB_PWD__ --replace_string=$synapse_db_pwd --target_file="$homeserver_config_path"
+ynh_replace_special_string --match_string=__SYNAPSE_DB_PWD__ --replace_string=$synapse_db_pwd --target_file="$homeserver_config_path"
 ynh_replace_special_string --match_string=__TURNPWD__ --replace_string=$turnserver_pwd --target_file="$homeserver_config_path"
 ynh_replace_special_string --match_string=__REGISTRATION_SECRET__ --replace_string="$registration_shared_secret" --target_file="$homeserver_config_path"
-ynh_replace_string --match_string=__FORM_SECRET__ --replace_string="$form_secret" --target_file="$homeserver_config_path"
-ynh_replace_string --match_string=__MACAROON_SECRET_KEY__ --replace_string="$macaroon_secret_key" --target_file="$homeserver_config_path"
+ynh_replace_special_string --match_string=__FORM_SECRET__ --replace_string="$form_secret" --target_file="$homeserver_config_path"
+ynh_replace_special_string --match_string=__MACAROON_SECRET_KEY__ --replace_string="$macaroon_secret_key" --target_file="$homeserver_config_path"
 ynh_print_ON
 
 ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="/etc/matrix-$app/log.yaml"

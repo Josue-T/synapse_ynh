@@ -114,13 +114,13 @@ apply_config() {
     ynh_replace_string --match_string __DOMAIN__ --replace_string $domain --target_file "$homeserver_config_path"
     ynh_replace_string --match_string __SERVER_NAME__ --replace_string $server_name --target_file "$homeserver_config_path"   
     ynh_replace_string --match_string __SYNAPSE_DB_USER__ --replace_string $synapse_db_user --target_file "$homeserver_config_path"
-    ynh_replace_string --match_string __SYNAPSE_DB_PWD__ --replace_string $synapse_db_pwd --target_file "$homeserver_config_path"
+    ynh_replace_special_string --match_string __SYNAPSE_DB_PWD__ --replace_string $synapse_db_pwd --target_file "$homeserver_config_path"
     ynh_replace_string --match_string __PORT__ --replace_string $port --target_file "$homeserver_config_path"
     ynh_replace_string --match_string __TLS_PORT__ --replace_string $synapse_tls_port --target_file "$homeserver_config_path"
     ynh_replace_string --match_string __TURNSERVER_TLS_PORT__ --replace_string $turnserver_tls_port --target_file "$homeserver_config_path"
-    ynh_replace_string --match_string __TURNPWD__ --replace_string $turnserver_pwd --target_file "$homeserver_config_path"
-    ynh_replace_string --match_string __REGISTRATION_SECRET__ --replace_string "$registration_shared_secret" --target_file "$homeserver_config_path"
-    ynh_replace_string --match_string __FORM_SECRET__ --replace_string "$form_secret" --target_file "$homeserver_config_path"
+    ynh_replace_special_string --match_string __TURNPWD__ --replace_string $turnserver_pwd --target_file "$homeserver_config_path"
+    ynh_replace_special_string --match_string __REGISTRATION_SECRET__ --replace_string "$registration_shared_secret" --target_file "$homeserver_config_path"
+    ynh_replace_special_string --match_string __FORM_SECRET__ --replace_string "$form_secret" --target_file "$homeserver_config_path"
     ynh_replace_string --match_string __REPORT_STATS__ --replace_string "$report_stats" --target_file "$homeserver_config_path"
     ynh_replace_string --match_string=__ALLOW_PUBLIC_ROOMS__ --replace_string="$allow_public_rooms" --target_file="$homeserver_config_path"
     if [ -n $macaroon_secret_key ]; then
@@ -130,7 +130,7 @@ apply_config() {
         # For more detail about this issue you can see : https://matrix.org/blog/2019/01/15/further-details-on-critical-security-update-in-synapse-affecting-all-versions-prior-to-0-34-1-cve-2019-5885/
         ynh_replace_string --match_string='macaroon_secret_key: "__MACAROON_SECRET_KEY__"' --replace_string='# macaroon_secret_key: "__MACAROON_SECRET_KEY__"' --target_file="$homeserver_config_path"
     else
-        ynh_replace_string --match_string=__MACAROON_SECRET_KEY__ --replace_string="$macaroon_secret_key" --target_file="$homeserver_config_path"
+        ynh_replace_special_string --match_string=__MACAROON_SECRET_KEY__ --replace_string="$macaroon_secret_key" --target_file="$homeserver_config_path"
     fi
 
     if [ "$is_public" = "0" ]
