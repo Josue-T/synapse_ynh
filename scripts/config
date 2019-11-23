@@ -32,21 +32,21 @@ is_public=$(ynh_app_setting_get --app $app --key is_public)
 show_config() {
     # here you are supposed to read some config file/database/other then print the values
     # echo "YNH_CONFIG_${PANEL_ID}_${SECTION_ID}_${OPTION_ID}=value"
-    echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS=$report_stats"
-    echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_ALLOW_PUBLIC_ROOMS=$allow_public_rooms"
+    echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS=$report_stats" >> $YNH_STDRETURN
+    echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_ALLOW_PUBLIC_ROOMS=$allow_public_rooms" >> $YNH_STDRETURN
 
     if [[ ${backup_before_upgrade:-0} -eq 1 ]]
     then
-        echo "YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE=False"
+        echo "YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE=false" >> $YNH_STDRETURN
     else
-        echo "YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE=True"
+        echo "YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE=true" >> $YNH_STDRETURN
     fi
 
     if [[ ${is_public} -eq 1 ]]
     then
-        echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=False"
+        echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=false" >> $YNH_STDRETURN
     else
-        echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=True"
+        echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=true" >> $YNH_STDRETURN
     fi
 }
 
