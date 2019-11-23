@@ -44,9 +44,9 @@ show_config() {
 
     if [[ ${is_public} -eq 1 ]]
     then
-        echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=false" >> $YNH_STDRETURN
-    else
         echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=true" >> $YNH_STDRETURN
+    else
+        echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=false" >> $YNH_STDRETURN
     fi
 }
 
