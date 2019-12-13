@@ -29,11 +29,13 @@ turnserver_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_tls_port)
 turnserver_alt_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_alt_tls_port)
 cli_port=$(ynh_app_setting_get --app=$app --key=cli_port)
 report_stats=$(ynh_app_setting_get --app=$app --key=report_stats)
+allow_public_rooms=$(ynh_app_setting_get --app=$app --key=allow_public_rooms)
 ynh_print_OFF
 synapse_db_pwd=$(ynh_app_setting_get --app=$app --key=synapse_db_pwd)
 turnserver_pwd=$(ynh_app_setting_get --app=$app --key=turnserver_pwd)
 registration_shared_secret=$(ynh_app_setting_get --app=$app --key=registration_shared_secret)
 form_secret=$(ynh_app_setting_get --app=$app --key=form_secret)
+macaroon_secret_key=$(ynh_app_setting_get --app=$app --key=macaroon_secret_key)
 ynh_print_ON
 
 #=================================================
@@ -142,7 +144,7 @@ fi
 #=================================================
 
 ynh_print_OFF
-if [ -z "$registration_shared_secret" ]
+if [ -z "$registration_shared_secret" ] || [ "$form_secret" == "form_secret: " ]
 then
     ynh_print_ON
     ynh_script_progression --message="Generating synapse secret..." --weight=1
@@ -159,8 +161,8 @@ then
 
     # Get random values from config
     ynh_print_OFF
-    registration_shared_secret=$(egrep "^registration_shared_secret" homeserver.yml | cut -d'"' -f2)
-    form_secret=$(egrep "^form_secret" homeserver.yml | cut -d'"' -f1)
+    registration_shared_secret=$(egrep "^registration_shared_secret:" homeserver.yml | cut -d'"' -f2)
+    form_secret=$(egrep "^form_secret:" homeserver.yml | cut -d'"' -f2)
 
     # store in yunohost settings
     ynh_app_setting_set --app=$app --key=registration_shared_secret --value="$registration_shared_secret"
@@ -168,6 +170,18 @@ then
     ynh_print_ON
 fi
 ynh_print_ON
+
+#=================================================
+# MIGRATION 5 : DEFINE UNDEFINED SETTINGS
+#=================================================
+
+if [ -n $report_stats ]; then
+    report_stats="false"
+fi
+
+if [ -n $allow_public_rooms ]; then
+    allow_public_rooms="false"
+fi
 
 #=================================================
 # UPDATE SYNAPSE CONFIG
@@ -193,11 +207,21 @@ ynh_replace_string --match_string=__PORT__ --replace_string=$port --target_file=
 ynh_replace_string --match_string=__TLS_PORT__ --replace_string=$synapse_tls_port --target_file="$homeserver_config_path"
 ynh_replace_string --match_string=__TURNSERVER_TLS_PORT__ --replace_string=$turnserver_tls_port --target_file="$homeserver_config_path"
 ynh_replace_string --match_string=__REPORT_STATS__ --replace_string="$report_stats" --target_file="$homeserver_config_path"
+ynh_replace_string --match_string=__ALLOW_PUBLIC_ROOMS__ --replace_string="$allow_public_rooms" --target_file="$homeserver_config_path"
 ynh_print_OFF
-ynh_replace_string --match_string=__SYNAPSE_DB_PWD__ --replace_string=$synapse_db_pwd --target_file="$homeserver_config_path"
+ynh_replace_special_string --match_string=__SYNAPSE_DB_PWD__ --replace_string=$synapse_db_pwd --target_file="$homeserver_config_path"
 ynh_replace_special_string --match_string=__TURNPWD__ --replace_string=$turnserver_pwd --target_file="$homeserver_config_path"
 ynh_replace_special_string --match_string=__REGISTRATION_SECRET__ --replace_string="$registration_shared_secret" --target_file="$homeserver_config_path"
-ynh_replace_string --match_string=__FORM_SECRET__ --replace_string="$form_secret" --target_file="$homeserver_config_path"
+ynh_replace_special_string --match_string=__FORM_SECRET__ --replace_string="$form_secret" --target_file="$homeserver_config_path"
+if [ -n $macaroon_secret_key ]; then
+    # Well, in this package this value was not managed because it was not needed, synapse is able to generate this with some other secret in the config file but after some vulnerability was found with this practice.
+    # For more detail about this issue you can see : https://matrix.org/blog/2019/01/15/further-details-on-critical-security-update-in-synapse-affecting-all-versions-prior-to-0-34-1-cve-2019-5885/
+    # The problem is that we can't just say generate a new value if the package has not already defined a value. The reason is that changing this value logout all user. And in case of a user has enabled the encryption, the user might lost all conversation !!
+    # So for the old install we just leave this as it is. And for the new install we use a real macaroon.
+    ynh_replace_special_string --match_string='macaroon_secret_key: "__MACAROON_SECRET_KEY__"' --replace_string='# macaroon_secret_key: "__MACAROON_SECRET_KEY__"' --target_file="$homeserver_config_path"
+else
+    ynh_replace_special_string --match_string=__MACAROON_SECRET_KEY__ --replace_string="$macaroon_secret_key" --target_file="$homeserver_config_path"
+fi
 ynh_print_ON
 
 ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="/etc/matrix-$app/log.yaml"
