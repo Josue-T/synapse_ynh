@@ -17,9 +17,9 @@ ynh_script_progression --message="Loading installation settings..." --weight=3
 
 app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get --app=$app --key=special_domain)
+domain=$(ynh_app_setting_get --app=$app --key=domain)
 server_name=$(ynh_app_setting_get --app=$app --key=server_name)
-path_url=$(ynh_app_setting_get --app=$app --key=special_path)
+path_url=$(ynh_app_setting_get --app=$app --key=path)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 synapse_old_version=$(ynh_app_setting_get --app=$app --key=synapse_version)
 is_public=$(ynh_app_setting_get --app=$app --key=is_public)
@@ -92,6 +92,21 @@ ynh_abort_if_errors
 
 #=================================================
 # STANDARD UPGRADE STEPS
+#=================================================
+# MIGRATION 5 : GENERATE SYNAPSE SECRET
+#=================================================
+
+# Migrate from settings 'special_domain' to 'domain' and 'special_path' to 'path'
+if [ -z $domain ]; then
+    domain=$(ynh_app_setting_get --app=$app --key=special_domain)
+    path_url=$(ynh_app_setting_get --app=$app --key=special_path)
+    ynh_app_setting_set --app=$app --key=domain --value=$domain
+    ynh_app_setting_set --app=$app --key=path --value=$path_url
+    ynh_app_setting_delete -app=$app --key=special_domain
+    ynh_app_setting_delete -app=$app --key=special_path
+    ynh_app_setting_set --app=$app --key=no_sso --value true
+fi
+
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
