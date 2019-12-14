@@ -57,29 +57,17 @@ show_config() {
 apply_config() {
     report_stats=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS:-$report_stats}
     allow_public_rooms=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_ALLOW_PUBLIC_ROOMS:-$allow_public_rooms}
+    backup_before_upgrade=${YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE:-$backup_before_upgrade}
+    is_public=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC:-$is_public}
 
     ynh_app_setting_set --app $app --key report_stats --value $report_stats
     ynh_app_setting_set --app $app --key allow_public_rooms --value $allow_public_rooms
+    ynh_app_setting_set --app $app --key is_public --value $is_public
 
-    if [ -n "${YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE:-}" ]; then
-        if ${YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE,,}; then
-            ynh_app_setting_set --app $app --key disable_backup_before_upgrade --value 0
-            backup_before_upgrade=0
-        else
-            ynh_app_setting_set --app $app --key disable_backup_before_upgrade --value 1
-            backup_before_upgrade=1
-        fi
-    fi
-
-    if [ -n "${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC:-}" ]; then
-        if ${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC,,}
-        then
-            ynh_app_setting_set --app $app --key is_public --value 1
-            is_public=1
-        else
-            ynh_app_setting_set --app $app --key is_public --value 0
-            is_public=0
-        fi
+    if [ $backup_before_upgrade == 1 ]; then
+        ynh_app_setting_set --app $app --key disable_backup_before_upgrade --value 0
+    else
+        ynh_app_setting_set --app $app --key disable_backup_before_upgrade --value 1
     fi
 
     domain=$(ynh_app_setting_get --app $app --key special_domain)
