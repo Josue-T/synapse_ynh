@@ -268,7 +268,7 @@ ynh_print_ON
 
 # Configure Synapse
 
-# WARNING : theses command are used in INSTALL, UPGRADE, CONFIG (3 times)
+# WARNING : theses command are used in INSTALL, UPGRADE, CONFIG, CHANGE-URL (4 times)
 # For any update do it in all files
 
 homeserver_config_path="/etc/matrix-$app/homeserver.yaml"
