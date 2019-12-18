@@ -102,8 +102,8 @@ if [ -z $domain ]; then
     path_url=$(ynh_app_setting_get --app=$app --key=special_path)
     ynh_app_setting_set --app=$app --key=domain --value=$domain
     ynh_app_setting_set --app=$app --key=path --value=$path_url
-    ynh_app_setting_delete -app=$app --key=special_domain
-    ynh_app_setting_delete -app=$app --key=special_path
+    ynh_app_setting_delete --app=$app --key=special_domain
+    ynh_app_setting_delete --app=$app --key=special_path
     ynh_app_setting_set --app=$app --key=no_sso --value true
 fi
 
