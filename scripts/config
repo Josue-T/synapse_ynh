@@ -12,7 +12,6 @@ source /usr/share/yunohost/helpers
 ynh_abort_if_errors
 
 # Import common fonctions
-source ./psql.sh
 source ./experimental_helper.sh
 source ./_common.sh
 
@@ -21,6 +20,10 @@ source ./_common.sh
 #=================================================
 
 app=$YNH_APP_INSTANCE_NAME
+report_stats=$(ynh_app_setting_get --app $app --key report_stats)
+allow_public_rooms=$(ynh_app_setting_get --app=$app --key=allow_public_rooms)
+backup_before_upgrade=$(ynh_app_setting_get --app $app --key disable_backup_before_upgrade)
+is_public=$(ynh_app_setting_get --app $app --key is_public)
 
 #=================================================
 # SHOW_CONFIG FUNCTION FOR 'SHOW' COMMAND
@@ -28,22 +31,22 @@ app=$YNH_APP_INSTANCE_NAME
 
 show_config() {
     # here you are supposed to read some config file/database/other then print the values
-    # echo "YNH_CONFIG_${PANEL_ID}_${SECTION_ID}_${OPTION_ID}=value"
-    echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS=$(ynh_app_setting_get --app $app --key report_stats)"
+    # ynh_return "YNH_CONFIG_${PANEL_ID}_${SECTION_ID}_${OPTION_ID}=value"
+    ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS=$report_stats"
+    ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_ALLOW_PUBLIC_ROOMS=$allow_public_rooms"
 
-    backup_before_upgrade=$(ynh_app_setting_get --app $app --key disable_backup_before_upgrade)
     if [[ ${backup_before_upgrade:-0} -eq 1 ]]
     then
-        echo "YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE=False"
+        ynh_return "YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE=false"
     else
-        echo "YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE=True"
+        ynh_return "YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE=true"
     fi
-    is_public=$(ynh_app_setting_get --app $app --key is_public)
+
     if [[ ${is_public} -eq 1 ]]
     then
-        echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=False"
+        ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=true"
     else
-        echo "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=True"
+        ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=false"
     fi
 }
 
@@ -52,20 +55,19 @@ show_config() {
 #=================================================
 
 apply_config() {
-    ynh_app_setting_set --app $app --key report_stats --value $YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS
+    report_stats=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS:-$report_stats}
+    allow_public_rooms=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_ALLOW_PUBLIC_ROOMS:-$allow_public_rooms}
+    backup_before_upgrade=${YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE:-$backup_before_upgrade}
+    is_public=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC:-$is_public}
 
-    if ${YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE,,}
-    then
+    ynh_app_setting_set --app $app --key report_stats --value $report_stats
+    ynh_app_setting_set --app $app --key allow_public_rooms --value $allow_public_rooms
+    ynh_app_setting_set --app $app --key is_public --value $is_public
+
+    if [ $backup_before_upgrade == 1 ]; then
         ynh_app_setting_set --app $app --key disable_backup_before_upgrade --value 0
     else
         ynh_app_setting_set --app $app --key disable_backup_before_upgrade --value 1
-    fi
-
-    if ${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC,,}
-    then
-        ynh_app_setting_set --app $app --key is_public --value 1
-    else
-        ynh_app_setting_set --app $app --key is_public --value 0
     fi
 
     domain=$(ynh_app_setting_get --app $app --key special_domain)
@@ -78,7 +80,8 @@ apply_config() {
     turnserver_pwd=$(ynh_app_setting_get --app $app --key turnserver_pwd)
     registration_shared_secret=$(ynh_app_setting_get --app $app --key registration_shared_secret)
     form_secret=$(ynh_app_setting_get --app $app --key form_secret)
-    report_stats=$(ynh_app_setting_get --app $app --key report_stats)
+    macaroon_secret_key=$(ynh_app_setting_get --app=$app --key=macaroon_secret_key)
+
     synapse_user="matrix-$app"
     synapse_db_name="matrix_$app"
     synapse_db_user="matrix_$app"
@@ -99,14 +102,24 @@ apply_config() {
     ynh_replace_string --match_string __DOMAIN__ --replace_string $domain --target_file "$homeserver_config_path"
     ynh_replace_string --match_string __SERVER_NAME__ --replace_string $server_name --target_file "$homeserver_config_path"   
     ynh_replace_string --match_string __SYNAPSE_DB_USER__ --replace_string $synapse_db_user --target_file "$homeserver_config_path"
-    ynh_replace_string --match_string __SYNAPSE_DB_PWD__ --replace_string $synapse_db_pwd --target_file "$homeserver_config_path"
+    ynh_replace_special_string --match_string __SYNAPSE_DB_PWD__ --replace_string $synapse_db_pwd --target_file "$homeserver_config_path"
     ynh_replace_string --match_string __PORT__ --replace_string $port --target_file "$homeserver_config_path"
     ynh_replace_string --match_string __TLS_PORT__ --replace_string $synapse_tls_port --target_file "$homeserver_config_path"
     ynh_replace_string --match_string __TURNSERVER_TLS_PORT__ --replace_string $turnserver_tls_port --target_file "$homeserver_config_path"
-    ynh_replace_string --match_string __TURNPWD__ --replace_string $turnserver_pwd --target_file "$homeserver_config_path"
-    ynh_replace_string --match_string __REGISTRATION_SECRET__ --replace_string "$registration_shared_secret" --target_file "$homeserver_config_path"
-    ynh_replace_string --match_string __FORM_SECRET__ --replace_string "$form_secret" --target_file "$homeserver_config_path"
+    ynh_replace_special_string --match_string __TURNPWD__ --replace_string $turnserver_pwd --target_file "$homeserver_config_path"
+    ynh_replace_special_string --match_string __REGISTRATION_SECRET__ --replace_string "$registration_shared_secret" --target_file "$homeserver_config_path"
+    ynh_replace_special_string --match_string __FORM_SECRET__ --replace_string "$form_secret" --target_file "$homeserver_config_path"
     ynh_replace_string --match_string __REPORT_STATS__ --replace_string "$report_stats" --target_file "$homeserver_config_path"
+    ynh_replace_string --match_string=__ALLOW_PUBLIC_ROOMS__ --replace_string="$allow_public_rooms" --target_file="$homeserver_config_path"
+    if [ -n $macaroon_secret_key ]; then
+        # Well, in this package this value was not managed because it was not needed, synapse is able to generate this with some other secret in the config file but after some vulnerability was found with this practice.
+        # The problem is that we can't just say generate a new value if the package has not already defined a value. The reason is that changing this value logout all user. And in case of a user has enabled the encryption, the user might lost all conversation !!
+        # So for the old install we just leave this as it is. And for the new install we use a real macaroon.
+        # For more detail about this issue you can see : https://matrix.org/blog/2019/01/15/further-details-on-critical-security-update-in-synapse-affecting-all-versions-prior-to-0-34-1-cve-2019-5885/
+        ynh_replace_string --match_string='macaroon_secret_key: "__MACAROON_SECRET_KEY__"' --replace_string='# macaroon_secret_key: "__MACAROON_SECRET_KEY__"' --target_file="$homeserver_config_path"
+    else
+        ynh_replace_special_string --match_string=__MACAROON_SECRET_KEY__ --replace_string="$macaroon_secret_key" --target_file="$homeserver_config_path"
+    fi
 
     if [ "$is_public" = "0" ]
     then

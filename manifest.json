@@ -6,7 +6,7 @@
 		"en": "Instant messaging server who use matrix",
 		"fr": "Un serveur de messagerie instantané basé sur matrix"
 	},
-	"version": "1.6.1~ynh1",
+	"version": "1.7.2~ynh1",
 	"url": "http://matrix.org",
 	"license": "Apache-2.0",
 	"maintainer": {
@@ -14,7 +14,7 @@
 		"email": "josue@tille.ch"
 	},
 	"requirements": {
-		"yunohost": ">= 3.5"
+		"yunohost": ">= 3.6"
 	},
 	"multi_instance": true,
 	"services": [

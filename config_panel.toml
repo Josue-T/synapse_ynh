@@ -1,0 +1,39 @@
+version = "0.1"
+name = "Synapse configuration panel"
+
+[synapse_config]
+name = "Synapse configuration"
+
+    [synapse_config.server_config]
+    name = "Synapse server configuration"
+
+        [synapse_config.server_config.server_statistics]
+        ask = "Server statistics"
+        type = "boolean"
+        default = false
+        help = "True to send anonymous statistics about synapse to improve the performances"
+
+        [synapse_config.server_config.is_public]
+        ask = "Server public"
+        type = "boolean"
+        default = false
+        help = "Is it a public server"
+
+        [synapse_config.server_config.allow_public_rooms]
+        ask = "Server public"
+        type = "boolean"
+        default = false
+        help = "If set to 'false', requires authentication to access the server's public rooms directory through the client API and forbids any other homeserver to fetch the server's public rooms directory via federation."
+
+
+[package_config]
+name = "Package configuration"
+
+    [package_config.package_config]
+    name = "Synapse server configuration"
+
+        [package_config.package_config.backup_before_upgrade]
+        ask = "Backup before upgrade"
+        type = "boolean"
+        default = true
+        help = "True to do a backup before every upgrade"
