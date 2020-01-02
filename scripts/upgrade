@@ -17,9 +17,9 @@ ynh_script_progression --message="Loading installation settings..." --weight=3
 
 app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get --app=$app --key=special_domain)
+domain=$(ynh_app_setting_get --app=$app --key=domain)
 server_name=$(ynh_app_setting_get --app=$app --key=server_name)
-path_url=$(ynh_app_setting_get --app=$app --key=special_path)
+path_url=$(ynh_app_setting_get --app=$app --key=path)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 synapse_old_version=$(ynh_app_setting_get --app=$app --key=synapse_version)
 is_public=$(ynh_app_setting_get --app=$app --key=is_public)
@@ -64,10 +64,6 @@ then
 	ynh_die --message="Update from this synapse version is not available. You need to remove this package and reinstall the new package version."
 fi
 
-if [ -z $server_name ]; then
-   server_name=$domain
-   ynh_app_setting_set $app server_name  $domain
-fi
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
@@ -92,6 +88,27 @@ ynh_abort_if_errors
 
 #=================================================
 # STANDARD UPGRADE STEPS
+#=================================================
+# MIGRATION 5 : Manage old settings
+#=================================================
+
+# Migrate from settings 'special_domain' to 'domain' and 'special_path' to 'path'
+if [ -z $domain ]; then
+    domain=$(ynh_app_setting_get --app=$app --key=special_domain)
+    path_url=$(ynh_app_setting_get --app=$app --key=special_path)
+    ynh_app_setting_set --app=$app --key=domain --value=$domain
+    ynh_app_setting_set --app=$app --key=path --value=$path_url
+    ynh_app_setting_delete --app=$app --key=special_domain
+    ynh_app_setting_delete --app=$app --key=special_path
+    ynh_app_setting_set --app=$app --key=no_sso --value true
+fi
+
+# Define $server_name if not already defined
+if [ -z $server_name ]; then
+   server_name=$domain
+   ynh_app_setting_set $app server_name  $domain
+fi
+
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
@@ -188,7 +205,7 @@ fi
 #=================================================
 ynh_script_progression --message="Updating synapse config..." --weight=2
 
-# WARNING : theses command are used in INSTALL, UPGRADE, CONFIG
+# WARNING : theses command are used in INSTALL, UPGRADE, CONFIG, CHANGE-URL (4 times)
 # For any update do it in all files
 
 homeserver_config_path="/etc/matrix-$app/homeserver.yaml"
@@ -235,16 +252,6 @@ fi
 
 ynh_store_file_checksum --file="$homeserver_config_path"
 ynh_store_file_checksum --file="/etc/matrix-$app/log.yaml"
-
-# Create .well-known redirection for access by federation if it doesn't exist
-if yunohost --output-as plain domain list | grep -q "^$server_name$"
-then
-    ynh_backup_if_checksum_is_different --file=/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf
-    cp ../conf/server_name.conf /etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf
-    ynh_replace_string --match_string=__DOMAIN__ --replace_string=$domain --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
-    ynh_replace_string --match_string=__PORT__ --replace_string=$synapse_tls_port --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
-    ynh_store_file_checksum --file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
-fi
 
 #=================================================
 # MIGRATION 2 : MULTINSTANCE SUPPORT
@@ -320,6 +327,15 @@ ynh_script_progression --message="Upgrading nginx web server configuration..." -
 
 # Create a dedicated nginx config
 ynh_add_nginx_config
+
+# Create .well-known redirection for access by federation
+if yunohost --output-as plain domain list | grep -q "^$server_name$"
+then
+    cp ../conf/server_name.conf /etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf
+    ynh_replace_string --match_string=__DOMAIN__ --replace_string=$domain --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
+    ynh_replace_string --match_string=__PORT__ --replace_string=$synapse_tls_port --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
+    ynh_store_file_checksum --file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
+fi
 
 #=================================================
 # SPECIFIC UPGRADE
