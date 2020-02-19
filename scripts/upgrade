@@ -136,7 +136,7 @@ then
 
 	if [ -n "$(uname -m | grep arm)" ]
 	then
-		# Clean old file, sometime it could make some big issues if we don't do this !!
+		# Clean old file, sometimes it could make some big issues if we don't do this!!
 		ynh_secure_remove --file=$final_path/bin
 		ynh_secure_remove --file=$final_path/lib
 		ynh_secure_remove --file=$final_path/include
