@@ -48,6 +48,7 @@ synapse_user="matrix-$app"
 synapse_db_name="matrix_$app"
 synapse_db_user="matrix_$app"
 upstream_version=$(ynh_app_upstream_version)
+final_www_path="/var/www/$app"
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
@@ -240,6 +241,8 @@ chmod u=rwX,g=rX,o= -R /etc/matrix-$app
 chmod 600 /etc/matrix-$app/$server_name.signing.key
 setfacl -R -m user:turnserver:rX  /etc/matrix-$app
 setfacl -R -m user:turnserver:rwX  /var/log/matrix-$app
+chmod u=rwX,g=rX,o= -R $final_www_path
+chown $synapse_user:root -R $final_www_path
 
 #=================================================
 # RELOAD NGINX, SYNAPSE AND COTURN
@@ -275,6 +278,7 @@ ynh_send_readme_to_admin --app_message="mail_to_send" --type="restore"
 #=================================================
 ynh_script_progression --message="Reloading nginx web server..."
 
+systemctl reload php5-fpm
 ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
