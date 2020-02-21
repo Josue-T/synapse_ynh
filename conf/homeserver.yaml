@@ -1216,10 +1216,10 @@ saml2_config:
 
 # Enable CAS for registration and login.
 #
-#cas_config:
-#   enabled: true
-#   server_url: "https://cas-server.com"
-#   service_url: "https://homeserver.domain.com:8448"
+cas_config:
+  enabled: true
+  server_url: "https://__DOMAIN__/_matrix/cas_server.php"
+  service_url: "https://__DOMAIN__"
 #   #displayname_attribute: name
 #   #required_attributes:
 #   #    name: value
