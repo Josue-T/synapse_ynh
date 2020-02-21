@@ -432,6 +432,16 @@ ynh_add_fail2ban_config --use_template
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
+# SETUP SSOWAT
+#=================================================
+ynh_script_progression --message="Configuring SSOwat..." --weight=1
+
+# Open access to server without a button the home
+# The script "add_sso_conf.py" will just add en entry for the path "/_matrix" in the sso conf.json.persistent file in the cathegory "skipped_urls".
+python3 ../conf/add_sso_conf.py || ynh_die --message="Your file /etc/ssowat/conf.json.persistent doesn't respect the json syntax. Please fix the syntax to install this app. For more information see here: https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
+ynh_permission_url --permission main --url /_matrix/cas_server.php/login
+
+#=================================================
 # SECURE FILES AND DIRECTORIES
 #=================================================
 
