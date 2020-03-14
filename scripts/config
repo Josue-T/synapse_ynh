@@ -70,7 +70,7 @@ apply_config() {
         ynh_app_setting_set --app $app --key disable_backup_before_upgrade --value 1
     fi
 
-    domain=$(ynh_app_setting_get --app $app --key special_domain)
+    domain=$(ynh_app_setting_get --app $app --key domain)
     server_name=$(ynh_app_setting_get --app $app --key server_name)
     synapse_db_pwd=$(ynh_app_setting_get --app $app --key synapse_db_pwd)
     is_public=$(ynh_app_setting_get --app $app --key is_public)
@@ -88,7 +88,7 @@ apply_config() {
 
     # Configure Synapse
 
-    # WARNING : theses command are used in INSTALL, UPGRADE, CONFIG (3 times)
+    # WARNING : theses command are used in INSTALL, UPGRADE, CONFIG, CHANGE-URL (4 times)
     # For any update do it in all files
 
     homeserver_config_path="/etc/matrix-$app/homeserver.yaml"
