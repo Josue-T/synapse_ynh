@@ -1,14 +1,13 @@
 import json
 
-server_name = sys.argv[1]
-domain = sys.argv[2]
-
 with open("/etc/ssowat/conf.json.persistent", "r", encoding='utf-8') as jsonFile:
     data = json.load(jsonFile)
-    for entry in data["skipped_urls"]:
+
+    for entry in data["skipped_urls"].copy():
         if "/_matrix" in entry or "/.well-known/matrix/" in entry:
             data["skipped_urls"].remove(entry)
-    for entry in data["protected_urls"]:
+
+    for entry in data["protected_urls"].copy():
         if "/_matrix" in entry:
             data["protected_urls"].remove(entry)
 
