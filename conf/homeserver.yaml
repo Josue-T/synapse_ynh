@@ -1342,6 +1342,7 @@ password_providers:
    - module: "ldap_auth_provider.LdapAuthProvider"
      config:
        enabled: true
+       mode: "search"
        uri: "ldap://localhost"
        start_tls: false
        base: "ou=users,dc=yunohost,dc=org"
@@ -1349,9 +1350,9 @@ password_providers:
           uid: "uid"
           mail: "mail"
           name: "givenName"
-#        #bind_dn:
+#        #bind_dn: # TODO Add authentication to have the filter working
 #        #bind_password:
-#        #filter: "(objectClass=posixAccount)"
+       filter: "(&(objectClass=posixAccount)(permission=cn=__APP__.main,ou=permission,dc=yunohost,dc=org))"
 
 
 
