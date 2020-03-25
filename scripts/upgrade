@@ -136,6 +136,13 @@ then
 
 	if [ -n "$(uname -m | grep arm)" ]
 	then
+		# Fix multi-instance support
+		for f in $(ls $final_path/bin); do
+			if ! [[ $f =~ "__" ]]; then
+				ynh_replace_special_string --match_string='#!/opt/yunohost/matrix-synapse' --replace_string='#!'$final_path --target_file=$final_path/bin/*
+			fi
+		done
+
 		# Clean old file, sometimes it could make some big issues if we don't do this!!
 		ynh_secure_remove --file=$final_path/bin
 		ynh_secure_remove --file=$final_path/lib
@@ -152,8 +159,17 @@ then
 
 		# We set all necessary environement variable to create a python virtualenvironnement.
 		source $final_path/bin/activate
-		pip3 install --upgrade setuptools wheel
+		pip3 install --upgrade setuptools wheel pipupgrade
 		pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
+
+		# Some pip package could be outdated and pip wont upgrade it automatically.
+		# This could be a security issue when some package have a vulnerability.
+		# It was by example the case with Twisted.
+		# Actually there are no official way to upgrade all package
+		# This problem is documented here : https://github.com/pypa/pip/issues/4551
+		# One best way is actually to use pipupgrade
+		pipupgrade --yes --pip-path /tmp/matrix-synapse/bin/pip
+
 		pip3 install --upgrade matrix-synapse==$upstream_version matrix-synapse-ldap3
 
 		# This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
