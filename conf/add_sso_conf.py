@@ -1,8 +1,8 @@
 import json
 import sys
 
-server_name = sys.argv[1]
-domain = sys.argv[2]
+domain = sys.argv[1]
+server_name = sys.argv[2]
 
 with open("/etc/ssowat/conf.json.persistent", "r", encoding='utf-8') as jsonFile:
     data = json.load(jsonFile)
