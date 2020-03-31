@@ -1,4 +1,5 @@
 import json
+import sys
 
 domain = sys.argv[1]
 server_name = sys.argv[2]
