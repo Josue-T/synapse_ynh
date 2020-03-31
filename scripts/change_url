@@ -141,7 +141,7 @@ ynh_store_file_checksum --file="/etc/matrix-$app/log.yaml"
 # SETUP SSOWAT
 #=================================================
 
-python3 ../conf/remove_sso_conf.py
+python3 ../conf/remove_sso_conf.py $domain $server_name
 python3 ../conf/add_sso_conf.py $domain $server_name || ynh_die --message="Your file /etc/ssowat/conf.json.persistent doesn't respect the json syntax. Please fix the syntax to install this app. For more information see here: https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
 
 #=================================================
