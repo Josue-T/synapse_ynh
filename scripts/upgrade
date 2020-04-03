@@ -137,19 +137,20 @@ then
 
 	if [ -n "$(uname -m | grep arm)" ]
 	then
-		# Fix multi-instance support
-		for f in $(ls $final_path/bin); do
-			if ! [[ $f =~ "__" ]]; then
-				ynh_replace_special_string --match_string='#!/opt/yunohost/matrix-synapse' --replace_string='#!'$final_path --target_file=$final_path/bin/*
-			fi
-		done
-
 		# Clean old file, sometimes it could make some big issues if we don't do this!!
 		ynh_secure_remove --file=$final_path/bin
 		ynh_secure_remove --file=$final_path/lib
 		ynh_secure_remove --file=$final_path/include
 		ynh_secure_remove --file=$final_path/share
+
 		ynh_setup_source --dest_dir=$final_path/ --source_id="armv7_$(lsb_release --codename --short)"
+
+		# Fix multi-instance support
+		for f in $(ls $final_path/bin); do
+			if ! [[ $f =~ "__" ]]; then
+				ynh_replace_special_string --match_string='#!/opt/yunohost/matrix-synapse' --replace_string='#!'$final_path --target_file=$final_path/bin/$f
+			fi
+		done
 	else
 		# Install virtualenv if it don't exist
 		test -e $final_path/bin/python3 || python3 -m venv $final_path
