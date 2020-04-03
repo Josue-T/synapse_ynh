@@ -14,7 +14,7 @@
 		"email": "josue@tille.ch"
 	},
 	"requirements": {
-		"yunohost": ">= 3.6"
+		"yunohost": ">= 3.7.0.4"
 	},
 	"multi_instance": true,
 	"services": [

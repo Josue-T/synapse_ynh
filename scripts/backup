@@ -36,6 +36,7 @@ synapse_user="matrix-$app"
 synapse_db_name="matrix_$app"
 synapse_db_user="matrix_$app"
 upstream_version=$(ynh_app_upstream_version)
+final_www_path="/var/www/$app"
 
 #=================================================
 # STANDARD BACKUP STEPS
@@ -45,11 +46,15 @@ upstream_version=$(ynh_app_upstream_version)
 ynh_script_progression --message="Backing up the main app directory..." --weight=1
 
 ynh_backup --src_path="$final_path"
+ynh_backup --src_path="$final_www_path"
 
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
 #=================================================
 ynh_script_progression --message="Backing up nginx web server configuration..." --weight=1
+
+# BACKUP THE PHP-FPM CONFIGURATION
+ynh_backup --src_path "/etc/php5/fpm/pool.d/$app.conf"
 
 ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 if yunohost --output-as plain domain list | grep -q "^$server_name$"
