@@ -906,7 +906,7 @@ registration_shared_secret: "__REGISTRATION_SECRET__"
 # (By default, no suggestion is made, so it is left up to the client.
 # This setting is ignored unless public_baseurl is also set.)
 #
-#default_identity_server: https://matrix.org
+default_identity_server: https://vector.im
 
 # The list of identity servers trusted to verify third party
 # identifiers by this server.
@@ -949,8 +949,8 @@ registration_shared_secret: "__REGISTRATION_SECRET__"
 # If a delegate is specified, the config option public_baseurl must also be filled out.
 #
 account_threepid_delegates:
-    #email: https://example.com     # Delegate email sending to example.org
-    #msisdn: http://localhost:8090  # Delegate SMS sending to this local process
+    email: https://vector.im     # Delegate email sending to vector.im # TODO use the Yunohost server to send email !!
+    msisdn: https://vector.im
 
 # Users who register on this homeserver will automatically be joined
 # to these rooms
@@ -1216,10 +1216,10 @@ saml2_config:
 
 # Enable CAS for registration and login.
 #
-#cas_config:
-#   enabled: true
-#   server_url: "https://cas-server.com"
-#   service_url: "https://homeserver.domain.com:8448"
+cas_config:
+  enabled: true
+  server_url: "https://__DOMAIN__/_matrix/cas_server.php"
+  service_url: "https://__DOMAIN__"
 #   #displayname_attribute: name
 #   #required_attributes:
 #   #    name: value
@@ -1342,6 +1342,7 @@ password_providers:
    - module: "ldap_auth_provider.LdapAuthProvider"
      config:
        enabled: true
+       mode: "search"
        uri: "ldap://localhost"
        start_tls: false
        base: "ou=users,dc=yunohost,dc=org"
@@ -1349,9 +1350,9 @@ password_providers:
           uid: "uid"
           mail: "mail"
           name: "givenName"
-#        #bind_dn:
+#        #bind_dn: # TODO Add authentication to have the filter working
 #        #bind_password:
-#        #filter: "(objectClass=posixAccount)"
+       filter: "(&(objectClass=posixAccount)(permission=cn=__APP__.main,ou=permission,dc=yunohost,dc=org))"
 
 
 
