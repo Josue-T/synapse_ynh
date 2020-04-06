@@ -170,7 +170,7 @@ then
 		# Actually there are no official way to upgrade all package
 		# This problem is documented here : https://github.com/pypa/pip/issues/4551
 		# One best way is actually to use pipupgrade
-		pipupgrade --yes --pip-path /tmp/matrix-synapse/bin/pip
+		pipupgrade --yes --pip-path $final_path/bin/pip
 
 		pip3 install --upgrade matrix-synapse==$upstream_version matrix-synapse-ldap3
 
