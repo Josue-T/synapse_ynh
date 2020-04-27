@@ -14,7 +14,7 @@ Instant messaging server matrix network.
 
 Yunohost chatroom with matrix : [https://riot.im/app/#/room/#yunohost:matrix.org](https://riot.im/app/#/room/#yunohost:matrix.org)
 
-**Shipped version:** 1.11.0
+**Shipped version:** 1.12.3
 
 ## Configuration
 
@@ -46,7 +46,7 @@ _matrix._tcp.example.com. 3600    IN      SRV     10 0 SYNAPSE_PORT synapse.exam
 ```
 You need to replace SYNAPSE_PORT by the real port. This port can be obtained by the command: `yunohost app setting SYNAPSE_INSTANCE_NAME synapse_tls_port`
 
-For more details, see : https://github.com/matrix-org/synapse#setting-up-federation
+For more details, see : https://github.com/matrix-org/synapse/blob/master/docs/federate.md
 
 If it is not automatically done, you need to open this in your ISP box.
 

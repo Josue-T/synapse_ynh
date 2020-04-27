@@ -46,6 +46,7 @@ synapse_user="matrix-$app"
 synapse_db_name="matrix_$app"
 synapse_db_user="matrix_$app"
 upstream_version=$(ynh_app_upstream_version)
+final_www_path="/var/www/$app"
 
 #=================================================
 # CHECK VERSION
@@ -141,7 +142,15 @@ then
 		ynh_secure_remove --file=$final_path/lib
 		ynh_secure_remove --file=$final_path/include
 		ynh_secure_remove --file=$final_path/share
+
 		ynh_setup_source --dest_dir=$final_path/ --source_id="armv7_$(lsb_release --codename --short)"
+
+		# Fix multi-instance support
+		for f in $(ls $final_path/bin); do
+			if ! [[ $f =~ "__" ]]; then
+				ynh_replace_special_string --match_string='#!/opt/yunohost/matrix-synapse' --replace_string='#!'$final_path --target_file=$final_path/bin/$f
+			fi
+		done
 	else
 		# Install virtualenv if it don't exist
 		test -e $final_path/bin/python3 || python3 -m venv $final_path
@@ -154,12 +163,23 @@ then
 		source $final_path/bin/activate
 		pip3 install --upgrade setuptools wheel
 		pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
-		pip3 install --upgrade matrix-synapse==$upstream_version matrix-synapse-ldap3
+		pip3 install --upgrade 'Twisted>=20.3.0' matrix-synapse==$upstream_version matrix-synapse-ldap3
 
 		# This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
 		deactivate
 	fi
 fi
+
+#=================================================
+# CREATE SMALL CAS SERVER
+#=================================================
+# WARNING : theses command are used in INSTALL, UPGRADE
+# For any update do it in all files
+
+mkdir -p $final_www_path
+cp ../sources/cas_server.php $final_www_path/
+chmod u=rwX,g=rX,o= -R $final_www_path
+chown $synapse_user:root -R $final_www_path
 
 #=================================================
 # MIGRATION 1 : GENERATE SYNAPSE SECRET
@@ -235,7 +255,7 @@ ynh_replace_special_string --match_string=__SYNAPSE_DB_PWD__ --replace_string=$s
 ynh_replace_special_string --match_string=__TURNPWD__ --replace_string=$turnserver_pwd --target_file="$homeserver_config_path"
 ynh_replace_special_string --match_string=__REGISTRATION_SECRET__ --replace_string="$registration_shared_secret" --target_file="$homeserver_config_path"
 ynh_replace_special_string --match_string=__FORM_SECRET__ --replace_string="$form_secret" --target_file="$homeserver_config_path"
-if [ -n $macaroon_secret_key ]; then
+if [ -z $macaroon_secret_key ]; then
     # Well, in this package this value was not managed because it was not needed, synapse is able to generate this with some other secret in the config file but after some vulnerability was found with this practice.
     # For more detail about this issue you can see : https://matrix.org/blog/2019/01/15/further-details-on-critical-security-update-in-synapse-affecting-all-versions-prior-to-0-34-1-cve-2019-5885/
     # The problem is that we can't just say generate a new value if the package has not already defined a value. The reason is that changing this value logout all user. And in case of a user has enabled the encryption, the user might lost all conversation !!
@@ -330,8 +350,12 @@ fi
 #=================================================
 ynh_script_progression --message="Upgrading nginx web server configuration..." --weight=2
 
+# Create a dedicated php-fpm config
+ynh_script_progression --message="Configuring application..."
+ynh_add_fpm_config
+
 # Create a dedicated nginx config
-ynh_add_nginx_config
+ynh_add_nginx_config app
 
 # Create .well-known redirection for access by federation
 if yunohost --output-as plain domain list | grep -q "^$server_name$"
@@ -420,6 +444,16 @@ ynh_add_fail2ban_config --use_template
 
 #=================================================
 # GENERIC FINALIZATION
+#=================================================
+# SETUP SSOWAT
+#=================================================
+ynh_script_progression --message="Configuring SSOwat..." --weight=1
+
+# Open access to server without a button the home
+# The script "add_sso_conf.py" will just add en entry for the path "/_matrix" in the sso conf.json.persistent file in the cathegory "skipped_urls".
+python3 ../conf/add_sso_conf.py $domain $server_name || ynh_die --message="Your file /etc/ssowat/conf.json.persistent doesn't respect the json syntax. Please fix the syntax to install this app. For more information see here: https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
+ynh_permission_url --permission main --url $domain/_matrix/cas_server.php/login
+
 #=================================================
 # SECURE FILES AND DIRECTORIES
 #=================================================

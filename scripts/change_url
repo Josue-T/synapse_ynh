@@ -114,7 +114,7 @@ ynh_replace_special_string --match_string=__SYNAPSE_DB_PWD__ --replace_string=$s
 ynh_replace_special_string --match_string=__TURNPWD__ --replace_string=$turnserver_pwd --target_file="$homeserver_config_path"
 ynh_replace_special_string --match_string=__REGISTRATION_SECRET__ --replace_string="$registration_shared_secret" --target_file="$homeserver_config_path"
 ynh_replace_special_string --match_string=__FORM_SECRET__ --replace_string="$form_secret" --target_file="$homeserver_config_path"
-if [ -n $macaroon_secret_key ]; then
+if [ -z $macaroon_secret_key ]; then
     # Well, in this package this value was not managed because it was not needed, synapse is able to generate this with some other secret in the config file but after some vulnerability was found with this practice.
     # For more detail about this issue you can see : https://matrix.org/blog/2019/01/15/further-details-on-critical-security-update-in-synapse-affecting-all-versions-prior-to-0-34-1-cve-2019-5885/
     # The problem is that we can't just say generate a new value if the package has not already defined a value. The reason is that changing this value logout all user. And in case of a user has enabled the encryption, the user might lost all conversation !!
@@ -136,6 +136,13 @@ fi
 
 ynh_store_file_checksum --file="$homeserver_config_path"
 ynh_store_file_checksum --file="/etc/matrix-$app/log.yaml"
+
+#=================================================
+# SETUP SSOWAT
+#=================================================
+
+python3 ../conf/remove_sso_conf.py $domain $server_name
+python3 ../conf/add_sso_conf.py $domain $server_name || ynh_die --message="Your file /etc/ssowat/conf.json.persistent doesn't respect the json syntax. Please fix the syntax to install this app. For more information see here: https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
 
 #=================================================
 # RELOAD SERVICES

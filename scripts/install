@@ -51,6 +51,7 @@ server_name=$YNH_APP_ARG_SERVER_NAME
 is_public=$YNH_APP_ARG_IS_PUBLIC
 path_url="/_matrix"
 final_path="/opt/yunohost/matrix-$app"
+final_www_path="/var/www/$app"
 
 if [[ "$server_name" == "$default_domain_value" ]]; then
     server_name=$domain    
@@ -181,6 +182,13 @@ mkdir -p $final_path
 if [ -n "$(uname -m | grep arm)" ]
 then
     ynh_setup_source --dest_dir=$final_path/ --source_id="armv7_$(lsb_release --codename --short)"
+
+    # Fix multi-instance support
+    for f in $(ls $final_path/bin); do
+        if ! [[ $f =~ "__" ]]; then
+            ynh_replace_special_string --match_string='#!/opt/yunohost/matrix-synapse' --replace_string='#!'$final_path --target_file=$final_path/bin/$f
+        fi
+    done
 else
     # Install virtualenv if it don't exist
     test -e $final_path/bin/python3 || python3 -m venv $final_path
@@ -201,8 +209,20 @@ else
 fi
 
 #=================================================
+# CREATE SMALL CAS SERVER
+#=================================================
+# WARNING : theses command are used in INSTALL, UPGRADE
+# For any update do it in all files
+
+mkdir -p $final_www_path
+cp ../sources/cas_server.php $final_www_path/
+chmod u=rwX,g=rX,o= -R $final_www_path
+chown $synapse_user:root -R $final_www_path
+
+#=================================================
 # CREATE SYNAPSE CONFIG
 #=================================================
+
 ynh_script_progression --message="Creating synapse config..." --weight=3
 
 # Go in virtualenvironnement
@@ -244,7 +264,11 @@ ynh_add_systemd_config --service=coturn-$app --template=coturn-synapse.service
 #=================================================
 ynh_script_progression --message="Configuring nginx web server..." --weight=2
 
-ynh_add_nginx_config
+# Create a dedicated php-fpm config
+ynh_script_progression --message="Configuring application..."
+ynh_add_fpm_config
+
+ynh_add_nginx_config app
 
 # Create .well-known redirection for access by federation
 if yunohost --output-as plain domain list | grep -q "^$server_name$"
@@ -373,7 +397,8 @@ ynh_script_progression --message="Configuring SSOwat..." --weight=1
 
 # Open access to server without a button the home
 # The script "add_sso_conf.py" will just add en entry for the path "/_matrix" in the sso conf.json.persistent file in the cathegory "skipped_urls".
-python3 ../conf/add_sso_conf.py || ynh_die --message="Your file /etc/ssowat/conf.json.persistent doesn't respect the json syntax. Please fix the syntax to install this app. For more information see here: https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
+python3 ../conf/add_sso_conf.py $domain $server_name || ynh_die --message="Your file /etc/ssowat/conf.json.persistent doesn't respect the json syntax. Please fix the syntax to install this app. For more information see here: https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
+ynh_permission_url --permission main --url $domain/_matrix/cas_server.php/login
 
 #=================================================
 # UPDATE HOOKS
