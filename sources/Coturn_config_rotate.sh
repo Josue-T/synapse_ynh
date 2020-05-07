@@ -23,10 +23,15 @@ else
     external_IP_line="${external_IP_line/',__IPV6__'/}"
 fi
 
+old_config_line=$(egrep "^external-ip=.*\$" "/etc/matrix-$app_instance/coturn.conf")
 ynh_replace_string "^external-ip=.*\$" "$external_IP_line" "/etc/matrix-$app_instance/coturn.conf"
+new_config_line=$(egrep "^external-ip=.*\$" "/etc/matrix-$app_instance/coturn.conf")
 
 setfacl -R -m user:turnserver:rX  /etc/matrix-$app_instance
 
-systemctl restart coturn-$app_instance.service
+if [ "$old_config_line" != "$new_config_line" ]
+then
+    systemctl restart coturn-$app_instance.service
+fi
 
 exit 0
