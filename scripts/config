@@ -121,11 +121,13 @@ apply_config() {
         ynh_replace_special_string --match_string=__MACAROON_SECRET_KEY__ --replace_string="$macaroon_secret_key" --target_file="$homeserver_config_path"
     fi
 
-    if [ "$is_public" = "0" ]
+    if [ $is_public -eq 0 ]
     then
-        ynh_replace_string __ALLOWED_ACCESS__ False "$homeserver_config_path"
+        ynh_replace_string --match_string=__ALLOWED_ACCESS__ --replace_string=False --target_file="$homeserver_config_path"
+        ynh_replace_string --match_string=__SSO_ENABLED__ --replace_string=True --target_file="$homeserver_config_path"
     else
-        ynh_replace_string __ALLOWED_ACCESS__ True "$homeserver_config_path"
+        ynh_replace_string --match_string=__ALLOWED_ACCESS__ --replace_string=True --target_file="$homeserver_config_path"
+        ynh_replace_string --match_string=__SSO_ENABLED__ --replace_string=False --target_file="$homeserver_config_path"
     fi
 
     ynh_store_file_checksum --file "$homeserver_config_path"
