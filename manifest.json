@@ -53,6 +53,16 @@
 					"en": "A public server means that anybody will be able to register on this server.",
 					"fr": "Un serveur public signifie que n'importe qui pourra s'enregistrer sur ce serveur."
 				}
+			},
+			{
+				"name": "jitsi_server",
+				"type": "string",
+				"ask": {
+					"en": "Jitsi server address for conference ?",
+					"fr": "Adresse du serveur Jitsi pour les conférences ?"
+				},
+				"example": "domain.org",
+				"default": "jitsi.riot.im"
 			}
 		]
 	}

@@ -20,11 +20,19 @@ name = "Synapse configuration"
         help = "Is it a public server"
 
         [synapse_config.server_config.allow_public_rooms]
-        ask = "Server public"
+        ask = "Public rooms directory"
         type = "boolean"
         default = false
         help = "If set to 'false', requires authentication to access the server's public rooms directory through the client API and forbids any other homeserver to fetch the server's public rooms directory via federation."
 
+    [synapse_config.client_config]
+    name = "Matrix client configuration"
+
+        [synapse_config.client_config.jitsi_server]
+        ask = "Jitsi server address for conference"
+        type = "string"
+        default = 'jitsi.riot.im'
+        help = "Address of the Jitsi server for conference. Note that it's only for conference in rooms with more than 2 person. With 2 person the stun/turn server is used."
 
 [package_config]
 name = "Package configuration"
