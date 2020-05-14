@@ -3,8 +3,8 @@
 	"id": "synapse",
 	"packaging_format": 1,
 	"description": {
-		"en": "Instant messaging server which uses matrix",
-		"fr": "Un serveur de messagerie instantané basé sur matrix"
+		"en": "Instant messaging server which uses Matrix",
+		"fr": "Un serveur de messagerie instantané basé sur Matrix"
 	},
 	"version": "1.12.4~ynh1",
 	"url": "http://matrix.org",
@@ -35,8 +35,8 @@
 				"name": "server_name",
 				"type": "string",
 				"ask": {
-					"en": "If your synapse domain is a subdomain, you can choose a name for your Synapse server to have your matrix user-ids looking like @user:domain.org instead of @user:synapse.domain.org",
-					"fr": "Si votre domaine pour synapse est un sous-domaine, vous pouvez choisir un nom pour votre serveur Synapse afin que vos identifiants matrix soient @utilisateur:domain.org plutôt que @utilisateur:synapse.domain.org"
+					"en": "If your Synapse domain is a subdomain, you can choose a name for your Synapse server to have your Matrix user-ids looking like @user:domain.org instead of @user:synapse.domain.org",
+					"fr": "Si votre domaine pour Synapse est un sous-domaine, vous pouvez choisir un nom pour votre serveur Synapse afin que vos identifiants Matrix soient @utilisateur:domain.org plutôt que @utilisateur:synapse.domain.org"
 				},
 				"example": "domain.org",
 				"default": "Same than the domain"
