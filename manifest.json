@@ -3,7 +3,7 @@
 	"id": "synapse",
 	"packaging_format": 1,
 	"description": {
-		"en": "Instant messaging server who use matrix",
+		"en": "Instant messaging server which uses matrix",
 		"fr": "Un serveur de messagerie instantané basé sur matrix"
 	},
 	"version": "1.12.4~ynh1",
@@ -45,7 +45,7 @@
 				"name": "is_public",
 				"type": "boolean",
 				"ask": {
-					"en": "Is it a public server ?",
+					"en": "Is it a public server?",
 					"fr": "Est-ce un serveur public ?"
 				},
 				"default": false,
@@ -58,7 +58,7 @@
 				"name": "jitsi_server",
 				"type": "string",
 				"ask": {
-					"en": "Jitsi server address for conference ?",
+					"en": "Jitsi server address for conferencing?",
 					"fr": "Adresse du serveur Jitsi pour les conférences ?"
 				},
 				"example": "domain.org",
