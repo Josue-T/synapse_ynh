@@ -19,6 +19,7 @@ app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 server_name=$(ynh_app_setting_get --app=$app --key=server_name)
+jitsi_server=$(ynh_app_setting_get --app=$app --key=jitsi_server)
 path_url=$(ynh_app_setting_get --app=$app --key=path)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 synapse_old_version=$(ynh_app_setting_get --app=$app --key=synapse_version)
@@ -107,7 +108,13 @@ fi
 # Define $server_name if not already defined
 if [ -z $server_name ]; then
    server_name=$domain
-   ynh_app_setting_set $app server_name  $domain
+   ynh_app_setting_set --app=$app --key=server_name --value=$domain
+fi
+
+# Define $server_name if not already defined
+if [ -z $jitsi_server ]; then
+   jitsi_server='jitsi.riot.im'
+   ynh_app_setting_set --app=$app --key=jitsi_server --value=$jitsi_server
 fi
 
 #=================================================
@@ -268,11 +275,13 @@ ynh_print_ON
 
 ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="/etc/matrix-$app/log.yaml"
 
-if [ "$is_public" = "0" ]
+if [ $is_public -eq 0 ]
 then
     ynh_replace_string --match_string=__ALLOWED_ACCESS__ --replace_string=False --target_file="$homeserver_config_path"
+    ynh_replace_string --match_string=__SSO_ENABLED__ --replace_string=True --target_file="$homeserver_config_path"
 else
     ynh_replace_string --match_string=__ALLOWED_ACCESS__ --replace_string=True --target_file="$homeserver_config_path"
+    ynh_replace_string --match_string=__SSO_ENABLED__ --replace_string=False --target_file="$homeserver_config_path"
 fi
 
 ynh_store_file_checksum --file="$homeserver_config_path"
@@ -354,17 +363,18 @@ ynh_script_progression --message="Upgrading nginx web server configuration..." -
 ynh_script_progression --message="Configuring application..."
 ynh_add_fpm_config
 
-# Create a dedicated nginx config
-ynh_add_nginx_config app
-
 # Create .well-known redirection for access by federation
 if yunohost --output-as plain domain list | grep -q "^$server_name$"
 then
     cp ../conf/server_name.conf /etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf
     ynh_replace_string --match_string=__DOMAIN__ --replace_string=$domain --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
     ynh_replace_string --match_string=__PORT__ --replace_string=$synapse_tls_port --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
+    ynh_replace_string --match_string=__JITSI_SERVER_ADDR__ --replace_string=$jitsi_server --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
     ynh_store_file_checksum --file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
 fi
+
+# Create a dedicated nginx config
+ynh_add_nginx_config app
 
 #=================================================
 # SPECIFIC UPGRADE

@@ -80,6 +80,7 @@ then
     cp ../conf/server_name.conf /etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf
     ynh_replace_string --match_string=__DOMAIN__ --replace_string=$domain --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
     ynh_replace_string --match_string=__PORT__ --replace_string=$synapse_tls_port --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
+    ynh_replace_string --match_string=__JITSI_SERVER_ADDR__ --replace_string=$jitsi_server --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
     ynh_store_file_checksum --file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
 fi
 
@@ -127,11 +128,13 @@ ynh_print_ON
 
 ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="/etc/matrix-$app/log.yaml"
 
-if [ "$is_public" = "0" ]
+if [ $is_public -eq 0 ]
 then
     ynh_replace_string --match_string=__ALLOWED_ACCESS__ --replace_string=False --target_file="$homeserver_config_path"
+    ynh_replace_string --match_string=__SSO_ENABLED__ --replace_string=True --target_file="$homeserver_config_path"
 else
     ynh_replace_string --match_string=__ALLOWED_ACCESS__ --replace_string=True --target_file="$homeserver_config_path"
+    ynh_replace_string --match_string=__SSO_ENABLED__ --replace_string=False --target_file="$homeserver_config_path"
 fi
 
 ynh_store_file_checksum --file="$homeserver_config_path"

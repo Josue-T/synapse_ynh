@@ -1217,7 +1217,7 @@ saml2_config:
 # Enable CAS for registration and login.
 #
 cas_config:
-  enabled: true
+  enabled: __SSO_ENABLED__
   server_url: "https://__DOMAIN__/_matrix/cas_server.php"
   service_url: "https://__DOMAIN__"
 #   #displayname_attribute: name

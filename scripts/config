@@ -22,8 +22,9 @@ source ./_common.sh
 app=$YNH_APP_INSTANCE_NAME
 report_stats=$(ynh_app_setting_get --app $app --key report_stats)
 allow_public_rooms=$(ynh_app_setting_get --app=$app --key=allow_public_rooms)
-backup_before_upgrade=$(ynh_app_setting_get --app $app --key disable_backup_before_upgrade)
+disable_backup_before_upgrade=$(ynh_app_setting_get --app $app --key disable_backup_before_upgrade)
 is_public=$(ynh_app_setting_get --app $app --key is_public)
+jitsi_server=$(ynh_app_setting_get --app=$app --key=jitsi_server)
 
 #=================================================
 # SHOW_CONFIG FUNCTION FOR 'SHOW' COMMAND
@@ -34,19 +35,14 @@ show_config() {
     # ynh_return "YNH_CONFIG_${PANEL_ID}_${SECTION_ID}_${OPTION_ID}=value"
     ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS=$report_stats"
     ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_ALLOW_PUBLIC_ROOMS=$allow_public_rooms"
+    ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_CLIENT_CONFIG_JITSI_SERVER=$jitsi_server"
+    ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=${is_public}"
 
-    if [[ ${backup_before_upgrade:-0} -eq 1 ]]
+    if [[ ${disable_backup_before_upgrade:-0} -eq 1 ]]
     then
         ynh_return "YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE=false"
     else
         ynh_return "YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE=true"
-    fi
-
-    if [[ ${is_public} -eq 1 ]]
-    then
-        ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=true"
-    else
-        ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=false"
     fi
 }
 
@@ -57,17 +53,21 @@ show_config() {
 apply_config() {
     report_stats=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS:-$report_stats}
     allow_public_rooms=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_ALLOW_PUBLIC_ROOMS:-$allow_public_rooms}
-    backup_before_upgrade=${YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE:-$backup_before_upgrade}
+    do_backup_before_upgrade=${YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE:-}
     is_public=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC:-$is_public}
+    jitsi_server=${YNH_CONFIG_SYNAPSE_CONFIG_CLIENT_CONFIG_JITSI_SERVER:-$jitsi_server}
 
     ynh_app_setting_set --app $app --key report_stats --value $report_stats
     ynh_app_setting_set --app $app --key allow_public_rooms --value $allow_public_rooms
     ynh_app_setting_set --app $app --key is_public --value $is_public
+    ynh_app_setting_set --app $app --key jitsi_server --value $jitsi_server
 
-    if [ $backup_before_upgrade == 1 ]; then
-        ynh_app_setting_set --app $app --key disable_backup_before_upgrade --value 0
-    else
-        ynh_app_setting_set --app $app --key disable_backup_before_upgrade --value 1
+    if [[ -n $do_backup_before_upgrade ]]; then
+        if [ $do_backup_before_upgrade -eq 1 ]; then
+            ynh_app_setting_set --app $app --key disable_backup_before_upgrade --value 0
+        else
+            ynh_app_setting_set --app $app --key disable_backup_before_upgrade --value 1
+        fi
     fi
 
     domain=$(ynh_app_setting_get --app $app --key domain)
@@ -96,7 +96,6 @@ apply_config() {
     ynh_backup_if_checksum_is_different "$homeserver_config_path"
 
     cp ../conf/homeserver.yaml "$homeserver_config_path"
-    cp ../conf/log.yaml /etc/matrix-$app/log.yaml
 
     ynh_replace_string --match_string __APP__ --replace_string $app --target_file "$homeserver_config_path"
     ynh_replace_string --match_string __DOMAIN__ --replace_string $domain --target_file "$homeserver_config_path"
@@ -121,17 +120,30 @@ apply_config() {
         ynh_replace_special_string --match_string=__MACAROON_SECRET_KEY__ --replace_string="$macaroon_secret_key" --target_file="$homeserver_config_path"
     fi
 
-    if [ "$is_public" = "0" ]
+    if [ $is_public -eq 0 ]
     then
-        ynh_replace_string __ALLOWED_ACCESS__ False "$homeserver_config_path"
+        ynh_replace_string --match_string=__ALLOWED_ACCESS__ --replace_string=False --target_file="$homeserver_config_path"
+        ynh_replace_string --match_string=__SSO_ENABLED__ --replace_string=True --target_file="$homeserver_config_path"
     else
-        ynh_replace_string __ALLOWED_ACCESS__ True "$homeserver_config_path"
+        ynh_replace_string --match_string=__ALLOWED_ACCESS__ --replace_string=True --target_file="$homeserver_config_path"
+        ynh_replace_string --match_string=__SSO_ENABLED__ --replace_string=False --target_file="$homeserver_config_path"
+    fi
+
+    # Create .well-known redirection for access by federation
+    if yunohost --output-as plain domain list | grep -q "^$server_name$"
+    then
+        cp ../conf/server_name.conf /etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf
+        ynh_replace_string --match_string=__DOMAIN__ --replace_string=$domain --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
+        ynh_replace_string --match_string=__PORT__ --replace_string=$synapse_tls_port --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
+        ynh_replace_string --match_string=__JITSI_SERVER_ADDR__ --replace_string=$jitsi_server --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
+        ynh_store_file_checksum --file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
     fi
 
     ynh_store_file_checksum --file "$homeserver_config_path"
     setfacl -R -m user:turnserver:rX  /etc/matrix-$app
 
     systemctl restart matrix-$app
+    systemctl reload nginx
 }
 
 #=================================================
