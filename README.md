@@ -14,14 +14,14 @@ Instant messaging server matrix network.
 
 Yunohost chatroom with matrix : [https://riot.im/app/#/room/#yunohost:matrix.org](https://riot.im/app/#/room/#yunohost:matrix.org)
 
-**Shipped version:** 1.12.4
+**Shipped version:** 1.14.0
 
 ## Configuration
 
 ### Install for ARM arch (or slow arch)
 
 For all slow or arm architecture it's recommended to build the dh file before the install to have a quicker install.
-You could build it by this cmd : `mkdir -p /etc/matrix-synapse && openssl dhparam -out /etc/matrix-synapse/dh.pem 2048 > /dev/null`
+You could build it by this cmd : `openssl dhparam -out /etc/ssl/private/dh2048.pem 2048 > /dev/null`
 After that you can install it without problem.
 
 The package uses a prebuilt python virtual environnement. The binary are taken from this repository: https://github.com/Josue-T/synapse_python_build

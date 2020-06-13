@@ -57,6 +57,19 @@ apply_config() {
     is_public=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC:-$is_public}
     jitsi_server=${YNH_CONFIG_SYNAPSE_CONFIG_CLIENT_CONFIG_JITSI_SERVER:-$jitsi_server}
 
+    if [ $report_stats == 1 ]; then
+        report_stats=true
+    fi
+    if [ $report_stats == 0 ]; then
+        report_stats=false
+    fi
+    if [ $allow_public_rooms == 1 ]; then
+        allow_public_rooms=true
+    fi
+    if [ $allow_public_rooms == 0 ]; then
+        allow_public_rooms=false
+    fi
+
     ynh_app_setting_set --app $app --key report_stats --value $report_stats
     ynh_app_setting_set --app $app --key allow_public_rooms --value $allow_public_rooms
     ynh_app_setting_set --app $app --key is_public --value $is_public
