@@ -2,7 +2,7 @@
 
 ![](https://matrix.org/blog/wp-content/uploads/2015/01/logo1.png)
 
-[![Integration level](https://dash.yunohost.org/integration/synapse.svg)](https://dash.yunohost.org/appci/app/synapse)  
+[![Integration level](https://dash.yunohost.org/integration/synapse.svg)](https://dash.yunohost.org/appci/app/synapse) ![](https://ci-apps.yunohost.org/ci/badges/synapse.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/synapse.maintain.svg)  
 [![Install Synapse with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=synapse)
 
 > *This package allows you to install Synapse quickly and simply on a YunoHost server.  
@@ -104,9 +104,8 @@ Supported with LDAP.
 ### Supported architectures
 
 
-* x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/synapse%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/synapse/)
+* x86-64 - [![Build Status](https://ci-apps.yunohost.org/ci/logs/synapse%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/synapse/)
 * ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/synapse%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/synapse/)
-* Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/ci/logs/synapse%20%28Apps%29.svg)](https://ci-stretch.nohost.me/ci/apps/synapse/)
 
 ## Limitations
 
