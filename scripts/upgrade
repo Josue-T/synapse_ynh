@@ -425,6 +425,13 @@ cp ../sources/Coturn_config_rotate.sh $final_path/
 ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="$final_path/Coturn_config_rotate.sh"
 
 #=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
+
+yunohost service add matrix-$app --log "/var/log/matrix-$app/homeserver.log" --needs_exposed_ports $synapse_tls_port
+yunohost service add coturn-$app --needs_exposed_ports $turnserver_tls_port $turnserver_alt_tls_port
+
+#=================================================
 # UPDATE SYSTEMD
 #=================================================
 ynh_script_progression --message="Upgrading systemd configuration..." --weight=3

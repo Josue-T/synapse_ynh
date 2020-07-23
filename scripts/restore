@@ -128,8 +128,8 @@ systemctl enable coturn-$app.service
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add matrix-$app -l "/var/log/matrix-$app/homeserver.log"
-yunohost service add coturn-$app
+yunohost service add matrix-$app --log "/var/log/matrix-$app/homeserver.log" --needs_exposed_ports $synapse_tls_port
+yunohost service add coturn-$app --needs_exposed_ports $turnserver_tls_port $turnserver_alt_tls_port
 
 #=================================================
 # CREATE A DH FILE
