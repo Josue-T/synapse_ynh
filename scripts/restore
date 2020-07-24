@@ -230,6 +230,7 @@ ynh_use_logrotate --logfile /var/log/matrix-$app
 # For any update do it in all files
 chown $synapse_user:root -R $final_path
 chmod 770 $final_path/Coturn_config_rotate.sh
+chmod 700 $final_path/update_synapse_for_appservice.sh
 chown $synapse_user:root -R /var/lib/matrix-$app
 chown $synapse_user:root -R /var/log/matrix-$app
 chown $synapse_user:root -R /etc/matrix-$app

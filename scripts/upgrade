@@ -415,14 +415,16 @@ fi
 ynh_store_file_checksum --file="$coturn_config_path"
 
 #=================================================
-# ADD SCRIPT FOR COTURN CRON
+# ADD SCRIPT FOR COTURN CRON AND APP SERVICE
 #=================================================
 
 # WARNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
 
 cp ../sources/Coturn_config_rotate.sh $final_path/
+cp ../sources/update_synapse_for_appservice.sh $final_path/
 ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="$final_path/Coturn_config_rotate.sh"
+ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="$final_path/update_synapse_for_appservice.sh"
 
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
@@ -473,6 +475,7 @@ ynh_permission_url --permission main --url $domain/_matrix/cas_server.php/login
 # For any update do it in all files
 chown $synapse_user:root -R $final_path
 chmod 770 $final_path/Coturn_config_rotate.sh
+chmod 700 $final_path/update_synapse_for_appservice.sh
 chown $synapse_user:root -R /var/lib/matrix-$app
 chown $synapse_user:root -R /var/log/matrix-$app
 chown $synapse_user:root -R /etc/matrix-$app
