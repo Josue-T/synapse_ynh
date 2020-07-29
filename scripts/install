@@ -175,40 +175,9 @@ ynh_script_progression --message="Setting up source files..." --weight=50
 mkdir -p /var/lib/matrix-$app
 mkdir -p /var/log/matrix-$app
 mkdir -p /etc/matrix-$app/conf.d
-mkdir -p $final_path
 
 # Install synapse in virtualenv
-
-# WARNING : theses command are used in INSTALL, UPGRADE (2 times)
-# For any update do it in all files
-if [ -n "$(uname -m | grep arm)" ]
-then
-    ynh_setup_source --dest_dir=$final_path/ --source_id="armv7_$(lsb_release --codename --short)"
-
-    # Fix multi-instance support
-    for f in $(ls $final_path/bin); do
-        if ! [[ $f =~ "__" ]]; then
-            ynh_replace_special_string --match_string='#!/opt/yunohost/matrix-synapse' --replace_string='#!'$final_path --target_file=$final_path/bin/$f
-        fi
-    done
-else
-    # Install virtualenv if it don't exist
-    test -e $final_path/bin/python3 || python3 -m venv $final_path
-
-    # Install synapse in virtualenv
-    cp ../conf/virtualenv_activate $final_path/bin/activate
-    ynh_replace_string --match_string=__FINAL_PATH__ --replace_string=$final_path --target_file=$final_path/bin/activate
-
-    # We set all necessary environement variable to create a python virtualenvironnement.
-    source $final_path/bin/activate
-    pip3 install --upgrade pip
-    pip3 install --upgrade setuptools wheel
-    pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
-    pip3 install --upgrade matrix-synapse==$upstream_version matrix-synapse-ldap3
-
-    # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
-    deactivate
-fi
+install_sources
 
 #=================================================
 # CREATE SMALL CAS SERVER
@@ -228,14 +197,17 @@ chown $synapse_user:root -R $final_www_path
 ynh_script_progression --message="Creating synapse config..." --weight=3
 
 # Go in virtualenvironnement
-PS1=${PS1:-}
+set +u;
 source $final_path/bin/activate
+set -u;
 
 # Generate config
 python -m synapse.app.homeserver --keys-directory /etc/matrix-$app/ --generate-config --generate-keys --server-name $server_name --report-stats=no -c homeserver.yml
 
 # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
+set +u;
 deactivate
+set -u;
 
 # Get random values from config
 ynh_print_OFF

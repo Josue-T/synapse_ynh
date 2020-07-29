@@ -69,6 +69,10 @@ test ! -d $final_path \
 ynh_script_progression --message="Restoring directory and configuration..." --weight=10
 ynh_restore
 
+# Check that the good python version is installed
+# If not upgrade the source
+install_sources
+
 #=================================================
 # RESTORE FAIL2BAN CONFIGURATION
 #=================================================
