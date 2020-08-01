@@ -63,6 +63,15 @@ test ! -d $final_path \
 #=================================================
 # STANDARD RESTORATION STEPS
 #=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Reinstalling dependencies..." --weight=70
+
+# WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
+# For any update do it in all files
+ynh_install_app_dependencies $dependances
+
+#=================================================
 # RESTORE ALL CONFIG AND DATA
 #=================================================
 
@@ -71,6 +80,7 @@ ynh_restore
 
 # Check that the good python version is installed
 # If not upgrade the source
+ynh_script_progression --message="Check for source up to date..." --weight=5
 install_sources
 
 #=================================================
@@ -82,15 +92,6 @@ ynh_systemd_action --action=restart --service_name=fail2ban
 
 #=================================================
 # SPECIFIC RESTORATION
-#=================================================
-# REINSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Reinstalling dependencies..." --weight=70
-
-# WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
-# For any update do it in all files
-ynh_install_app_dependencies $dependances
-
 #=================================================
 # RECREATE THE DEDICATED USER
 #=================================================
