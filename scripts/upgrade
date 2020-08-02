@@ -140,7 +140,7 @@ ynh_install_app_dependencies $dependances
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 
-if [ "$upgrade_type" == "UPGRADE_APP" ]
+if [ "$upgrade_type" == "UPGRADE_APP" ] || [ ! -e $final_path/bin/python3 ] || [ ! -e $final_path/lib/python$python_version ]
 then
 	ynh_script_progression --message="Upgrading source files..." --weight=6
 	install_sources
