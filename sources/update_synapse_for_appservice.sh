@@ -8,7 +8,7 @@ cp $service_config_file /tmp/app_service_backup.yaml
 
 echo "app_service_config_files:" > $service_config_file
 for f in $(ls /etc/matrix-$app/app-service/); do
-    echo "  - /etc/matrix-synapse/$app" >> $service_config_file
+    echo "  - /etc/matrix-$app/app-service/$f" >> $service_config_file
 done
 
 # Set permissions
