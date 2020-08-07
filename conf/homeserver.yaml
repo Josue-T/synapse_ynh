@@ -1017,8 +1017,8 @@ report_stats: __REPORT_STATS__
 # A list of application service config files to use
 #
 #app_service_config_files:
-#  - app_service_1.yaml
-#  - app_service_2.yaml
+#
+## Managed by a specific config file in /etc/matrix-synapse/conf.d/app_service.yaml
 
 # Uncomment to enable tracking of application service IP addresses. Implicitly
 # enables MAU tracking for application service users.

@@ -63,11 +63,25 @@ test ! -d $final_path \
 #=================================================
 # STANDARD RESTORATION STEPS
 #=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Reinstalling dependencies..." --weight=70
+
+# WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
+# For any update do it in all files
+ynh_install_app_dependencies $dependances
+
+#=================================================
 # RESTORE ALL CONFIG AND DATA
 #=================================================
 
 ynh_script_progression --message="Restoring directory and configuration..." --weight=10
 ynh_restore
+
+# Check that the good python version is installed
+# If not upgrade the source
+ynh_script_progression --message="Check for source up to date..." --weight=5
+install_sources
 
 #=================================================
 # RESTORE FAIL2BAN CONFIGURATION
@@ -78,15 +92,6 @@ ynh_systemd_action --action=restart --service_name=fail2ban
 
 #=================================================
 # SPECIFIC RESTORATION
-#=================================================
-# REINSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Reinstalling dependencies..." --weight=70
-
-# WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
-# For any update do it in all files
-ynh_install_app_dependencies $dependances
-
 #=================================================
 # RECREATE THE DEDICATED USER
 #=================================================
@@ -128,8 +133,8 @@ systemctl enable coturn-$app.service
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add matrix-$app -l "/var/log/matrix-$app/homeserver.log"
-yunohost service add coturn-$app
+yunohost service add matrix-$app --log "/var/log/matrix-$app/homeserver.log" --needs_exposed_ports $synapse_tls_port
+yunohost service add coturn-$app --needs_exposed_ports $turnserver_tls_port $turnserver_alt_tls_port
 
 #=================================================
 # CREATE A DH FILE
@@ -230,6 +235,7 @@ ynh_use_logrotate --logfile /var/log/matrix-$app
 # For any update do it in all files
 chown $synapse_user:root -R $final_path
 chmod 770 $final_path/Coturn_config_rotate.sh
+chmod 700 $final_path/update_synapse_for_appservice.sh
 chown $synapse_user:root -R /var/lib/matrix-$app
 chown $synapse_user:root -R /var/log/matrix-$app
 chown $synapse_user:root -R /etc/matrix-$app
