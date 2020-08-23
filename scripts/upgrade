@@ -390,7 +390,7 @@ ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="$
 #=================================================
 
 yunohost service add matrix-$app --log "/var/log/matrix-$app/homeserver.log" --needs_exposed_ports $synapse_tls_port
-yunohost service add coturn-$app --needs_exposed_ports $turnserver_tls_port $turnserver_alt_tls_port
+yunohost service add coturn-$app --needs_exposed_ports $turnserver_tls_port
 
 #=================================================
 # UPDATE SYSTEMD
