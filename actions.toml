@@ -21,10 +21,10 @@ description = "Close the ports range 49153:49193 with TCP and UDP. (Undo \"Open 
 
 [set_admin_user]
 name = "Set a user as admin"
-command = "[[ \"$(su --command=\"psql matrix_synapse\" postgres <<< \"UPDATE users SET admin = 1 WHERE name = '@$YNH_ACTION_USERNAME:$(yunohost app setting $YNH_APP_INSTANCE_NAME domain)'\")\" == 'UPDATE 1' ]]"
+command = "[[ \"$(su --command=\"psql matrix_synapse\" postgres <<< \"UPDATE users SET admin = 1 WHERE name = '@$YNH_ACTION_USERNAME:$(yunohost app setting $YNH_APP_INSTANCE_NAME server_name)'\")\" == 'UPDATE 1' ]]"
 user = "root"
 accepted_return_codes = [0]
-description = "Set a synapse user as admin in the synapse server. It probably usefull only to manage the community function."
+description = "Set a synapse user as admin in the synapse postgreSQL database. It is mainly required to manage the community function."
 
     [set_admin_user.arguments]
         [set_admin_user.arguments.username]
