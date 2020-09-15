@@ -385,6 +385,9 @@ cp ../sources/update_synapse_for_appservice.sh $final_path/
 ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="$final_path/Coturn_config_rotate.sh"
 ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="$final_path/update_synapse_for_appservice.sh"
 
+# Ensure app-service folder has exists (Migration)
+mkdir -p /etc/matrix-synapse/app-service
+
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
