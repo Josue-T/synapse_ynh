@@ -134,7 +134,7 @@ systemctl enable coturn-$app.service
 #=================================================
 
 yunohost service add matrix-$app --log "/var/log/matrix-$app/homeserver.log" --needs_exposed_ports $synapse_tls_port
-yunohost service add coturn-$app --needs_exposed_ports $turnserver_tls_port $turnserver_alt_tls_port
+yunohost service add coturn-$app --needs_exposed_ports $turnserver_tls_port
 
 #=================================================
 # CREATE A DH FILE
