@@ -77,6 +77,7 @@ ynh_install_app_dependencies $dependances
 
 ynh_script_progression --message="Restoring directory and configuration..." --weight=10
 ynh_restore
+mkdir -p /etc/matrix-$app/app-service
 
 # Check that the good python version is installed
 # If not upgrade the source
