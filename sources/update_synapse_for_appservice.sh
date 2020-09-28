@@ -12,7 +12,7 @@ for f in $(ls /etc/matrix-$app/app-service/); do
 done
 
 # Set permissions
-chown matrix-$app $service_config_file
+chown -R /etc/matrix-$app --reference=$service_config_file
 chmod 600 $service_config_file
 
 systemctl restart matrix-$app
