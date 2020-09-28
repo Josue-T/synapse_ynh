@@ -12,7 +12,7 @@ for f in $(ls /etc/matrix-$app/app-service/); do
 done
 
 # Set permissions
-chown -R /etc/matrix-$app --reference=$service_config_file
+chown --reference=$service_config_file -R /etc/matrix-$app 
 chmod 600 $service_config_file
 
 systemctl restart matrix-$app
@@ -22,5 +22,5 @@ if [ $? -eq 0 ]; then
     exit 0
 else
     echo "Failed to restart synapse with the new config file. Restore the old config file !!"
-    cp /tmp/app_service_backup.yaml $service_config_file
+    mv /tmp/app_service_backup.yaml $service_config_file
 fi
