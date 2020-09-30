@@ -9,6 +9,7 @@ cp $service_config_file /tmp/app_service_backup.yaml
 echo "app_service_config_files:" > $service_config_file
 for f in $(ls /etc/matrix-$app/app-service/); do
     echo "  - /etc/matrix-$app/app-service/$f" >> $service_config_file
+    chmod 600 /etc/matrix-$app/app-service/$f
 done
 
 # Set permissions
