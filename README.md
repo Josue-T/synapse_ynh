@@ -29,7 +29,7 @@ The script to build the binary is also available.
 
 ### Web client
 
-If you want a web client you can also install riot with this package: https://github.com/YunoHost-Apps/riot_ynh .
+If you want a web client you can also install riot with this package: https://github.com/YunoHost-Apps/element_ynh .
 
 ### Access by federation
 
