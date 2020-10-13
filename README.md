@@ -14,7 +14,7 @@ Instant messaging server matrix network.
 
 Yunohost chatroom with matrix : [https://riot.im/app/#/room/#yunohost:matrix.org](https://riot.im/app/#/room/#yunohost:matrix.org)
 
-**Shipped version:** 1.19.3
+**Shipped version:** 1.20.1
 
 ## Configuration
 
@@ -29,7 +29,7 @@ The script to build the binary is also available.
 
 ### Web client
 
-If you want a web client you can also install riot with this package: https://github.com/YunoHost-Apps/riot_ynh .
+If you want a web client you can also install riot with this package: https://github.com/YunoHost-Apps/element_ynh .
 
 ### Access by federation
 

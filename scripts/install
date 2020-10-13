@@ -175,6 +175,7 @@ ynh_script_progression --message="Setting up source files..." --weight=50
 mkdir -p /var/lib/matrix-$app
 mkdir -p /var/log/matrix-$app
 mkdir -p /etc/matrix-$app/conf.d
+mkdir -p /etc/matrix-$app/app-service
 
 # Install synapse in virtualenv
 install_sources

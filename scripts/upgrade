@@ -323,6 +323,7 @@ ynh_add_fpm_config
 # Create .well-known redirection for access by federation
 if yunohost --output-as plain domain list | grep -q "^$server_name$"
 then
+    ynh_backup_if_checksum_is_different --file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
     cp ../conf/server_name.conf /etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf
     ynh_replace_string --match_string=__DOMAIN__ --replace_string=$domain --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
     ynh_replace_string --match_string=__PORT__ --replace_string=$synapse_tls_port --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
@@ -384,6 +385,9 @@ cp ../sources/Coturn_config_rotate.sh $final_path/
 cp ../sources/update_synapse_for_appservice.sh $final_path/
 ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="$final_path/Coturn_config_rotate.sh"
 ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="$final_path/update_synapse_for_appservice.sh"
+
+# Ensure app-service folder has exists (Migration)
+mkdir -p /etc/matrix-$app/app-service
 
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
