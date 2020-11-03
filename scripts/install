@@ -176,6 +176,7 @@ mkdir -p /var/lib/matrix-$app
 mkdir -p /var/log/matrix-$app
 mkdir -p /etc/matrix-$app/conf.d
 mkdir -p /etc/matrix-$app/app-service
+echo "app_service_config_files:" > /etc/matrix-$app/conf.d/app_service.yaml
 
 # Install synapse in virtualenv
 install_sources
