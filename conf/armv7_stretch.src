@@ -1,5 +1,5 @@
-SOURCE_URL=https://github.com/YunoHost-Apps/synapse_python_build/releases/download/v1.21.2/matrix-synapse_1.21.2-stretch-bin1_armv7l.tar.gz
-SOURCE_SUM=c007b801979b40b0dfebfd0ccc268b5bb11b00623a4e7d1f669356cb44a5adfe
+SOURCE_URL=https://github.com/YunoHost-Apps/synapse_python_build/releases/download/v1.22.1/matrix-synapse_1.22.1-stretch-bin1_armv7l.tar.gz
+SOURCE_SUM=8a3209322576811dd6ae9f0e1117977eddbf9f0e6eafc6a12de11326c31a86b9
 # (Optional) Program to check the integrity (sha256sum, md5sum...)
 # default: sha256
 SOURCE_SUM_PRG=sha256sum
