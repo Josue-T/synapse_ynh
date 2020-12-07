@@ -8,11 +8,11 @@ User=turnserver
 Group=turnserver
 Type=forking
 EnvironmentFile=/etc/default/coturn-__APP__
-PIDFile=/var/run/coturn-__APP__/turnserver.pid
+PIDFile=/run/coturn-__APP__/turnserver.pid
 RuntimeDirectory=coturn-__APP__
 RuntimeDirectoryMode=0755
 ExecStart=/usr/bin/turnserver -o -c /etc/matrix-__APP__/coturn.conf $EXTRA_OPTIONS
-ExecStopPost=/bin/rm -f /var/run/coturn-__APP__/turnserver.pid
+ExecStopPost=/bin/rm -f /run/coturn-__APP__/turnserver.pid
 Restart=on-abort
 
 LimitCORE=infinity

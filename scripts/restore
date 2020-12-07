@@ -281,7 +281,7 @@ ynh_send_readme_to_admin --app_message="mail_to_send" --type="restore"
 #=================================================
 ynh_script_progression --message="Reloading nginx web server..."
 
-systemctl reload php5-fpm
+systemctl reload php7.0-fpm
 ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================

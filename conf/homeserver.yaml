@@ -11,7 +11,7 @@ server_name: "__SERVER_NAME__"
 
 # When running as a daemon, the file to store the pid in
 #
-pid_file: /var/run/matrix-__APP__/homeserver.pid
+pid_file: /run/matrix-__APP__/homeserver.pid
 
 # The path to the web client which will be served at /_matrix/client/
 # if 'webclient' is configured under the 'listeners' configuration.

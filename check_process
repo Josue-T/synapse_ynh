@@ -3,7 +3,7 @@
         domain="domain.tld"    (DOMAIN)
         path="/_matrix/static/"	(PATH)
         is_public=1 (PUBLIC|public=1|private=0)
-	  server_name="domain2.tld"    (DOMAIN)
+        server_name="domain2.tld"    (DOMAIN)
     ; Checks
         pkg_linter=1
         setup_sub_dir=1
@@ -22,7 +22,7 @@
 ;;; Levels
     Level 5=auto
 ;;; Upgrade options
-	; commit=fcbe10716aa2f9edbfc681093ca0d1f70903774b
-		name=Fix postgresql helper from old_version_for_CI_2 branch
+    ; commit=fcbe10716aa2f9edbfc681093ca0d1f70903774b
+        name=Fix postgresql helper from old_version_for_CI_2 branch
     ; commit=5006cf1536f33d065aade2caa9b88120e0d1a381
         name=Migrate from self signed certificate to cert managed by Yunohost from old_version_for_CI_3 branch
