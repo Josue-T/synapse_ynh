@@ -10,6 +10,9 @@ source _common.sh
 source experimental_helper.sh
 source /usr/share/yunohost/helpers
 
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
 #=================================================
 # LOAD SETTINGS
 #=================================================
@@ -48,6 +51,7 @@ synapse_db_name="matrix_$app"
 synapse_db_user="matrix_$app"
 upstream_version=$(ynh_app_upstream_version)
 final_www_path="/var/www/$app"
+data_path="/home/yunohost.app/matrix-$app"
 
 #=================================================
 # CHECK VERSION
@@ -75,18 +79,15 @@ ynh_script_progression --message="Backing up the app before upgrading (may take 
 ynh_systemd_action --service_name=matrix-$app.service --action=stop
 
 # Backup the current version of the app
-if [ "$(ynh_app_setting_get --app=$app --key=disable_backup_before_upgrade)" != '1' ]
+if [ "0$(ynh_app_setting_get --app=$app --key=disable_backup_before_upgrade)" -ne 1 ]
 then
     ynh_backup_before_upgrade
     ynh_clean_setup () {
         # Clean installation remainings that are not handled by the remove script.
         ynh_clean_check_starting
-
         ynh_restore_upgradebackup
     }
 fi
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
 
 #=================================================
 # STANDARD UPGRADE STEPS
@@ -111,7 +112,7 @@ if [ -z $server_name ]; then
    ynh_app_setting_set --app=$app --key=server_name --value=$domain
 fi
 
-# Define $server_name if not already defined
+# Define $jitsi_server if not already defined
 if [ -z $jitsi_server ]; then
    jitsi_server='jitsi.riot.im'
    ynh_app_setting_set --app=$app --key=jitsi_server --value=$jitsi_server
@@ -125,6 +126,17 @@ fi
 if [ -z $allow_public_rooms ]; then
     allow_public_rooms="false"
     ynh_app_setting_set --app=$app --key=allow_public_rooms --value=$allow_public_rooms
+fi
+
+#=================================================
+# MIGRATION 6 : Migrate data directory
+#=================================================
+
+if [ ! -e "$data_path"  ] && [ -e "/var/lib/matrix-$app" ]; then
+    ynh_script_progression --message="Moving data directory to $data_path..." --weight=1
+    mv "/var/lib/matrix-$app" "$data_path"
+    # matrix-synapse:x:994:994::/var/lib/matrix-synapse:/usr/sbin/nologin
+    sed --in-place -r "s@matrix-$app\:x\:(\n*:\n*)\:\:/var/lib/matrix-$app\:/usr/sbin/nologin@matrix-$app\:x\:(\n*:\n*)\:\:$final_path\:/usr/sbin/nologin@g" /etc/passwd
 fi
 
 #=================================================
@@ -440,7 +452,7 @@ ynh_permission_url --permission main --url $domain/_matrix/cas_server.php/login
 chown $synapse_user:root -R $final_path
 chmod 770 $final_path/Coturn_config_rotate.sh
 chmod 700 $final_path/update_synapse_for_appservice.sh
-chown $synapse_user:root -R /var/lib/matrix-$app
+chown $synapse_user:root -R $data_path
 chown $synapse_user:root -R /var/log/matrix-$app
 chown $synapse_user:root -R /etc/matrix-$app
 chmod u=rwX,g=rX,o= -R /etc/matrix-$app

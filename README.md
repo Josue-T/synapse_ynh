@@ -132,11 +132,36 @@ The following command will grant admin privilege to the specified user:
 su --command="psql matrix_synapse" postgres <<< "UPDATE users SET admin = 1 WHERE name = '@user_to_be_admin:domain.tld'"
 ```
 
-### Disable backup in upgrade
+### Upgrade
 
-To solve the issue [#30](https://github.com/YunoHost-Apps/synapse_ynh/issues/30) you can disable the backup in the upgrade by setting to true the key `disable_backup_before_upgrade` in the app setting. You can set it by this command :
+By default a backup is made before the upgrade. To avoid this you have theses following possibilites:
+- Pass the `NO_BACKUP_UPGRADE` env variable with `1` at each upgrade. By example `NO_BACKUP_UPGRADE=1 yunohost app upgrade synapse`.
+- Set the settings `disable_backup_before_upgrade` to `1`. You can set this with this command:
 
 `yunohost app setting synapse disable_backup_before_upgrade -v 1`
+
+After this settings will be applied for all next upgrade.
+
+### Backup
+
+This app use now the core-only feature of the backup. To keep the integrity of the data and to have a better guarantee of the restoration is recommended to proceed like this:
+
+- Stop synapse service with theses following command:
+
+`systemctl stop synapse.service`
+
+- Launch the backup of synapse with this following command:
+
+`yunohost backup create --app synapse`
+
+- Do a backup of your data with your specific strategy (could be with rsync, borg backup or just cp). The data is generally stored in `/home/yunohost.app/matrix-synapse`.
+- Restart the synapse service with theses command:
+
+`systemctl start synapse.service`
+
+### Remove
+
+Due of the backup core only feature the data directory in `/home/yunohost.app/matrix-synapse` **is not removed**. It need to be removed manually to purge app user data.
 
 ### Multi instance support
 
