@@ -132,8 +132,13 @@ fi
 # MIGRATION 6 : Migrate data directory
 #=================================================
 
-if [ ! -e "$data_path"  ] && [ -e "/var/lib/matrix-$app" ]; then
+if [ -e "/var/lib/matrix-$app" ]; then
     ynh_script_progression --message="Moving data directory to $data_path..." --weight=1
+    if [ -e "$data_path" ]; then
+        old_data_dir_path="$data_path$(date '+%Y%m%d.%H%M%S')"
+        ynh_print_warn "A data directory already exist. Data was renamed to $old_data_dir_path"
+        mv "$data_path" "$old_data_dir_path"
+    fi
     mv "/var/lib/matrix-$app" "$data_path"
     # matrix-synapse:x:994:994::/var/lib/matrix-synapse:/usr/sbin/nologin
     sed --in-place -r "s@matrix-$app\:x\:(\n*:\n*)\:\:/var/lib/matrix-$app\:/usr/sbin/nologin@matrix-$app\:x\:(\n*:\n*)\:\:$final_path\:/usr/sbin/nologin@g" /etc/passwd
