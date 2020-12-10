@@ -40,7 +40,7 @@ install_sources() {
         set -u;
         pip3 install --upgrade setuptools wheel
         pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
-        pip3 install --upgrade 'Twisted>=20.3.0' matrix-synapse==$upstream_version matrix-synapse-ldap3
+        pip3 install --upgrade 'Twisted>=20.3.0' 'cryptography>=3.3' matrix-synapse==$upstream_version matrix-synapse-ldap3
 
         # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
         set +u;
