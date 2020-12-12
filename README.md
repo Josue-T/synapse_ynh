@@ -3,7 +3,7 @@
 ![](https://matrix.org/blog/wp-content/uploads/2015/01/logo1.png)
 
 [![Integration level](https://dash.yunohost.org/integration/synapse.svg)](https://dash.yunohost.org/appci/app/synapse) ![](https://ci-apps.yunohost.org/ci/badges/synapse.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/synapse.maintain.svg)  
-[![Install Synapse with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=synapse)
+[![Install Synapse with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=synapse)
 
 > *This package allows you to install Synapse quickly and simply on a YunoHost server.  
 If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to know how to install and enjoy it.*
