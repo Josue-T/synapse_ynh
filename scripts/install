@@ -40,6 +40,7 @@ synapse_db_user="matrix_$app"
 upstream_version=$(ynh_app_upstream_version)
 report_stats="false"
 allow_public_rooms="false"
+e2e_enabled_by_default="true"
 default_domain_value="Same than the domain"
 
 #=================================================
@@ -91,6 +92,7 @@ ynh_app_setting_set --app=$app --key=synapse_version --value=$upstream_version
 ynh_app_setting_set --app=$app --key=is_public --value=$is_public
 ynh_app_setting_set --app=$app --key=report_stats --value=$report_stats
 ynh_app_setting_set --app=$app --key=allow_public_rooms --value=$allow_public_rooms
+ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -258,6 +260,7 @@ then
     ynh_replace_string --match_string=__DOMAIN__ --replace_string=$domain --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
     ynh_replace_string --match_string=__PORT__ --replace_string=$synapse_tls_port --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
     ynh_replace_string --match_string=__JITSI_SERVER_ADDR__ --replace_string=$jitsi_server --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
+    ynh_replace_string --match_string=__E2E_ENABLED_BY_DEFAULT__ --replace_string=$e2e_enabled_by_default --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
     ynh_store_file_checksum --file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
 fi
 
