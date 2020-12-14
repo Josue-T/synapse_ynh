@@ -53,6 +53,7 @@ jitsi_server=$YNH_APP_ARG_JITSI_SERVER
 path_url="/_matrix"
 final_path="/opt/yunohost/matrix-$app"
 final_www_path="/var/www/$app"
+data_path="/home/yunohost.app/matrix-$app"
 
 if [[ "$server_name" == "$default_domain_value" ]]; then
     server_name=$domain    
@@ -68,6 +69,12 @@ test ! -e "/etc/nginx/conf.d/$domain.d/synapse*.conf" || ynh_die --message="$dom
 
 # Check Final Path availability
 test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
+
+if [ -e "$data_path" ]; then
+    old_data_dir_path="$data_path$(date '+%Y%m%d.%H%M%S')"
+    ynh_print_warn "A data directory already exist. Data was renamed to $old_data_dir_path"
+    mv "$data_path" "$old_data_dir_path"
+fi
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
@@ -141,7 +148,7 @@ ynh_install_app_dependencies $dependances
 #=================================================
 ynh_script_progression --message="Configuring system user..." --weight=3
 
-ynh_system_user_create --username=$synapse_user --home_dir=/var/lib/matrix-$app
+ynh_system_user_create --username=$synapse_user --home_dir=$data_path
 adduser $synapse_user ssl-cert
 adduser turnserver ssl-cert
 
@@ -172,7 +179,7 @@ ynh_script_progression --message="Setting up source files..." --weight=50
 
 # WARNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
-mkdir -p /var/lib/matrix-$app
+mkdir -p $data_path
 mkdir -p /var/log/matrix-$app
 mkdir -p /etc/matrix-$app/conf.d
 mkdir -p /etc/matrix-$app/app-service
@@ -396,7 +403,7 @@ ynh_replace_string __DOMAIN__ $domain ../hooks/post_cert_update
 chown $synapse_user:root -R $final_path
 chmod 770 $final_path/Coturn_config_rotate.sh
 chmod 700 $final_path/update_synapse_for_appservice.sh
-chown $synapse_user:root -R /var/lib/matrix-$app
+chown $synapse_user:root -R $data_path
 chown $synapse_user:root -R /var/log/matrix-$app
 chown $synapse_user:root -R /etc/matrix-$app
 chmod u=rwX,g=rX,o= -R /etc/matrix-$app
