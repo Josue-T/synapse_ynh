@@ -51,14 +51,9 @@ synapse_user="matrix-$app"
 synapse_db_name="matrix_$app"
 synapse_db_user="matrix_$app"
 upstream_version=$(ynh_app_upstream_version)
+upgrade_type=$(ynh_check_app_version_changed)
 final_www_path="/var/www/$app"
 data_path="/home/yunohost.app/matrix-$app"
-
-#=================================================
-# CHECK VERSION
-#=================================================
-
-upgrade_type=$(ynh_check_app_version_changed)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -221,52 +216,27 @@ ynh_script_progression --message="Updating synapse config..." --weight=2
 # WARNING : theses command are used in INSTALL, UPGRADE, CONFIG, CHANGE-URL (4 times)
 # For any update do it in all files
 
-homeserver_config_path="/etc/matrix-$app/homeserver.yaml"
-
-ynh_backup_if_checksum_is_different --file="$homeserver_config_path"
-ynh_backup_if_checksum_is_different --file=/etc/matrix-$app/log.yaml
-
-cp ../conf/homeserver.yaml "$homeserver_config_path"
-cp ../conf/log.yaml /etc/matrix-$app/log.yaml
-
-ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="$homeserver_config_path"
-ynh_replace_string --match_string=__DOMAIN__ --replace_string=$domain --target_file="$homeserver_config_path"
-ynh_replace_string --match_string=__SERVER_NAME__ --replace_string=$server_name --target_file="$homeserver_config_path"
-ynh_replace_string --match_string=__SYNAPSE_DB_USER__ --replace_string=$synapse_db_user --target_file="$homeserver_config_path"
-ynh_replace_string --match_string=__PORT__ --replace_string=$port --target_file="$homeserver_config_path"
-ynh_replace_string --match_string=__TLS_PORT__ --replace_string=$synapse_tls_port --target_file="$homeserver_config_path"
-ynh_replace_string --match_string=__TURNSERVER_TLS_PORT__ --replace_string=$turnserver_tls_port --target_file="$homeserver_config_path"
-ynh_replace_string --match_string=__REPORT_STATS__ --replace_string="$report_stats" --target_file="$homeserver_config_path"
-ynh_replace_string --match_string=__ALLOW_PUBLIC_ROOMS__ --replace_string="$allow_public_rooms" --target_file="$homeserver_config_path"
-ynh_print_OFF
-ynh_replace_special_string --match_string=__SYNAPSE_DB_PWD__ --replace_string=$synapse_db_pwd --target_file="$homeserver_config_path"
-ynh_replace_special_string --match_string=__TURNPWD__ --replace_string=$turnserver_pwd --target_file="$homeserver_config_path"
-ynh_replace_special_string --match_string=__REGISTRATION_SECRET__ --replace_string="$registration_shared_secret" --target_file="$homeserver_config_path"
-ynh_replace_special_string --match_string=__FORM_SECRET__ --replace_string="$form_secret" --target_file="$homeserver_config_path"
 if [ -z $macaroon_secret_key ]; then
     # Well, in this package this value was not managed because it was not needed, synapse is able to generate this with some other secret in the config file but after some vulnerability was found with this practice.
     # For more detail about this issue you can see : https://matrix.org/blog/2019/01/15/further-details-on-critical-security-update-in-synapse-affecting-all-versions-prior-to-0-34-1-cve-2019-5885/
     # The problem is that we can't just say generate a new value if the package has not already defined a value. The reason is that changing this value logout all user. And in case of a user has enabled the encryption, the user might lost all conversation !!
     # So for the old install we just leave this as it is. And for the new install we use a real macaroon.
-    ynh_replace_special_string --match_string='macaroon_secret_key: "__MACAROON_SECRET_KEY__"' --replace_string='# macaroon_secret_key: "__MACAROON_SECRET_KEY__"' --target_file="$homeserver_config_path"
+    macaroon_secret_key_param='# macaroon_secret_key: ""'
 else
-    ynh_replace_special_string --match_string=__MACAROON_SECRET_KEY__ --replace_string="$macaroon_secret_key" --target_file="$homeserver_config_path"
+    macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
 fi
-ynh_print_ON
-
-ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="/etc/matrix-$app/log.yaml"
 
 if [ $is_public -eq 0 ]
 then
-    ynh_replace_string --match_string=__ALLOWED_ACCESS__ --replace_string=False --target_file="$homeserver_config_path"
-    ynh_replace_string --match_string=__SSO_ENABLED__ --replace_string=True --target_file="$homeserver_config_path"
+    allowed_access=False
+    sso_enabled=True
 else
-    ynh_replace_string --match_string=__ALLOWED_ACCESS__ --replace_string=True --target_file="$homeserver_config_path"
-    ynh_replace_string --match_string=__SSO_ENABLED__ --replace_string=False --target_file="$homeserver_config_path"
+    allowed_access=True
+    sso_enabled=False
 fi
 
-ynh_store_file_checksum --file="$homeserver_config_path"
-ynh_store_file_checksum --file="/etc/matrix-$app/log.yaml"
+ynh_add_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
+ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
 
 #=================================================
 # MIGRATION 2 : MULTINSTANCE SUPPORT
@@ -282,10 +252,6 @@ then
 
     # Disable default config for turnserver and create a new service
     systemctl stop coturn.service
-
-    # Set by default the system config for coturn
-    echo "" > /etc/turnserver.conf
-    ynh_replace_string --match_string="TURNSERVER_ENABLED=1" --replace_string="TURNSERVER_ENABLED=0" --target_file=/etc/default/coturn
 
     # Set a port for each service in turnserver
     turnserver_alt_tls_port=$(ynh_find_port --port=$((turnserver_tls_port+1)))
@@ -347,13 +313,7 @@ ynh_add_fpm_config
 # Create .well-known redirection for access by federation
 if yunohost --output-as plain domain list | grep -q "^$server_name$"
 then
-    ynh_backup_if_checksum_is_different --file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
-    cp ../conf/server_name.conf /etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf
-    ynh_replace_string --match_string=__DOMAIN__ --replace_string=$domain --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
-    ynh_replace_string --match_string=__PORT__ --replace_string=$synapse_tls_port --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
-    ynh_replace_string --match_string=__JITSI_SERVER_ADDR__ --replace_string=$jitsi_server --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
-    ynh_replace_string --match_string=__E2E_ENABLED_BY_DEFAULT__ --replace_string=$e2e_enabled_by_default --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
-    ynh_store_file_checksum --file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
+    ynh_add_config --template="server_name.conf" --destination="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
 fi
 
 # Create a dedicated nginx config
@@ -369,35 +329,25 @@ ynh_script_progression --message="Updating coturn config..." --weight=1
 # WARNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
 
-coturn_config_path="/etc/matrix-$app/coturn.conf"
-
-cp ../conf/turnserver.conf "$coturn_config_path"
-
-ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="$coturn_config_path"
-ynh_replace_string --match_string=__DOMAIN__ --replace_string=$domain --target_file="$coturn_config_path"
-ynh_replace_string --match_string=__TLS_PORT__ --replace_string=$turnserver_tls_port --target_file="$coturn_config_path"
-ynh_replace_string --match_string=__TLS_ALT_PORT__ --replace_string=$turnserver_alt_tls_port --target_file="$coturn_config_path"
-ynh_replace_string --match_string=__CLI_PORT__ --replace_string=$cli_port --target_file="$coturn_config_path"
-ynh_print_OFF
-ynh_replace_string --match_string=__TURNPWD__ --replace_string=$turnserver_pwd --target_file="$coturn_config_path"
-ynh_print_ON
-
 # Get public IP and set as external IP for coturn
 # note : '|| true' is used to ignore the errors if we can't get the public ipv4 or ipv6
 public_ip4="$(curl ip.yunohost.org)" || true
 public_ip6="$(curl ipv6.yunohost.org)" || true
 
+turn_external_ip=""
 if [ -n "$public_ip4" ] && ynh_validate_ip4 --ip_address="$public_ip4"
 then
-    echo "external-ip=$public_ip4" >> "$coturn_config_path"
+    turn_external_ip+="
+external-ip=$public_ip4"
 fi
 
 if [ -n "$public_ip6" ] && ynh_validate_ip6 --ip_address="$public_ip6"
 then
-    echo "external-ip=$public_ip6" >> "$coturn_config_path"
+    turn_external_ip+="
+external-ip=$public_ip6"
 fi
 
-ynh_store_file_checksum --file="$coturn_config_path"
+ynh_add_config --template="turnserver.conf" --destination="/etc/matrix-$app/coturn.conf"
 
 #=================================================
 # ADD SCRIPT FOR COTURN CRON AND APP SERVICE
@@ -406,10 +356,8 @@ ynh_store_file_checksum --file="$coturn_config_path"
 # WARNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
 
-cp ../sources/Coturn_config_rotate.sh $final_path/
-cp ../sources/update_synapse_for_appservice.sh $final_path/
-ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="$final_path/Coturn_config_rotate.sh"
-ynh_replace_string --match_string=__APP__ --replace_string=$app --target_file="$final_path/update_synapse_for_appservice.sh"
+ynh_add_config --template="../sources/Coturn_config_rotate.sh" --destination="$final_path/Coturn_config_rotate.sh"
+ynh_add_config --template="../sources/update_synapse_for_appservice.sh" --destination="$final_path/update_synapse_for_appservice.sh"
 
 # Ensure app-service folder has exists and the config file exit (Migration)
 mkdir -p /etc/matrix-$app/app-service
@@ -447,14 +395,24 @@ ynh_add_fail2ban_config --use_template
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
-# SETUP SSOWAT
+# SETUP PERMISSIONS
 #=================================================
-ynh_script_progression --message="Configuring SSOwat..." --weight=1
+ynh_script_progression --message="Configuring permissions..." --weight=1
 
-# Open access to server without a button the home
-# The script "add_sso_conf.py" will just add en entry for the path "/_matrix" in the sso conf.json.persistent file in the cathegory "skipped_urls".
-python3 ../conf/add_sso_conf.py $domain $server_name || ynh_die --message="Your file /etc/ssowat/conf.json.persistent doesn't respect the json syntax. Please fix the syntax to install this app. For more information see here: https://github.com/YunoHost-Apps/synapse_ynh/issues/32"
-ynh_permission_url --permission main --url $domain/_matrix/cas_server.php/login
+ynh_permission_url --permission=main --url=$domain/_matrix/cas_server.php/login --auth_header=true
+ynh_permission_update --permission=main --label="Synapse server SSO authentication" --show_tile=false --protected=true
+
+if !ynh_permission_exists --permission=server_api; then
+    ynh_permission_create --permission=server_api --url=$domain/_matrix --additional_urls=$server_name/.well-known/matrix \
+                          --label="Server access for client apps." --show_tile=false \
+                          --auth_header=false --protected=true
+    python3 remove_sso_conf_persistent.py $domain $server_name \
+        || ynh_print_warn --message="Your file /etc/ssowat/conf.json.persistent doesn't respect the json syntax. The config file wasn't cleaned. Please clean it manually."
+else
+    ynh_permission_update --permission=server_api --url=$domain/_matrix --additional_urls=$server_name/.well-known/matrix \
+                          --label="Server access for client apps." --show_tile=false \
+                          --auth_header=false --protected=true
+fi
 
 #=================================================
 # SECURE FILES AND DIRECTORIES

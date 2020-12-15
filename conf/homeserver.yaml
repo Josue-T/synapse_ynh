@@ -184,7 +184,7 @@ listeners:
   # will also need to give Synapse a TLS key and certificate: see the TLS section
   # below.)
   #
-  - port: __TLS_PORT__
+  - port: __TURNSERVER_TLS_PORT__
     type: http
     tls: true
     resources:
@@ -768,7 +768,7 @@ turn_uris: [ "turn:__DOMAIN__:__TURNSERVER_TLS_PORT__?transport=udp", "turn:__DO
 
 # The shared secret used to compute passwords for the TURN server
 #
-turn_shared_secret: "__TURNPWD__"
+turn_shared_secret: "__TURNSERVER_PWD__"
 
 # The Username and password if the TURN server needs them and
 # does not use a token
@@ -884,7 +884,7 @@ enable_registration: __ALLOWED_ACCESS__
 # If set, allows registration of standard or admin accounts by anyone who
 # has the shared secret, even if registration is otherwise disabled.
 #
-registration_shared_secret: "__REGISTRATION_SECRET__"
+registration_shared_secret: "__REGISTRATION_SHARED_SECRET__"
 
 # Set the number of bcrypt rounds used to generate password hash.
 # Larger numbers increase the work factor needed to generate the hash.
@@ -1030,7 +1030,7 @@ report_stats: __REPORT_STATS__
 # the registration_shared_secret is used, if one is given; otherwise,
 # a secret key is derived from the signing key.
 #
-macaroon_secret_key: "__MACAROON_SECRET_KEY__"
+__MACAROON_SECRET_KEY_PARAM__
 
 # a secret which is used to calculate HMACs for form values, to stop
 # falsification of values. Must be specified for the User Consent

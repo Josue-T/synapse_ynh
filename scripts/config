@@ -114,53 +114,32 @@ apply_config() {
     # WARNING : theses command are used in INSTALL, UPGRADE, CONFIG, CHANGE-URL (4 times)
     # For any update do it in all files
 
-    homeserver_config_path="/etc/matrix-$app/homeserver.yaml"
-
-    ynh_backup_if_checksum_is_different "$homeserver_config_path"
-
-    cp ../conf/homeserver.yaml "$homeserver_config_path"
-
-    ynh_replace_string --match_string __APP__ --replace_string $app --target_file "$homeserver_config_path"
-    ynh_replace_string --match_string __DOMAIN__ --replace_string $domain --target_file "$homeserver_config_path"
-    ynh_replace_string --match_string __SERVER_NAME__ --replace_string $server_name --target_file "$homeserver_config_path"   
-    ynh_replace_string --match_string __SYNAPSE_DB_USER__ --replace_string $synapse_db_user --target_file "$homeserver_config_path"
-    ynh_replace_special_string --match_string __SYNAPSE_DB_PWD__ --replace_string $synapse_db_pwd --target_file "$homeserver_config_path"
-    ynh_replace_string --match_string __PORT__ --replace_string $port --target_file "$homeserver_config_path"
-    ynh_replace_string --match_string __TLS_PORT__ --replace_string $synapse_tls_port --target_file "$homeserver_config_path"
-    ynh_replace_string --match_string __TURNSERVER_TLS_PORT__ --replace_string $turnserver_tls_port --target_file "$homeserver_config_path"
-    ynh_replace_special_string --match_string __TURNPWD__ --replace_string $turnserver_pwd --target_file "$homeserver_config_path"
-    ynh_replace_special_string --match_string __REGISTRATION_SECRET__ --replace_string "$registration_shared_secret" --target_file "$homeserver_config_path"
-    ynh_replace_special_string --match_string __FORM_SECRET__ --replace_string "$form_secret" --target_file "$homeserver_config_path"
-    ynh_replace_string --match_string __REPORT_STATS__ --replace_string "$report_stats" --target_file "$homeserver_config_path"
-    ynh_replace_string --match_string=__ALLOW_PUBLIC_ROOMS__ --replace_string="$allow_public_rooms" --target_file="$homeserver_config_path"
-    if [ -n $macaroon_secret_key ]; then
-        # Well, in this package this value was not managed because it was not needed, synapse is able to generate this with some other secret in the config file but after some vulnerability was found with this practice.
-        # The problem is that we can't just say generate a new value if the package has not already defined a value. The reason is that changing this value logout all user. And in case of a user has enabled the encryption, the user might lost all conversation !!
-        # So for the old install we just leave this as it is. And for the new install we use a real macaroon.
-        # For more detail about this issue you can see : https://matrix.org/blog/2019/01/15/further-details-on-critical-security-update-in-synapse-affecting-all-versions-prior-to-0-34-1-cve-2019-5885/
-        ynh_replace_string --match_string='macaroon_secret_key: "__MACAROON_SECRET_KEY__"' --replace_string='# macaroon_secret_key: "__MACAROON_SECRET_KEY__"' --target_file="$homeserver_config_path"
+    if [ -z $macaroon_secret_key ]; then
+    # Well, in this package this value was not managed because it was not needed, synapse is able to generate this with some other secret in the config file but after some vulnerability was found with this practice.
+    # For more detail about this issue you can see : https://matrix.org/blog/2019/01/15/further-details-on-critical-security-update-in-synapse-affecting-all-versions-prior-to-0-34-1-cve-2019-5885/
+    # The problem is that we can't just say generate a new value if the package has not already defined a value. The reason is that changing this value logout all user. And in case of a user has enabled the encryption, the user might lost all conversation !!
+    # So for the old install we just leave this as it is. And for the new install we use a real macaroon.
+    macaroon_secret_key_param='# macaroon_secret_key: ""'
     else
-        ynh_replace_special_string --match_string=__MACAROON_SECRET_KEY__ --replace_string="$macaroon_secret_key" --target_file="$homeserver_config_path"
+        macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
     fi
 
     if [ $is_public -eq 0 ]
     then
-        ynh_replace_string --match_string=__ALLOWED_ACCESS__ --replace_string=False --target_file="$homeserver_config_path"
-        ynh_replace_string --match_string=__SSO_ENABLED__ --replace_string=True --target_file="$homeserver_config_path"
+        allowed_access=False
+        sso_enabled=True
     else
-        ynh_replace_string --match_string=__ALLOWED_ACCESS__ --replace_string=True --target_file="$homeserver_config_path"
-        ynh_replace_string --match_string=__SSO_ENABLED__ --replace_string=False --target_file="$homeserver_config_path"
+        allowed_access=True
+        sso_enabled=False
     fi
+
+    ynh_add_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
+    ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
 
     # Create .well-known redirection for access by federation
     if yunohost --output-as plain domain list | grep -q "^$server_name$"
     then
-        cp ../conf/server_name.conf /etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf
-        ynh_replace_string --match_string=__DOMAIN__ --replace_string=$domain --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
-        ynh_replace_string --match_string=__PORT__ --replace_string=$synapse_tls_port --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
-        ynh_replace_string --match_string=__JITSI_SERVER_ADDR__ --replace_string=$jitsi_server --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
-        ynh_replace_string --match_string=__E2E_ENABLED_BY_DEFAULT__ --replace_string=$e2e_enabled_by_default --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
-        ynh_store_file_checksum --file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
+        ynh_add_config --template="server_name.conf" --destination="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
     fi
 
     ynh_store_file_checksum --file "$homeserver_config_path"

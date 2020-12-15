@@ -32,7 +32,6 @@ install_sources() {
         test -e $final_path/bin/python3 || python3 -m venv $final_path
 
         # Install synapse in virtualenv
-        ynh_replace_string --match_string=__FINAL_PATH__ --replace_string=$final_path --target_file=$final_path/bin/activate
 
         # We set all necessary environement variable to create a python virtualenvironnement.
         set +u;
