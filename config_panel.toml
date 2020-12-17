@@ -33,12 +33,18 @@ name = "Synapse configuration"
         type = "string"
         default = 'jitsi.riot.im'
         help = "Address of the Jitsi server for conference. Note that it's only for conference in rooms with more than 2 person. With 2 person the stun/turn server is used."
+        
+        [synapse_config.client_config.e2e_enabled_by_default]
+        ask = "End to end encryption by default for direct messages"
+        type = "boolean"
+        default = true
+        help = "By default, Element will create encrypted DM rooms if the user you are chatting with has keys uploaded on their account. For private room creation, Element will default to encryption on but give you can disable this settings here."
 
 [package_config]
 name = "Package configuration"
 
     [package_config.package_config]
-    name = "Synapse server configuration"
+    name = "Upgrade"
 
         [package_config.package_config.backup_before_upgrade]
         ask = "Backup before upgrade"

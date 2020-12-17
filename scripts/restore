@@ -128,8 +128,8 @@ ynh_psql_execute_file_as_root --file="${YNH_CWD}/dump.sql" --database="$synapse_
 ynh_script_progression --message="Enable systemd services" --weight=2
 
 # systemctl daemon-reload
-systemctl enable matrix-$app.service
-systemctl enable coturn-$app.service
+systemctl enable matrix-$app.service --quiet
+systemctl enable coturn-$app.service --quiet
 
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL

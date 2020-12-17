@@ -34,6 +34,7 @@ turnserver_alt_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_alt_tl
 cli_port=$(ynh_app_setting_get --app=$app --key=cli_port)
 report_stats=$(ynh_app_setting_get --app=$app --key=report_stats)
 allow_public_rooms=$(ynh_app_setting_get --app=$app --key=allow_public_rooms)
+e2e_enabled_by_default=$(ynh_app_setting_get --app=$app --key=e2e_enabled_by_default)
 ynh_print_OFF
 synapse_db_pwd=$(ynh_app_setting_get --app=$app --key=synapse_db_pwd)
 turnserver_pwd=$(ynh_app_setting_get --app=$app --key=turnserver_pwd)
@@ -116,6 +117,12 @@ fi
 if [ -z $jitsi_server ]; then
    jitsi_server='jitsi.riot.im'
    ynh_app_setting_set --app=$app --key=jitsi_server --value=$jitsi_server
+fi
+
+# Define $e2e_enabled_by_default if not already defined
+if [ -z $e2e_enabled_by_default ]; then
+   e2e_enabled_by_default='true'
+   ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 fi
 
 if [ -z $report_stats ]; then
@@ -345,6 +352,7 @@ then
     ynh_replace_string --match_string=__DOMAIN__ --replace_string=$domain --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
     ynh_replace_string --match_string=__PORT__ --replace_string=$synapse_tls_port --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
     ynh_replace_string --match_string=__JITSI_SERVER_ADDR__ --replace_string=$jitsi_server --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
+    ynh_replace_string --match_string=__E2E_ENABLED_BY_DEFAULT__ --replace_string=$e2e_enabled_by_default --target_file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
     ynh_store_file_checksum --file="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
 fi
 
