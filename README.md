@@ -14,7 +14,7 @@ Instant messaging server matrix network.
 
 Yunohost chatroom with matrix : [https://riot.im/app/#/room/#yunohost:matrix.org](https://riot.im/app/#/room/#yunohost:matrix.org)
 
-**Shipped version:** 1.23.1
+**Shipped version:** 1.25.0
 
 ## Configuration
 
@@ -121,7 +121,7 @@ This app doesn't provide any real good web interface. So it's recommended to use
 
 Before any manipulation it's recommended to do a backup by this following command :
 
-`sudo yunohost backup create --verbose --ignore-system --apps synapse`
+`sudo yunohost backup create --apps synapse`
 
 ### Set user as admin
 
