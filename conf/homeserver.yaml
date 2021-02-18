@@ -489,7 +489,7 @@ database:
     args:
         user: __SYNAPSE_DB_USER__
         password: __SYNAPSE_DB_PWD__
-        database: matrix___APP__
+        database: __SYNAPSE_DB_NAME__
         host: localhost
         cp_min: 5
         cp_max: 10

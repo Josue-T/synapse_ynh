@@ -50,6 +50,7 @@ ynh_print_ON
 synapse_user="matrix-$app"
 synapse_db_name="matrix_$app"
 synapse_db_user="matrix_$app"
+synapse_db_name="matrix_$app"
 upstream_version=$(ynh_app_upstream_version)
 upgrade_type=$(ynh_check_app_version_changed)
 final_www_path="/var/www/$app"

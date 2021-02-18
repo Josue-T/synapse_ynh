@@ -47,6 +47,7 @@ ynh_print_ON
 synapse_user="matrix-$app"
 synapse_db_name="matrix_$app"
 synapse_db_user="matrix_$app"
+synapse_db_name="matrix_$app"
 upstream_version=$(ynh_app_upstream_version)
 final_www_path="/var/www/$app"
 data_path="/home/yunohost.app/matrix-$app"
@@ -73,16 +74,6 @@ ynh_script_progression --message="Reinstalling dependencies..." --weight=70
 ynh_install_app_dependencies $dependances
 
 #=================================================
-# RECREATE THE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Recreating the dedicated system user..." --weight=3
-
-# Create the dedicated user (if not existing)
-ynh_system_user_create --username=$synapse_user --home_dir=$data_path
-adduser $synapse_user ssl-cert
-adduser turnserver ssl-cert
-
-#=================================================
 # RESTORE ALL CONFIG AND DATA
 #=================================================
 
@@ -101,6 +92,18 @@ install_sources
 
 ynh_script_progression --message="Reload fail2ban..." --weight=6
 ynh_systemd_action --action=restart --service_name=fail2ban
+
+#=================================================
+# SPECIFIC RESTORATION
+#=================================================
+# RECREATE THE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Recreating the dedicated system user..." --weight=3
+
+# Create the dedicated user (if not existing)
+ynh_system_user_create --username=$synapse_user --home_dir=$data_path
+adduser $synapse_user ssl-cert
+adduser turnserver ssl-cert
 
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE
