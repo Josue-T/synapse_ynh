@@ -1,7 +1,7 @@
 import json
 import sys
 
-with open("/etc/ssowat/conf.json.persistent", "r", encoding='utf-8') as jsonFile:
+with open("/etc/ssowat/" + "conf.json.persistent", "r", encoding='utf-8') as jsonFile:
     data = json.load(jsonFile)
 
     for domain in ("", sys.argv[1], sys.argv[2]):
@@ -35,5 +35,5 @@ with open("/etc/ssowat/conf.json.persistent", "r", encoding='utf-8') as jsonFile
             except:
                 pass
 
-with open("/etc/ssowat/conf.json.persistent", "w", encoding='utf-8') as jsonFile:
+with open("/etc/ssowat/" + "conf.json.persistent", "w", encoding='utf-8') as jsonFile:
     jsonFile.write(json.dumps(data, indent=4, sort_keys=True))
