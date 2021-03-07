@@ -338,14 +338,12 @@ public_ip6="$(curl ipv6.yunohost.org)" || true
 turn_external_ip=""
 if [ -n "$public_ip4" ] && ynh_validate_ip4 --ip_address="$public_ip4"
 then
-    turn_external_ip+="
-external-ip=$public_ip4"
+    turn_external_ip+="\nexternal-ip=$public_ip4"
 fi
 
 if [ -n "$public_ip6" ] && ynh_validate_ip6 --ip_address="$public_ip6"
 then
-    turn_external_ip+="
-external-ip=$public_ip6"
+    turn_external_ip+="\nexternal-ip=$public_ip6"
 fi
 
 ynh_add_config --template="turnserver.conf" --destination="/etc/matrix-$app/coturn.conf"
@@ -403,14 +401,14 @@ ynh_script_progression --message="Configuring permissions..." --weight=1
 ynh_permission_url --permission=main --url=$domain/_matrix/cas_server.php/login --auth_header=true
 ynh_permission_update --permission=main --label="Synapse server SSO authentication" --show_tile=false --protected=true
 
-if !ynh_permission_exists --permission=server_api; then
-    ynh_permission_create --permission=server_api --url=/_matrix --additional_urls=$server_name/.well-known/matrix \
+if ! ynh_permission_exists --permission=server_api; then
+    ynh_permission_create --permission=server_api --url=$domain/_matrix --additional_urls=$server_name/.well-known/matrix \
                           --label="Server access for client apps." --show_tile=false --allowed=visitors \
                           --auth_header=false --protected=true
     python3 remove_sso_conf_persistent.py $domain $server_name \
         || ynh_print_warn --message="Your file /etc/ssowat/conf.json.persistent doesn't respect the json syntax. The config file wasn't cleaned. Please clean it manually."
 else
-    ynh_permission_url --permission=server_api --url=/_matrix --additional_urls=$server_name/.well-known/matrix \
+    ynh_permission_url --permission=server_api --url=$domain/_matrix --add_url=$server_name/.well-known/matrix \
                        --auth_header=false
     ynh_permission_update --permission=server_api --label="Server access for client apps." --show_tile=false \
                           --protected=true

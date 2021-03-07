@@ -74,6 +74,16 @@ ynh_script_progression --message="Reinstalling dependencies..." --weight=70
 ynh_install_app_dependencies $dependances
 
 #=================================================
+# RECREATE THE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Recreating the dedicated system user..." --weight=3
+
+# Create the dedicated user (if not existing)
+ynh_system_user_create --username=$synapse_user --home_dir=$data_path
+adduser $synapse_user ssl-cert
+adduser turnserver ssl-cert
+
+#=================================================
 # RESTORE ALL CONFIG AND DATA
 #=================================================
 
@@ -92,18 +102,6 @@ install_sources
 
 ynh_script_progression --message="Reload fail2ban..." --weight=6
 ynh_systemd_action --action=restart --service_name=fail2ban
-
-#=================================================
-# SPECIFIC RESTORATION
-#=================================================
-# RECREATE THE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Recreating the dedicated system user..." --weight=3
-
-# Create the dedicated user (if not existing)
-ynh_system_user_create --username=$synapse_user --home_dir=$data_path
-adduser $synapse_user ssl-cert
-adduser turnserver ssl-cert
 
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE
@@ -181,14 +179,12 @@ public_ip6="$(curl ipv6.yunohost.org)" || true
 turn_external_ip=""
 if [ -n "$public_ip4" ] && ynh_validate_ip4 --ip_address="$public_ip4"
 then
-    turn_external_ip+="
-external-ip=$public_ip4"
+    turn_external_ip+="\nexternal-ip=$public_ip4"
 fi
 
 if [ -n "$public_ip6" ] && ynh_validate_ip6 --ip_address="$public_ip6"
 then
-    turn_external_ip+="
-external-ip=$public_ip6"
+    turn_external_ip+="\nexternal-ip=$public_ip6"
 fi
 
 ynh_add_config --template="turnserver.conf" --destination="/etc/matrix-$app/coturn.conf"
@@ -217,6 +213,7 @@ ynh_use_logrotate --logfile /var/log/matrix-$app
 
 # WARNING : theses command are used in INSTALL, UPGRADE, RESTORE (3 times)
 # For any update do it in all files
+ynh_script_progression --message="Configuring file permission..."
 chown $synapse_user:root -R $final_path
 chmod 770 $final_path/Coturn_config_rotate.sh
 chmod 700 $final_path/update_synapse_for_appservice.sh
@@ -264,7 +261,7 @@ ynh_send_readme_to_admin --app_message="mail_to_send" --type="restore"
 #=================================================
 ynh_script_progression --message="Reloading nginx web server..."
 
-systemctl reload php7.0-fpm
+ynh_systemd_action --service_name=php$phpversion-fpm --action=reload
 ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================

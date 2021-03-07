@@ -77,13 +77,6 @@ ynh_script_progression --message="Removing dependencies" --weight=15
 ynh_remove_app_dependencies
 
 #=================================================
-# SETUP SSOWAT
-#=================================================
-
-# Remove the skipped url
-python3 ../conf/remove_sso_conf.py $domain $server_name
-
-#=================================================
 # REMOVE APP MAIN DIR
 #=================================================
 ynh_script_progression --message="Removing app main directory" --weight=2
