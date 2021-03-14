@@ -11,7 +11,6 @@ install_sources() {
 
     mkdir -p $final_path
     chown $synapse_user:root -R $final_path
-    chown $synapse_user:root -R $data_path
 
     if [ -n "$(uname -m | grep arm)" ]
     then
@@ -37,10 +36,6 @@ install_sources() {
             sudo -u "$synapse_user" env PATH=$PATH rustup update
         else
             sudo -u "$synapse_user" bash -c 'curl -sSf -L https://static.rust-lang.org/rustup.sh | sh -s -- -y --default-toolchain=stable'
-            mv $data_path/.cargo $final_path/
-            mv $data_path/.rustup $final_path/
-            ln -s $final_path/.cargo $data_path/.cargo
-            ln -s $final_path/.rustup $data_path/.rustup
         fi
     
         # Install virtualenv if it don't exist

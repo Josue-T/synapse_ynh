@@ -151,7 +151,7 @@ ynh_install_app_dependencies $dependances
 #=================================================
 ynh_script_progression --message="Configuring system user..." --weight=3
 
-ynh_system_user_create --username=$synapse_user --home_dir=$data_path
+ynh_system_user_create --username=$synapse_user --home_dir=$final_path
 adduser $synapse_user ssl-cert
 adduser turnserver ssl-cert
 
