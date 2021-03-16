@@ -198,7 +198,9 @@ then
     python -m synapse.app.homeserver --keys-directory /etc/matrix-$app/ --generate-config --generate-keys --server-name $server_name --report-stats=no -c homeserver.yml
 
     # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
+    set +u;
     deactivate
+    set -u;
 
     # Get random values from config
     ynh_print_OFF
