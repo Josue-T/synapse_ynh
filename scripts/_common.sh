@@ -29,15 +29,6 @@ install_sources() {
             fi
         done
     else
-        # Install rustup is not already installed
-        # We need this to be able to install cryptgraphy
-        export PATH="$PATH:$final_path/.cargo/bin:$final_path/.local/bin:/usr/local/sbin"
-        if [ -e $final_path/.rustup ]; then
-            sudo -u "$synapse_user" env PATH=$PATH rustup update
-        else
-            sudo -u "$synapse_user" bash -c 'curl -sSf -L https://static.rust-lang.org/rustup.sh | sh -s -- -y --default-toolchain=stable'
-        fi
-    
         # Install virtualenv if it don't exist
         test -e $final_path/bin/python3 || python3 -m venv $final_path
 
@@ -47,7 +38,7 @@ install_sources() {
         set +u;
         source $final_path/bin/activate
         set -u;
-        pip3 install --upgrade setuptools wheel
+        pip3 install --upgrade setuptools wheel pip
         chown $synapse_user:root -R $final_path
         sudo -u $synapse_user env PATH=$PATH pip3 install --upgrade 'cryptography>=3.3'
         pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
