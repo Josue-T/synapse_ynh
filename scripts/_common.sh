@@ -6,7 +6,12 @@ install_sources() {
 
     # Clean venv is it was on python2.7 or python3 with old version in case major upgrade of debian
     if [ ! -e $final_path/bin/python3 ] || [ ! -e $final_path/lib/python$python_version ]; then
-        ynh_secure_remove --file=$final_path
+        ynh_secure_remove --file=$final_path/bin
+        ynh_secure_remove --file=$final_path/lib
+        ynh_secure_remove --file=$final_path/lib64
+        ynh_secure_remove --file=$final_path/include
+        ynh_secure_remove --file=$final_path/share
+        ynh_secure_remove --file=$final_path/pyvenv.cfg
     fi
 
     mkdir -p $final_path
