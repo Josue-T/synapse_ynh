@@ -6,7 +6,12 @@ install_sources() {
 
     # Clean venv is it was on python2.7 or python3 with old version in case major upgrade of debian
     if [ ! -e $final_path/bin/python3 ] || [ ! -e $final_path/lib/python$python_version ]; then
-        ynh_secure_remove --file=$final_path
+        ynh_secure_remove --file=$final_path/bin
+        ynh_secure_remove --file=$final_path/lib
+        ynh_secure_remove --file=$final_path/lib64
+        ynh_secure_remove --file=$final_path/include
+        ynh_secure_remove --file=$final_path/share
+        ynh_secure_remove --file=$final_path/pyvenv.cfg
     fi
 
     mkdir -p $final_path
@@ -51,7 +56,7 @@ install_sources() {
         chown $synapse_user:root -R $final_path
         sudo -u $synapse_user env PATH=$PATH pip3 install --upgrade 'cryptography>=3.3'
         pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
-        pip3 install --upgrade 'Twisted>=20.3.0' matrix-synapse==$upstream_version matrix-synapse-ldap3
+        pip3 install --upgrade 'Twisted>=20.3.0<21' matrix-synapse==$upstream_version matrix-synapse-ldap3
 
         # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
         set +u;
