@@ -342,7 +342,7 @@ ynh_add_config --template="../sources/update_synapse_for_appservice.sh" --destin
 ynh_script_progression --message="Configuring permissions..." --weight=1
 
 ynh_permission_url --permission=main --url=$domain/_matrix/cas_server.php/login --auth_header=true
-ynh_permission_update --permission=main --label="Synapse server SSO authentication" --show_tile=false --protected=true
+ynh_permission_update --permission=main --show_tile=false --protected=true
 
 ynh_permission_create --permission=server_api --url=$domain/_matrix --additional_urls=$server_name/.well-known/matrix \
                       --label="Server access for client apps." --show_tile=false --allowed=visitors \
