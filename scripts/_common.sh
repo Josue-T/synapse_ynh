@@ -40,27 +40,29 @@ install_sources() {
         if [ -e $final_path/.rustup ]; then
             sudo -u "$synapse_user" env PATH=$PATH rustup update
         else
-            sudo -u "$synapse_user" bash -c 'curl -sSf -L https://static.rust-lang.org/rustup.sh | sh -s -- -y --default-toolchain=stable'
+            sudo -u "$synapse_user" bash -c 'curl -sSf -L https://static.rust-lang.org/rustup.sh | sh -s -- -y --default-toolchain=stable --profile=minimal'
         fi
-    
+
         # Install virtualenv if it don't exist
         test -e $final_path/bin/python3 || python3 -m venv $final_path
 
         # Install synapse in virtualenv
 
         # We set all necessary environement variable to create a python virtualenvironnement.
-        set +u;
+        u_arg='u'
+        set  +$u_arg;
         source $final_path/bin/activate
-        set -u;
+        set  -$u_arg;
         pip3 install --upgrade setuptools wheel
         chown $synapse_user:root -R $final_path
         sudo -u $synapse_user env PATH=$PATH pip3 install --upgrade 'cryptography>=3.3'
         pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
-        pip3 install --upgrade 'Twisted>=20.3.0<21' matrix-synapse==$upstream_version matrix-synapse-ldap3
+        # Fix issue https://github.com/YunoHost-Apps/synapse_ynh/issues/248
+        pip3 install --upgrade 'Twisted>=21' 'treq>=21.1.0' matrix-synapse==$upstream_version matrix-synapse-ldap3
 
         # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
-        set +u;
+        set  +$u_arg;
         deactivate
-        set -u;
+        set  -$u_arg;
     fi
 }

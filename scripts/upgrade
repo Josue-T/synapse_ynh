@@ -405,7 +405,7 @@ ynh_script_progression --message="Configuring permissions..." --weight=1
 ynh_legacy_permissions_delete_all
 
 ynh_permission_url --permission=main --url=$domain/_matrix/cas_server.php/login --auth_header=true
-ynh_permission_update --permission=main --label="Synapse server SSO authentication" --show_tile=false --protected=true
+ynh_permission_update --permission=main --show_tile=false --protected=true
 
 if ! ynh_permission_exists --permission=server_api; then
     ynh_permission_create --permission=server_api --url=$domain/_matrix --additional_urls=$server_name/.well-known/matrix \
