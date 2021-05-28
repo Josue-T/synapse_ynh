@@ -114,7 +114,7 @@ ynh_backup --src_path="$data_path" --is_big=1
 #=================================================
 ynh_print_info --message="Backing up synapse log..."
 
-ynh_backup --src_path="/var/log/matrix-$app"
+ynh_backup --src_path="/var/log/matrix-$app" --is_big=1
 
 #=================================================
 # BACKUP HOOKS
