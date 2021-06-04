@@ -424,7 +424,7 @@ if yunohost --output-as plain domain list | grep -q "^$server_name"'$' && ! ynh_
     ynh_permission_create --permission=server_client_infos --url=$server_name/.well-known/matrix \
                           --label="Server info for clients. (well-known)" --show_tile=false --allowed=visitors \
                           --auth_header=false --protected=true
-else
+elif yunohost --output-as plain domain list | grep -q "^$server_name"'$'; then
     ynh_permission_url --permission=server_client_infos --url=$server_name/.well-known/matrix \
                        --auth_header=false
     ynh_permission_update --permission=server_client_infos --label="Server info for clients. (well-known)" --show_tile=false \
