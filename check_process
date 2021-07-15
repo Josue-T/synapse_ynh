@@ -12,7 +12,6 @@
         setup_private=0
         setup_public=1
         upgrade=1
-        upgrade=1   from_commit=0705f4ffb4f7538a1aa33a801f95766ee23367db
         upgrade=1   from_commit=35774cc0eabb82b03230210689fa060d5f2b0bd8
         upgrade=1   from_commit=dbf0a2c9359ccd62b55132cace548b17e44af9bf
         backup_restore=1
@@ -23,8 +22,6 @@
 ;;; Levels
     Level 5=auto
 ;;; Upgrade options
-    ; commit=0705f4ffb4f7538a1aa33a801f95766ee23367db
-        name=Fix postgresql helper from old_version_for_CI_2 branch
     ; commit=35774cc0eabb82b03230210689fa060d5f2b0bd8
         name=Migrate from self signed certificate to cert managed by Yunohost from old_version_for_CI_3 branch
     ; commit=dbf0a2c9359ccd62b55132cace548b17e44af9bf
