@@ -64,5 +64,9 @@ install_sources() {
         set  +$u_arg;
         deactivate
         set  -$u_arg;
+
+        # Remove Rust to reduce backup size
+        ynh_secure_remove --file=$final_path/.rustup
+        ynh_secure_remove --file=$final_path/.cargo
     fi
 }
