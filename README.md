@@ -14,7 +14,7 @@ Instant messaging server matrix network.
 
 Yunohost chatroom with matrix : [https://riot.im/app/#/room/#yunohost:matrix.org](https://riot.im/app/#/room/#yunohost:matrix.org)
 
-**Shipped version:** 1.28.0
+**Shipped version:** 1.45.1
 
 ## Configuration
 
@@ -76,6 +76,29 @@ If you have a dynamic IP address, you also might need to update this config auto
 
 ```
 */15 * * * * root bash /opt/yunohost/__SYNAPSE_INSTANCE_NAME__/Coturn_config_rotate.sh;
+```
+
+#### OpenVPN
+
+In case of you have an OpenVPN server you might want than `coturn-synapse` restart when the VPN restart. To do this create a file named `/usr/local/bin/openvpn_up_script.sh` with this content:
+```
+#!/bin/bash
+
+(
+    sleep 5
+    sudo systemctl restart coturn-synapse.service
+) &
+exit 0
+```
+
+Add this line in you sudo config file `/etc/sudoers`
+```
+openvpn    ALL=(ALL) NOPASSWD: /bin/systemctl restart coturn-synapse.service
+```
+
+And add this line in your OpenVPN config file
+```
+ipchange /usr/local/bin/openvpn_up_script.sh
 ```
 
 ### Important Security Note
