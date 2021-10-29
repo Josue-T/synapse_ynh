@@ -34,14 +34,6 @@ install_sources() {
             fi
         done
     else
-        # Install rustup is not already installed
-        # We need this to be able to install cryptgraphy
-        export PATH="$PATH:$final_path/.cargo/bin:$final_path/.local/bin:/usr/local/sbin"
-        if [ -e $final_path/.rustup ]; then
-            sudo -u "$synapse_user" env PATH=$PATH rustup update
-        else
-            sudo -u "$synapse_user" bash -c 'curl -sSf -L https://static.rust-lang.org/rustup.sh | sh -s -- -y --default-toolchain=stable --profile=minimal'
-        fi
 
         # Install virtualenv if it don't exist
         test -e $final_path/bin/python3 || python3 -m venv $final_path
@@ -50,10 +42,10 @@ install_sources() {
 
         # We set all necessary environement variable to create a python virtualenvironnement.
         u_arg='u'
-        set  +$u_arg;
+        set +$u_arg;
         source $final_path/bin/activate
-        set  -$u_arg;
-        pip3 install --upgrade setuptools wheel
+        set -$u_arg;
+        pip3 install --upgrade setuptools wheel pip
         chown $synapse_user:root -R $final_path
         sudo -u $synapse_user env PATH=$PATH pip3 install --upgrade 'cryptography>=3.4.7'
         pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
@@ -61,9 +53,9 @@ install_sources() {
         pip3 install --upgrade 'Twisted>=21' 'treq>=21.1.0' matrix-synapse==$upstream_version matrix-synapse-ldap3
 
         # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
-        set  +$u_arg;
+        set +$u_arg;
         deactivate
-        set  -$u_arg;
+        set -$u_arg;
 
         # Remove Rust to reduce backup size
         ynh_secure_remove --file=$final_path/.rustup
