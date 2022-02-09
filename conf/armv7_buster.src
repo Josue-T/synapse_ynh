@@ -1,5 +1,5 @@
-SOURCE_URL=https://github.com/YunoHost-Apps/synapse_python_build/releases/download/v1.51.0/matrix-synapse_1.51.0-buster-bin1_armv7l.tar.gz
-SOURCE_SUM=f0a16d991f085a5e13f09260074d47654176f39e024c602ff70206dee9c5172d
+SOURCE_URL=https://github.com/YunoHost-Apps/synapse_python_build/releases/download/v1.52.0/matrix-synapse_1.52.0-buster-bin1_armv7l.tar.gz
+SOURCE_SUM=c66d248c9335c14b4395ffe19670c408e163e38ee36af05e57719c5d3192056b
 # (Optional) Program to check the integrity (sha256sum, md5sum...)
 # default: sha256
 SOURCE_SUM_PRG=sha256sum
