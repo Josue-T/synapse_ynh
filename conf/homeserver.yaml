@@ -857,8 +857,8 @@ enable_registration: __ALLOWED_ACCESS__
 
 # The user must provide all of the below types of 3PID when registering.
 #
-#registrations_require_3pid:
-#  - email
+registrations_require_3pid:
+  - email
 #  - msisdn
 
 # Explicitly disable asking for MSISDNs from the registration
