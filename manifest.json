@@ -6,13 +6,18 @@
 		"en": "Instant messaging server which uses Matrix",
 		"fr": "Un serveur de messagerie instantané basé sur Matrix"
 	},
-	"version": "1.47.1~ynh1",
+	"version": "1.59.0~ynh1",
 	"url": "http://matrix.org",
 	"license": "Apache-2.0",
 	"maintainer": {
 		"name": "Josué Tille",
 		"email": "josue@tille.ch"
 	},
+    "upstream": {
+        "license": "free",
+        "website": "https://matrix.org/",
+        "code": "https://github.com/matrix-org/synapse"
+    },
 	"requirements": {
 		"yunohost": ">= 4.1"
 	},

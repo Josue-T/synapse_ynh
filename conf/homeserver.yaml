@@ -798,6 +798,8 @@ turn_allow_guests: __ALLOWED_ACCESS__
 #
 enable_registration: __ALLOWED_ACCESS__
 
+enable_registration_without_verification: __ALLOWED_ACCESS__
+
 # Optional account validity configuration. This allows for accounts to be denied
 # any request after a given period.
 #
