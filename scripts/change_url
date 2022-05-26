@@ -35,13 +35,12 @@ cli_port=$(ynh_app_setting_get --app=$app --key=cli_port)
 report_stats=$(ynh_app_setting_get --app=$app --key=report_stats)
 allow_public_rooms=$(ynh_app_setting_get --app=$app --key=allow_public_rooms)
 e2e_enabled_by_default=$(ynh_app_setting_get --app=$app --key=e2e_enabled_by_default)
-ynh_print_OFF
 synapse_db_pwd=$(ynh_app_setting_get --app=$app --key=synapse_db_pwd)
 turnserver_pwd=$(ynh_app_setting_get --app=$app --key=turnserver_pwd)
 registration_shared_secret=$(ynh_app_setting_get --app=$app --key=registration_shared_secret)
 form_secret=$(ynh_app_setting_get --app=$app --key=form_secret)
 macaroon_secret_key=$(ynh_app_setting_get --app=$app --key=macaroon_secret_key)
-ynh_print_ON
+synapse_user_app_pwd=$(ynh_app_setting_get --app=$app --key=synapse_user_app_pwd)
 
 synapse_user="matrix-$app"
 synapse_db_name="matrix_$app"

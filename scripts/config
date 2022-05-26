@@ -26,6 +26,7 @@ disable_backup_before_upgrade=$(ynh_app_setting_get --app $app --key disable_bac
 is_free_registration=$(ynh_app_setting_get --app $app --key is_free_registration)
 jitsi_server=$(ynh_app_setting_get --app=$app --key=jitsi_server)
 e2e_enabled_by_default=$(ynh_app_setting_get --app=$app --key=e2e_enabled_by_default)
+synapse_user_app_pwd=$(ynh_app_setting_get --app=$app --key=synapse_user_app_pwd)
 
 #=================================================
 # SHOW_CONFIG FUNCTION FOR 'SHOW' COMMAND

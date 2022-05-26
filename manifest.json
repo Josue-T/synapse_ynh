@@ -29,12 +29,7 @@
 		"install" : [
 			{
 				"name": "domain",
-				"type": "domain",
-				"ask": {
-					"en": "Choose a domain for Synapse",
-					"fr": "Choisissez un domaine pour Synapse"
-				},
-				"example": "synapse.domain.org"
+				"type": "domain"
 			},
 			{
 				"name": "server_name",
