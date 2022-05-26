@@ -45,7 +45,7 @@ synapse_user_app_pwd=$(ynh_app_setting_get --app=$app --key=synapse_user_app_pwd
 #=================================================
 
 synapse_user="matrix-$app"
-synapse_user_app="$synapse_user-app"
+synapse_user_app="$app"
 synapse_db_name="matrix_$app"
 synapse_db_user="matrix_$app"
 synapse_db_name="matrix_$app"
@@ -79,7 +79,7 @@ ynh_script_progression --message="Recreating the dedicated system user..." --wei
 
 # Create the dedicated user (if not existing)
 ynh_system_user_create --username=$synapse_user --home_dir=$final_path
-yunohost user create $synapse_user_app -f Synapse -l Application -m synapse@$domain -p "$synapse_user_app_pwd"
+yunohost user create $synapse_user_app -f Synapse -l Application -d $domain -p "$synapse_user_app_pwd"
 adduser $synapse_user ssl-cert
 adduser turnserver ssl-cert
 
