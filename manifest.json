@@ -47,11 +47,11 @@
 				"default": "Same than the domain"
 			},
 			{
-				"name": "is_public",
+				"name": "is_free_registration",
 				"type": "boolean",
 				"ask": {
-					"en": "Is it a public server?",
-					"fr": "Est-ce un serveur public ?"
+					"en": "Is it a server with free registration ?",
+					"fr": "Est-ce un serveur avec création de compte libre ?"
 				},
 				"default": false,
 				"help": { 

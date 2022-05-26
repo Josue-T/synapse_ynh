@@ -1,5 +1,6 @@
 dependances="coturn build-essential python3-dev libffi-dev python3-pip python3-setuptools sqlite3 libssl-dev python3-venv libxml2-dev libxslt1-dev python3-lxml zlib1g-dev libjpeg-dev libpq-dev postgresql acl"
 python_version="$(python3 -V | cut -d' ' -f2 | cut -d. -f1-2)"
+app=$YNH_APP_INSTANCE_NAME
 
 install_sources() {
     # Install/upgrade synapse in virtualenv

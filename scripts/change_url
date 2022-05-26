@@ -26,7 +26,7 @@ server_name=$(ynh_app_setting_get --app=$app --key=server_name)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 synapse_old_version=$(ynh_app_setting_get --app=$app --key=synapse_version)
 jitsi_server=$(ynh_app_setting_get --app=$app --key=jitsi_server)
-is_public=$(ynh_app_setting_get --app=$app --key=is_public)
+is_free_registration=$(ynh_app_setting_get --app=$app --key=is_free_registration)
 port=$(ynh_app_setting_get --app=$app --key=synapse_port)
 synapse_tls_port=$(ynh_app_setting_get --app=$app --key=synapse_tls_port)
 turnserver_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_tls_port)
@@ -102,7 +102,7 @@ else
     macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
 fi
 
-if [ $is_public -eq 0 ]
+if [ $is_free_registration -eq 0 ]
 then
     allowed_access=False
     sso_enabled=True

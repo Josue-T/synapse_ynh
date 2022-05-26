@@ -26,7 +26,7 @@ jitsi_server=$(ynh_app_setting_get --app=$app --key=jitsi_server)
 path_url=$(ynh_app_setting_get --app=$app --key=path)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 synapse_old_version=$(ynh_app_setting_get --app=$app --key=synapse_version)
-is_public=$(ynh_app_setting_get --app=$app --key=is_public)
+is_free_registration=$(ynh_app_setting_get --app=$app --key=is_free_registration)
 port=$(ynh_app_setting_get --app=$app --key=synapse_port)
 synapse_tls_port=$(ynh_app_setting_get --app=$app --key=synapse_tls_port)
 turnserver_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_tls_port)
@@ -131,6 +131,11 @@ if [ -z $allow_public_rooms ]; then
     ynh_app_setting_set --app=$app --key=allow_public_rooms --value=$allow_public_rooms
 fi
 
+if [ -z $is_free_registration ]; then
+    is_free_registration=$(ynh_app_setting_get --app=$app --key=is_""public)
+    ynh_app_setting_set --app=$app --key=is_free_registration --value=$is_free_registration
+fi
+
 #=================================================
 # MIGRATION 6 : Migrate data directory
 #=================================================
@@ -232,7 +237,7 @@ else
     macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
 fi
 
-if [ $is_public -eq 0 ]
+if [ $is_free_registration -eq 0 ]
 then
     allowed_access=False
     sso_enabled=True

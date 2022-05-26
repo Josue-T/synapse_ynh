@@ -22,15 +22,6 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# RETRIEVE ARGUMENTS FROM THE MANIFEST
-#=================================================
-
-domain=$YNH_APP_ARG_DOMAIN
-is_public=$YNH_APP_ARG_IS_PUBLIC
-
-app=$YNH_APP_INSTANCE_NAME
-
-#=================================================
 # SET CONSTANTS
 #=================================================
 
@@ -50,7 +41,7 @@ default_domain_value="Same than the domain"
 
 domain=$YNH_APP_ARG_DOMAIN
 server_name=$YNH_APP_ARG_SERVER_NAME
-is_public=$YNH_APP_ARG_IS_PUBLIC
+is_free_registration=$YNH_APP_ARG_IS_FREE_REGISTRATION
 jitsi_server=$YNH_APP_ARG_JITSI_SERVER
 path_url="/_matrix"
 final_path="/opt/yunohost/matrix-$app"
@@ -90,7 +81,7 @@ ynh_app_setting_set --app=$app --key=server_name --value=$server_name
 ynh_app_setting_set --app=$app --key=jitsi_server --value=$jitsi_server
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 ynh_app_setting_set --app=$app --key=synapse_version --value=$upstream_version
-ynh_app_setting_set --app=$app --key=is_public --value=$is_public
+ynh_app_setting_set --app=$app --key=is_free_registration --value=$is_free_registration
 ynh_app_setting_set --app=$app --key=report_stats --value=$report_stats
 ynh_app_setting_set --app=$app --key=allow_public_rooms --value=$allow_public_rooms
 ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
@@ -279,7 +270,7 @@ ynh_app_setting_set --app=$app --key=turnserver_pwd --value=$turnserver_pwd
 
 macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
 
-if [ $is_public -eq 0 ]
+if [ $is_free_registration -eq 0 ]
 then
     allowed_access=False
     sso_enabled=True
