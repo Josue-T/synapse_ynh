@@ -63,3 +63,9 @@ install_sources() {
         ynh_secure_remove --file=$final_path/.cargo
     fi
 }
+
+get_domain_list() {
+    yunohost --output-as plain domain list | grep -E "^#" -v | sort | uniq | while read domain; do
+        echo -n "        - https://$domain\n"
+    done
+}

@@ -48,6 +48,7 @@ synapse_db_name="matrix_$app"
 synapse_db_user="matrix_$app"
 synapse_db_name="matrix_$app"
 upstream_version=$(ynh_app_upstream_version)
+domain_whitelist_client=$(get_domain_list)
 
 # Check if the new path stay /_matrix if not exit
 
