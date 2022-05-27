@@ -6,12 +6,12 @@ After=network.target
 Type=simple
 User=matrix-__APP__
 WorkingDirectory=/opt/yunohost/matrix-__APP__
+BindPaths=/etc/matrix-__APP__
 EnvironmentFile=/etc/default/matrix-__APP__
 ExecStartPre=/opt/yunohost/matrix-__APP__/bin/python -m synapse.app.homeserver --config-path=/etc/matrix-__APP__/homeserver.yaml --config-path=/etc/matrix-__APP__/conf.d/ --generate-keys
 ExecStart=/opt/yunohost/matrix-__APP__/bin/python -m synapse.app.homeserver --config-path=/etc/matrix-__APP__/homeserver.yaml --config-path=/etc/matrix-__APP__/conf.d/
 Restart=always
 RestartSec=3
-RuntimeDirectory=%i
 
 # Sandboxing options to harden security
 # Depending on specificities of your service/app, you may need to tweak these

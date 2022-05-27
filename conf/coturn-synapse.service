@@ -30,7 +30,6 @@ UMask=0007
 NoNewPrivileges=yes
 PrivateTmp=yes
 PrivateDevices=yes
-RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 RestrictNamespaces=yes
 RestrictRealtime=yes
 DevicePolicy=closed
