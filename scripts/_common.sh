@@ -46,7 +46,12 @@ install_sources() {
         set +$u_arg;
         source $final_path/bin/activate
         set -$u_arg;
-        pip3 install --upgrade setuptools wheel pip
+        if [ $(lsb_release --codename --short) == "bullseye" ]; then
+            pip3 install --upgrade setuptools==60.8.2 wheel pip
+        else
+            pip3 install --upgrade setuptools wheel pip
+        fi
+        
         chown $synapse_user:root -R $final_path
         sudo -u $synapse_user env PATH=$PATH pip3 install --upgrade 'cryptography>=3.4.7'
         pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
