@@ -13,11 +13,11 @@ name = "Synapse configuration"
         default = false
         help = "True to send anonymous statistics about synapse to improve the performances"
 
-        [synapse_config.server_config.is_public]
-        ask = "Server public"
+        [synapse_config.server_config.is_free_registration]
+        ask = "Server with free registration"
         type = "boolean"
         default = false
-        help = "Is it a public server"
+        help = "A public server means that anybody will be able to register on this server."
 
         [synapse_config.server_config.allow_public_rooms]
         ask = "Public rooms directory"
