@@ -2260,7 +2260,7 @@ password_providers:
 email:
   # The hostname of the outgoing SMTP server to use. Defaults to 'localhost'.
   #
-  smtp_host: "localhost"
+  smtp_host: "__MAIN_DOMAIN__"
 
   # The port on the mail server for outgoing SMTP. Defaults to 25.
   #

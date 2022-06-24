@@ -39,6 +39,7 @@ turnserver_alt_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_alt_tl
 phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 synapse_db_pwd=$(ynh_app_setting_get --app=$app --key=synapse_db_pwd)
 synapse_user_app_pwd=$(ynh_app_setting_get --app=$app --key=synapse_user_app_pwd)
+main_domain=$(yunohost domain list --output-as json | jq -r .main)
 
 #=================================================
 # SET ALL CONSTANT
