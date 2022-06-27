@@ -50,6 +50,7 @@ path_url="/_matrix"
 final_path="/opt/yunohost/matrix-$app"
 final_www_path="/var/www/$app"
 data_path="/home/yunohost.app/matrix-$app"
+main_domain=$(yunohost domain list --output-as json | jq -r .main)
 
 if [[ "$server_name" == "$default_domain_value" ]]; then
     server_name=$domain    
