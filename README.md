@@ -21,6 +21,7 @@ Yunohost chatroom with matrix : [https://riot.im/app/#/room/#yunohost:matrix.org
 
 
 **Shipped version:** 1.64.0~ynh1
+
 ## Disclaimers / important information
 
 ## Configuration
