@@ -26,7 +26,7 @@ jitsi_server=$(ynh_app_setting_get --app=$app --key=jitsi_server)
 path_url=$(ynh_app_setting_get --app=$app --key=path)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 synapse_old_version=$(ynh_app_setting_get --app=$app --key=synapse_version)
-is_public=$(ynh_app_setting_get --app=$app --key=is_public)
+is_free_registration=$(ynh_app_setting_get --app=$app --key=is_free_registration)
 port=$(ynh_app_setting_get --app=$app --key=synapse_port)
 synapse_tls_port=$(ynh_app_setting_get --app=$app --key=synapse_tls_port)
 turnserver_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_tls_port)
@@ -35,19 +35,21 @@ cli_port=$(ynh_app_setting_get --app=$app --key=cli_port)
 report_stats=$(ynh_app_setting_get --app=$app --key=report_stats)
 allow_public_rooms=$(ynh_app_setting_get --app=$app --key=allow_public_rooms)
 e2e_enabled_by_default=$(ynh_app_setting_get --app=$app --key=e2e_enabled_by_default)
-ynh_print_OFF
 synapse_db_pwd=$(ynh_app_setting_get --app=$app --key=synapse_db_pwd)
 turnserver_pwd=$(ynh_app_setting_get --app=$app --key=turnserver_pwd)
 registration_shared_secret=$(ynh_app_setting_get --app=$app --key=registration_shared_secret)
 form_secret=$(ynh_app_setting_get --app=$app --key=form_secret)
 macaroon_secret_key=$(ynh_app_setting_get --app=$app --key=macaroon_secret_key)
-ynh_print_ON
+synapse_user_app_pwd=$(ynh_app_setting_get --app=$app --key=synapse_user_app_pwd)
+domain_whitelist_client=$(get_domain_list)
+main_domain=$(yunohost domain list --output-as json | jq -r .main)
 
 #=================================================
 # SET ALL CONSTANT
 #=================================================
 
 synapse_user="matrix-$app"
+synapse_user_app="$app"
 synapse_db_name="matrix_$app"
 synapse_db_user="matrix_$app"
 synapse_db_name="matrix_$app"
@@ -131,6 +133,17 @@ if [ -z $allow_public_rooms ]; then
     ynh_app_setting_set --app=$app --key=allow_public_rooms --value=$allow_public_rooms
 fi
 
+if [ -z $is_free_registration ]; then
+    is_free_registration=$(ynh_app_setting_get --app=$app --key=is_""public)
+    ynh_app_setting_set --app=$app --key=is_free_registration --value=$is_free_registration
+fi
+
+if [ -z $synapse_user_app_pwd ]; then
+    synapse_user_app_pwd="$(ynh_string_random --length=30)"
+    ynh_app_setting_set --app=$app --key=synapse_user_app_pwd --value=$synapse_user_app_pwd
+    yunohost user create $synapse_user_app -f Synapse -l Application -d $domain -p "$synapse_user_app_pwd"
+fi
+
 #=================================================
 # MIGRATION 6 : Migrate data directory
 #=================================================
@@ -183,10 +196,8 @@ chown $synapse_user:root -R $final_www_path
 # MIGRATION 1 : GENERATE SYNAPSE SECRET
 #=================================================
 
-ynh_print_OFF
 if [ -z "$registration_shared_secret" ] || [ "$form_secret" == "form_secret: " ]
 then
-    ynh_print_ON
     ynh_script_progression --message="Generating synapse secret..." --weight=1
 
     # Go in virtualenvironnement
@@ -203,16 +214,13 @@ then
     set -u;
 
     # Get random values from config
-    ynh_print_OFF
     registration_shared_secret=$(egrep "^registration_shared_secret:" homeserver.yml | cut -d'"' -f2)
     form_secret=$(egrep "^form_secret:" homeserver.yml | cut -d'"' -f2)
 
     # store in yunohost settings
     ynh_app_setting_set --app=$app --key=registration_shared_secret --value="$registration_shared_secret"
     ynh_app_setting_set --app=$app --key=form_secret --value="$form_secret"
-    ynh_print_ON
 fi
-ynh_print_ON
 
 #=================================================
 # UPDATE SYNAPSE CONFIG
@@ -232,7 +240,7 @@ else
     macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
 fi
 
-if [ $is_public -eq 0 ]
+if [ $is_free_registration -eq 0 ]
 then
     allowed_access=False
     sso_enabled=True

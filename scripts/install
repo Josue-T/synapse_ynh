@@ -22,19 +22,12 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# RETRIEVE ARGUMENTS FROM THE MANIFEST
-#=================================================
-
-domain=$YNH_APP_ARG_DOMAIN
-is_public=$YNH_APP_ARG_IS_PUBLIC
-
-app=$YNH_APP_INSTANCE_NAME
-
-#=================================================
 # SET CONSTANTS
 #=================================================
 
 synapse_user="matrix-$app"
+synapse_user_app="$app"
+synapse_user_app_pwd="$(ynh_string_random --length=30)"
 synapse_db_name="matrix_$app"
 synapse_db_user="matrix_$app"
 synapse_db_name="matrix_$app"
@@ -43,6 +36,7 @@ report_stats="false"
 allow_public_rooms="false"
 e2e_enabled_by_default="true"
 default_domain_value="Same than the domain"
+domain_whitelist_client=$(get_domain_list)
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
@@ -50,12 +44,13 @@ default_domain_value="Same than the domain"
 
 domain=$YNH_APP_ARG_DOMAIN
 server_name=$YNH_APP_ARG_SERVER_NAME
-is_public=$YNH_APP_ARG_IS_PUBLIC
+is_free_registration=$YNH_APP_ARG_IS_FREE_REGISTRATION
 jitsi_server=$YNH_APP_ARG_JITSI_SERVER
 path_url="/_matrix"
 final_path="/opt/yunohost/matrix-$app"
 final_www_path="/var/www/$app"
 data_path="/home/yunohost.app/matrix-$app"
+main_domain=$(yunohost domain list --output-as json | jq -r .main)
 
 if [[ "$server_name" == "$default_domain_value" ]]; then
     server_name=$domain    
@@ -65,8 +60,6 @@ fi
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
 ynh_script_progression --message="Validating installation parameters..." --weight=2
-
-[ $(ynh_webpath_available --domain=$domain --path_url=$path_url) == "True" ] || ynh_die --message="$domain is not available as domain, please use an other domain."
 test ! -e "/etc/nginx/conf.d/$domain.d/synapse*.conf" || ynh_die --message="$domain is not available as domain, please use an other domain."
 
 # Check Final Path availability
@@ -90,10 +83,11 @@ ynh_app_setting_set --app=$app --key=server_name --value=$server_name
 ynh_app_setting_set --app=$app --key=jitsi_server --value=$jitsi_server
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 ynh_app_setting_set --app=$app --key=synapse_version --value=$upstream_version
-ynh_app_setting_set --app=$app --key=is_public --value=$is_public
+ynh_app_setting_set --app=$app --key=is_free_registration --value=$is_free_registration
 ynh_app_setting_set --app=$app --key=report_stats --value=$report_stats
 ynh_app_setting_set --app=$app --key=allow_public_rooms --value=$allow_public_rooms
 ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
+ynh_app_setting_set --app=$app --key=synapse_user_app_pwd --value=$synapse_user_app_pwd
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -152,6 +146,7 @@ ynh_install_app_dependencies $dependances
 ynh_script_progression --message="Configuring system user..." --weight=3
 
 ynh_system_user_create --username=$synapse_user --home_dir=$final_path
+yunohost user create $synapse_user_app -f Synapse -l Application -d $domain -p "$synapse_user_app_pwd"
 adduser $synapse_user ssl-cert
 adduser turnserver ssl-cert
 
@@ -160,16 +155,12 @@ adduser turnserver ssl-cert
 #=================================================
 ynh_script_progression --message="Creating a PostgreSQL database..." --weight=4
 
-ynh_print_OFF
 synapse_db_pwd=$(ynh_string_random --length=30)
 ynh_app_setting_set --app=$app --key=synapse_db_pwd --value=$synapse_db_pwd
-ynh_print_ON
 
 # Create postgresql database
 ynh_psql_test_if_first_run
-ynh_print_OFF
 ynh_psql_create_user $synapse_db_user $synapse_db_pwd
-ynh_print_ON
 ynh_psql_execute_as_root \
 --sql="CREATE DATABASE $synapse_db_name ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' template=template0 OWNER $synapse_db_user;"
 
@@ -222,7 +213,6 @@ deactivate
 set -u;
 
 # Get random values from config
-ynh_print_OFF
 registration_shared_secret=$(egrep "^registration_shared_secret:" homeserver.yml | cut -d'"' -f2)
 form_secret=$(egrep "^form_secret:" homeserver.yml | cut -d'"' -f2)
 macaroon_secret_key=$(egrep "^macaroon_secret_key:" homeserver.yml | cut -d'"' -f2)
@@ -231,7 +221,6 @@ macaroon_secret_key=$(egrep "^macaroon_secret_key:" homeserver.yml | cut -d'"' -
 ynh_app_setting_set --app=$app --key=registration_shared_secret --value="$registration_shared_secret"
 ynh_app_setting_set --app=$app --key=form_secret --value="$form_secret"
 ynh_app_setting_set --app=$app --key=macaroon_secret_key --value="$macaroon_secret_key"
-ynh_print_ON
 
 #=================================================
 # SETUP SYSTEMD
@@ -279,7 +268,7 @@ ynh_app_setting_set --app=$app --key=turnserver_pwd --value=$turnserver_pwd
 
 macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
 
-if [ $is_public -eq 0 ]
+if [ $is_free_registration -eq 0 ]
 then
     allowed_access=False
     sso_enabled=True

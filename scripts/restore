@@ -37,15 +37,16 @@ synapse_tls_port=$(ynh_app_setting_get --app=$app --key=synapse_tls_port)
 turnserver_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_tls_port)
 turnserver_alt_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_alt_tls_port)
 phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
-ynh_print_OFF
 synapse_db_pwd=$(ynh_app_setting_get --app=$app --key=synapse_db_pwd)
-ynh_print_ON
+synapse_user_app_pwd=$(ynh_app_setting_get --app=$app --key=synapse_user_app_pwd)
+main_domain=$(yunohost domain list --output-as json | jq -r .main)
 
 #=================================================
 # SET ALL CONSTANT
 #=================================================
 
 synapse_user="matrix-$app"
+synapse_user_app="$app"
 synapse_db_name="matrix_$app"
 synapse_db_user="matrix_$app"
 synapse_db_name="matrix_$app"
@@ -58,8 +59,6 @@ data_path="/home/yunohost.app/matrix-$app"
 #=================================================
 ynh_script_progression --message="Validating restoration parameters..." --weight=2
 
-ynh_webpath_available --domain=$domain --path_url=$path_url \
-	|| ynh_die --message="Path not available: ${domain}${path_url}"
 test ! -d $final_path \
 	|| ynh_die --message="There is already a directory: $final_path "
 
@@ -81,6 +80,7 @@ ynh_script_progression --message="Recreating the dedicated system user..." --wei
 
 # Create the dedicated user (if not existing)
 ynh_system_user_create --username=$synapse_user --home_dir=$final_path
+yunohost user create $synapse_user_app -f Synapse -l Application -d $domain -p "$synapse_user_app_pwd"
 adduser $synapse_user ssl-cert
 adduser turnserver ssl-cert
 
@@ -110,9 +110,7 @@ ynh_systemd_action --action=restart --service_name=fail2ban
 ynh_script_progression --message="Restoring the PostgreSQL database..." --weight=13
 
 ynh_psql_test_if_first_run
-ynh_print_OFF
 ynh_psql_create_user $synapse_db_user $synapse_db_pwd
-ynh_print_ON
 ynh_psql_execute_as_root \
 --sql="CREATE DATABASE $synapse_db_name
  ENCODING 'UTF8'
@@ -165,9 +163,7 @@ ynh_script_progression --message="Reconfiguring coturn..." --weight=23
 turnserver_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_tls_port)
 turnserver_alt_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_alt_tls_port)
 cli_port=$(ynh_app_setting_get --app=$app --key=cli_port)
-ynh_print_OFF
 turnserver_pwd=$(ynh_app_setting_get --app=$app --key=turnserver_pwd)
-ynh_print_ON
 
 # WARNING : these commands are used in INSTALL, UPGRADE
 # For any update do it in all files

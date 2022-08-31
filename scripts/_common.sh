@@ -1,5 +1,6 @@
 dependances="coturn build-essential python3-dev libffi-dev python3-pip python3-setuptools sqlite3 libssl-dev python3-venv libxml2-dev libxslt1-dev python3-lxml zlib1g-dev libjpeg-dev libpq-dev postgresql acl"
 python_version="$(python3 -V | cut -d' ' -f2 | cut -d. -f1-2)"
+app=$YNH_APP_INSTANCE_NAME
 
 install_sources() {
     # Install/upgrade synapse in virtualenv
@@ -45,7 +46,12 @@ install_sources() {
         set +$u_arg;
         source $final_path/bin/activate
         set -$u_arg;
-        pip3 install --upgrade setuptools wheel pip
+        if [ $(lsb_release --codename --short) == "bullseye" ]; then
+            pip3 install --upgrade setuptools==60.8.2 wheel pip
+        else
+            pip3 install --upgrade setuptools wheel pip
+        fi
+        
         chown $synapse_user:root -R $final_path
         sudo -u $synapse_user env PATH=$PATH pip3 install --upgrade 'cryptography>=3.4.7'
         pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
@@ -61,4 +67,10 @@ install_sources() {
         ynh_secure_remove --file=$final_path/.rustup
         ynh_secure_remove --file=$final_path/.cargo
     fi
+}
+
+get_domain_list() {
+    yunohost --output-as plain domain list | grep -E "^#" -v | sort | uniq | while read domain; do
+        echo -n "        - https://$domain\n"
+    done
 }

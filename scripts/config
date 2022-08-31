@@ -23,9 +23,12 @@ app=$YNH_APP_INSTANCE_NAME
 report_stats=$(ynh_app_setting_get --app $app --key report_stats)
 allow_public_rooms=$(ynh_app_setting_get --app=$app --key=allow_public_rooms)
 disable_backup_before_upgrade=$(ynh_app_setting_get --app $app --key disable_backup_before_upgrade)
-is_public=$(ynh_app_setting_get --app $app --key is_public)
+is_free_registration=$(ynh_app_setting_get --app $app --key is_free_registration)
 jitsi_server=$(ynh_app_setting_get --app=$app --key=jitsi_server)
 e2e_enabled_by_default=$(ynh_app_setting_get --app=$app --key=e2e_enabled_by_default)
+synapse_user_app_pwd=$(ynh_app_setting_get --app=$app --key=synapse_user_app_pwd)
+domain_whitelist_client=$(get_domain_list)
+main_domain=$(yunohost domain list --output-as json | jq -r .main)
 
 #=================================================
 # SHOW_CONFIG FUNCTION FOR 'SHOW' COMMAND
@@ -37,7 +40,7 @@ show_config() {
     ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS=$report_stats"
     ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_ALLOW_PUBLIC_ROOMS=$allow_public_rooms"
     ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_CLIENT_CONFIG_JITSI_SERVER=$jitsi_server"
-    ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC=${is_public}"
+    ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_FREE_REGISTRATION=${is_free_registration}"
     ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_CLIENT_CONFIG_E2E_ENABLED_BY_DEFAULT=${e2e_enabled_by_default}"
 
     if [[ ${disable_backup_before_upgrade:-0} -eq 1 ]]
@@ -56,7 +59,7 @@ apply_config() {
     report_stats=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS:-$report_stats}
     allow_public_rooms=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_ALLOW_PUBLIC_ROOMS:-$allow_public_rooms}
     do_backup_before_upgrade=${YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE:-}
-    is_public=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_PUBLIC:-$is_public}
+    is_free_registration=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_FREE_REGISTRATION:-$is_free_registration}
     jitsi_server=${YNH_CONFIG_SYNAPSE_CONFIG_CLIENT_CONFIG_JITSI_SERVER:-$jitsi_server}
     e2e_enabled_by_default=${YNH_CONFIG_SYNAPSE_CONFIG_CLIENT_CONFIG_E2E_ENABLED_BY_DEFAULT:-$e2e_enabled_by_default}
 
@@ -81,7 +84,7 @@ apply_config() {
 
     ynh_app_setting_set --app $app --key report_stats --value $report_stats
     ynh_app_setting_set --app $app --key allow_public_rooms --value $allow_public_rooms
-    ynh_app_setting_set --app $app --key is_public --value $is_public
+    ynh_app_setting_set --app $app --key is_free_registration --value $is_free_registration
     ynh_app_setting_set --app $app --key jitsi_server --value $jitsi_server
     ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 
@@ -96,7 +99,7 @@ apply_config() {
     domain=$(ynh_app_setting_get --app $app --key domain)
     server_name=$(ynh_app_setting_get --app $app --key server_name)
     synapse_db_pwd=$(ynh_app_setting_get --app $app --key synapse_db_pwd)
-    is_public=$(ynh_app_setting_get --app $app --key is_public)
+    is_free_registration=$(ynh_app_setting_get --app $app --key is_free_registration)
     port=$(ynh_app_setting_get --app $app --key synapse_port)
     synapse_tls_port=$(ynh_app_setting_get --app $app --key synapse_tls_port)
     turnserver_tls_port=$(ynh_app_setting_get --app $app --key turnserver_tls_port)
@@ -124,7 +127,7 @@ apply_config() {
         macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
     fi
 
-    if [ $is_public -eq 0 ]
+    if [ $is_free_registration -eq 0 ]
     then
         allowed_access=False
         sso_enabled=True

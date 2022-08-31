@@ -6,7 +6,7 @@
 		"en": "Instant messaging server which uses Matrix",
 		"fr": "Un serveur de messagerie instantané basé sur Matrix"
 	},
-	"version": "1.59.0~ynh1",
+	"version": "1.65.0~ynh1",
 	"url": "http://matrix.org",
 	"license": "Apache-2.0",
 	"maintainer": {
@@ -14,7 +14,7 @@
 		"email": "josue@tille.ch"
 	},
     "upstream": {
-        "license": "free",
+        "license": "Apache-2.0",
         "website": "https://matrix.org/",
         "code": "https://github.com/matrix-org/synapse"
     },
@@ -29,12 +29,7 @@
 		"install" : [
 			{
 				"name": "domain",
-				"type": "domain",
-				"ask": {
-					"en": "Choose a domain for Synapse",
-					"fr": "Choisissez un domaine pour Synapse"
-				},
-				"example": "synapse.domain.org"
+				"type": "domain"
 			},
 			{
 				"name": "server_name",
@@ -47,14 +42,14 @@
 				"default": "Same than the domain"
 			},
 			{
-				"name": "is_public",
+				"name": "is_free_registration",
 				"type": "boolean",
 				"ask": {
-					"en": "Is it a public server?",
-					"fr": "Est-ce un serveur public ?"
+					"en": "Is it a server with free registration ?",
+					"fr": "Est-ce un serveur avec création de compte libre ?"
 				},
 				"default": false,
-				"help": { 
+				"help": {
 					"en": "A public server means that anybody will be able to register on this server.",
 					"fr": "Un serveur public signifie que n'importe qui pourra s'enregistrer sur ce serveur."
 				}
