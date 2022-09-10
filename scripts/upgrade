@@ -41,7 +41,8 @@ registration_shared_secret=$(ynh_app_setting_get --app=$app --key=registration_s
 form_secret=$(ynh_app_setting_get --app=$app --key=form_secret)
 macaroon_secret_key=$(ynh_app_setting_get --app=$app --key=macaroon_secret_key)
 synapse_user_app_pwd=$(ynh_app_setting_get --app=$app --key=synapse_user_app_pwd)
-domain_whitelist_client=$(get_domain_list)
+domain_whitelist_client_=$(get_domain_list)
+domain_whitelist_client=${domain_whitelist_client_%"\n"}
 main_domain=$(yunohost domain list --output-as json | jq -r .main)
 
 #=================================================
@@ -249,6 +250,7 @@ else
     sso_enabled=False
 fi
 
+ynh_replace_string __DOMAIN_WHITELIST_CLIENT__ "$domain_whitelist_client" "$YNH_APP_BASEDIR/conf/homeserver.yaml"
 ynh_add_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
 ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
 

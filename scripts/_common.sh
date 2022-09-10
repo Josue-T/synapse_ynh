@@ -51,7 +51,7 @@ install_sources() {
         else
             pip3 install --upgrade setuptools wheel pip
         fi
-        
+
         chown $synapse_user:root -R $final_path
         sudo -u $synapse_user env PATH=$PATH pip3 install --upgrade 'cryptography>=3.4.7'
         pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
@@ -71,6 +71,6 @@ install_sources() {
 
 get_domain_list() {
     yunohost --output-as plain domain list | grep -E "^#" -v | sort | uniq | while read domain; do
-        echo -n "        - https://$domain\n"
+        echo -n "      - https://$domain\n"
     done
 }
