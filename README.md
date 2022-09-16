@@ -17,7 +17,7 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 Instant messaging server matrix network.
 
-YunoHost chatroom with Matrix : [https://matrix.to/#/#yunohost:libera.chat](https://matrix.to/#/#yunohost:libera.chat)
+YunoHost chatroom with Matrix : [https://matrix.to/#/#yunohost:matrix.org](https://matrix.to/#/#yunohost:matrix.org)
 
 
 **Shipped version:** 1.67.0~ynh1
