@@ -17,10 +17,10 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 Instant messaging server matrix network.
 
-Yunohost chatroom with matrix : [https://riot.im/app/#/room/#yunohost:matrix.org](https://riot.im/app/#/room/#yunohost:matrix.org)
+Yunohost chatroom with matrix : [https://matrix.to/#/#yunohost:matrix.org](https://matrix.to/#/#yunohost:matrix.org)
 
 
-**Shipped version:** 1.65.0~ynh1
+**Shipped version:** 1.67.0~ynh1
 
 ## Disclaimers / important information
 

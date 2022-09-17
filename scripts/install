@@ -53,7 +53,7 @@ data_path="/home/yunohost.app/matrix-$app"
 main_domain=$(yunohost domain list --output-as json | jq -r .main)
 
 if [[ "$server_name" == "$default_domain_value" ]]; then
-    server_name=$domain    
+    server_name=$domain
 fi
 
 #=================================================
@@ -205,7 +205,7 @@ source $final_path/bin/activate
 set -u;
 
 # Generate config
-python -m synapse.app.homeserver --keys-directory /etc/matrix-$app/ --generate-config --generate-keys --server-name $server_name --report-stats=no -c homeserver.yml
+python -m synapse.app.homeserver --keys-directory /etc/matrix-$app/ --generate-config --server-name $server_name --report-stats=no -c homeserver.yml
 
 # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
 set +u;
@@ -341,7 +341,7 @@ if yunohost --output-as plain domain list | grep -q "^$server_name$"; then
                           --label="Server info for clients. (well-known)" --show_tile=false --allowed=visitors \
                           --auth_header=false --protected=true
 fi
-                      
+
 #=================================================
 # UPDATE HOOKS
 #=================================================
