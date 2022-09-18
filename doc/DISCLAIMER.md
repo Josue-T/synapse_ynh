@@ -105,6 +105,14 @@ This app doesn't provide any real good web interface. So it's recommended to use
 
 ## Additional information
 
+### Administration API
+
+Synapse's administration API endpoints are under `/_synapse` path and protected with the `admin_api` permission.
+By default, no one has access to this path.
+
+If you wish to access it, for example to use [Synapse Admin](https://github.com/YunoHost-Apps/synapse-admin_ynh),
+you need to give this permission to visitors.
+
 ### Multi instance support
 
 To give a possibility to have multiple domains you can use multiple instances of synapse. In this case all instances will run on different ports so it's really important to put a SRV record in your domain. You can get the port that you need to put in your SRV record with this following command:
