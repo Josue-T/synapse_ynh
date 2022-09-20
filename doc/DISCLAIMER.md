@@ -105,7 +105,7 @@ This app doesn't provide any real good web interface. So it's recommended to use
 
 ## Additional information
 
-## Administation
+## Administration
 
 **All documentation of this section is not warranted. A bad use of command could break the app and all the data. So use these commands at your own risk.**
 
