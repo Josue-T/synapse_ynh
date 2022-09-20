@@ -2,7 +2,7 @@
     ; Manifest
         domain="domain.tld"    (DOMAIN)
         path="/_matrix/static/"	(PATH)
-        is_public=1 (PUBLIC|public=1|private=0)
+        is_free_registration=1 (PUBLIC|public=1|private=0)
         server_name="domain.tld"    (DOMAIN)
     ; Checks
         pkg_linter=1
@@ -12,8 +12,8 @@
         setup_private=0
         setup_public=1
         upgrade=1
-        upgrade=1   from_commit=35774cc0eabb82b03230210689fa060d5f2b0bd8
-        upgrade=1   from_commit=dbf0a2c9359ccd62b55132cace548b17e44af9bf
+        upgrade=1   from_commit=0a485e0d6bcd14392b9203b3b27e7e1a7ba21d19
+        upgrade=1   from_commit=6af39e6e086e70e2063eb8f63c48a1e4a597300d
         backup_restore=1
         multi_instance=0
         incorrect_path=0
@@ -22,7 +22,7 @@
 ;;; Levels
     Level 5=auto
 ;;; Upgrade options
-    ; commit=35774cc0eabb82b03230210689fa060d5f2b0bd8
-        name=Migrate from self signed certificate to cert managed by Yunohost from old_version_for_CI_3 branch
-    ; commit=dbf0a2c9359ccd62b55132cace548b17e44af9bf
-        name=Before permission implementation
+    ; commit=0a485e0d6bcd14392b9203b3b27e7e1a7ba21d19
+        name=Before permission implementation (branch old_version_for_CI_4)
+    ; commit=6af39e6e086e70e2063eb8f63c48a1e4a597300d
+        name=Before app user creation
