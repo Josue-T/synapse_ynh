@@ -123,14 +123,6 @@ chown $synapse_user:root -R /etc/matrix-$app
 chmod u=rwX,g=rX,o= -R /etc/matrix-$app
 
 #=================================================
-# SETUP PERMISSIONS
-#=================================================
-
-ynh_script_progression --message="Configuring permissions..." --weight=1
-ynh_permission_url --permission=server_api --clear_urls
-ynh_permission_url --permission=server_api --url=$domain/_matrix --add_url=$server_name/.well-known/matrix \
-
-#=================================================
 # RELOAD SERVICES
 #=================================================
 ynh_script_progression --message="Restarting synapse services..." --weight=5
