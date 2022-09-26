@@ -20,7 +20,7 @@ Instant messaging server matrix network.
 Yunohost chatroom with matrix : [https://matrix.to/#/#yunohost:matrix.org](https://matrix.to/#/#yunohost:matrix.org)
 
 
-**Shipped version:** 1.67.0~ynh1
+**Shipped version:** 1.67.0~ynh2
 
 ## Disclaimers / important information
 
@@ -130,6 +130,70 @@ Synapse uses a lot of ressource. So on slow architecture (like small ARM board),
 This app doesn't provide any real good web interface. So it's recommended to use Element client to connect to this app. This app is available [here](https://github.com/YunoHost-Apps/element_ynh)
 
 ## Additional information
+
+## Administration
+
+**All documentation of this section is not warranted. A bad use of command could break the app and all the data. So use these commands at your own risk.**
+
+Before any manipulation it's recommended to do a backup by this following command :
+
+`sudo yunohost backup create --apps synapse`
+
+### Set user as admin
+
+Actually there are no functions in the client interface to set a user as admin. So it's possible to enable it manually in the database.
+
+The following command will grant admin privilege to the specified user:
+```
+su --command="psql matrix_synapse" postgres <<< "UPDATE users SET admin = 1 WHERE name = '@user_to_be_admin:domain.tld'"
+```
+
+### Administration API
+
+Synapse's administration API endpoints are under `/_synapse` path and protected with the `admin_api` permission.
+By default, no one has access to this path.
+
+If you wish to access it, for example to use [Synapse Admin](https://github.com/YunoHost-Apps/synapse-admin_ynh),
+you need to give this permission to visitors.
+
+Then, to log in the API with your credentials, you need to set your user as admin (cf. precedent section).
+
+### Upgrade
+
+By default a backup is made before the upgrade. To avoid this you have theses following possibilites:
+- Call the command with the `-b` flag: `yunohost app upgrade synapse -b`
+- Set the settings `disable_backup_before_upgrade` to `1`. You can set this with this command:
+
+`yunohost app setting synapse disable_backup_before_upgrade -v 1`
+
+After this settings will be applied for **all** next upgrade.
+
+From command line:
+
+`yunohost app upgrade synapse`
+
+### Backup
+
+This app use now the core-only feature of the backup. To keep the integrity of the data and to have a better guarantee of the restoration is recommended to proceed like this:
+
+- Stop synapse service with theses following command:
+
+`systemctl stop synapse.service`
+
+- Launch the backup of synapse with this following command:
+
+`yunohost backup create --app synapse`
+
+- Do a backup of your data with your specific strategy (could be with rsync, borg backup or just cp). The data is generally stored in `/home/yunohost.app/matrix-synapse`.
+- Restart the synapse service with these command:
+
+`systemctl start synapse.service`
+
+### Remove
+
+Due of the backup core only feature the data directory in `/home/yunohost.app/matrix-synapse` **is not removed**.
+
+Use the `--purge` flag with the command, or remove it manually to purge app user data.
 
 ### Multi instance support
 
