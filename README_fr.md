@@ -20,7 +20,7 @@ Instant messaging server matrix network.
 Yunohost chatroom with matrix : [https://matrix.to/#/#yunohost:matrix.org](https://matrix.to/#/#yunohost:matrix.org)
 
 
-**Version incluse :** 1.67.0~ynh2
+**Version incluse :** 1.68.0~ynh1
 
 ## Avertissements / informations importantes
 
