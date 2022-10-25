@@ -2246,7 +2246,7 @@ password_providers:
           uid: "uid"
           mail: "mail"
           name: "givenName"
-       bind_dn: __SYNAPSE_USER_APP__
+       bind_dn: "uid=__SYNAPSE_USER_APP__,ou=users,dc=yunohost,dc=org"
        bind_password: __SYNAPSE_USER_APP_PWD__
        filter: "(&(objectClass=posixAccount)(permission=cn=__APP__.main,ou=permission,dc=yunohost,dc=org))"
 

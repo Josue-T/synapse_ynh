@@ -117,12 +117,12 @@ ynh_add_config --template="homeserver.yaml" --destination="/etc/matrix-$app/home
 ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
 
 #=================================================
-# SETUP PERMISSIONS
+# SECURE FILES AND DIRECTORIES
 #=================================================
 
-ynh_script_progression --message="Configuring permissions..." --weight=1
-ynh_permission_url --permission=server_api --clear_urls
-ynh_permission_url --permission=server_api --url=$domain/_matrix --additional_urls=$server_name/.well-known/matrix \
+# Only setting permissions for the two config files updated above
+chown $synapse_user:root -R /etc/matrix-$app
+chmod u=rwX,g=rX,o= -R /etc/matrix-$app
 
 #=================================================
 # RELOAD SERVICES
