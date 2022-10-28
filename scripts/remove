@@ -93,7 +93,7 @@ ynh_secure_remove --file=/etc/nginx/conf.d/${server_name}.d/${app}_server_name.c
 #=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Removing nginx web server configuration" --weight=2
+ynh_script_progression --message="Removing NGINX web server configuration" --weight=2
 
 # Remove the dedicated nginx config
 ynh_remove_nginx_config
@@ -129,7 +129,7 @@ closeport $turnserver_alt_tls_port
 #=================================================
 # REMOVE FAIL2BAN CONFIGURATION
 #=================================================
-ynh_script_progression --message="Removing fail2ban configuration..." --weight=8
+ynh_script_progression --message="Removing Fail2Ban configuration..." --weight=8
 
 # Remove the dedicated fail2ban config
 ynh_remove_fail2ban_config

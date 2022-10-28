@@ -197,7 +197,7 @@ chown $synapse_user:root -R $final_www_path
 # CREATE SYNAPSE CONFIG
 #=================================================
 
-ynh_script_progression --message="Creating synapse config..." --weight=3
+ynh_script_progression --message="Creating Synapse config..." --weight=3
 
 # Go in virtualenvironnement
 set +u;
@@ -237,7 +237,7 @@ ynh_add_systemd_config --service=coturn-$app --template=coturn-synapse.service
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring nginx web server..." --weight=2
+ynh_script_progression --message="Configuring NGINX web server..." --weight=2
 
 # Create a dedicated php-fpm config
 ynh_script_progression --message="Configuring application..."
@@ -255,7 +255,7 @@ ynh_add_nginx_config app
 #=================================================
 # SET SYNAPSE CONFIG
 #=================================================
-ynh_script_progression --message="Configuring synapse..." --weight=2
+ynh_script_progression --message="Configuring Synapse..." --weight=2
 
 # Find password for turnserver and database
 turnserver_pwd=$(ynh_string_random --length=30)
@@ -283,7 +283,7 @@ ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
 #=================================================
 # SET COTURN CONFIG
 #=================================================
-ynh_script_progression --message="Configuring coturn..." --weight=1
+ynh_script_progression --message="Configuring Coturn..." --weight=1
 
 # WARNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
@@ -381,7 +381,7 @@ yunohost service add coturn-$app --needs_exposed_ports $turnserver_tls_port
 #=================================================
 # RELOAD SERVICES
 #=================================================
-ynh_script_progression --message="Restarting synapse services..." --weight=11
+ynh_script_progression --message="Restarting Synapse services..." --weight=11
 
 ynh_systemd_action --service_name=coturn-$app.service --action=restart
 ynh_systemd_action --service_name=matrix-$app --action=restart --line_match="Synapse now listening on TCP port $synapse_tls_port" --log_path="/var/log/matrix-$app/homeserver.log" --timeout=300
@@ -389,7 +389,7 @@ ynh_systemd_action --service_name=matrix-$app --action=restart --line_match="Syn
 #=================================================
 # SETUP FAIL2BAN
 #=================================================
-ynh_script_progression --message="Configuring fail2ban..." --weight=10
+ynh_script_progression --message="Configuring Fail2Ban..." --weight=10
 
 # WARNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
