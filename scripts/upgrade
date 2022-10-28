@@ -169,7 +169,7 @@ ynh_script_progression --message="Upgrading dependencies..." --weight=6
 
 # WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
 # For any update do it in all files
-ynh_install_app_dependencies $dependances
+ynh_exec_warn_less ynh_install_app_dependencies $dependances
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
