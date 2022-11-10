@@ -169,7 +169,7 @@ ynh_script_progression --message="Upgrading dependencies..." --weight=6
 
 # WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
 # For any update do it in all files
-ynh_install_app_dependencies $dependances
+ynh_exec_warn_less ynh_install_app_dependencies $dependances
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -318,7 +318,7 @@ fi
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Upgrading nginx web server configuration..." --weight=2
+ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=2
 
 # Create a dedicated php-fpm config
 ynh_script_progression --message="Configuring application..."
@@ -330,7 +330,7 @@ then
     ynh_add_config --template="server_name.conf" --destination="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
 fi
 
-# Create a dedicated nginx config
+# Create a dedicated NGINX config
 ynh_add_nginx_config app
 
 #=================================================
@@ -338,7 +338,7 @@ ynh_add_nginx_config app
 #=================================================
 # UPDATE COTURN CONFIG
 #=================================================
-ynh_script_progression --message="Updating coturn config..." --weight=1
+ynh_script_progression --message="Updating Coturn config..." --weight=1
 
 # WARNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
@@ -397,7 +397,7 @@ ynh_add_systemd_config --service=coturn-$app --template=coturn-synapse.service
 #=================================================
 # UPGRADE FAIL2BAN
 #=================================================
-ynh_script_progression --message="Reconfiguring fail2ban..." --weight=8
+ynh_script_progression --message="Reconfiguring Fail2Ban..." --weight=8
 
 # WARNING : theses command are used in INSTALL, UPGRADE
 # For any update do it in all files
@@ -480,7 +480,7 @@ ynh_app_setting_set --app=$app --key=synapse_version --value=$upstream_version
 #=================================================
 # RELOAD SERVICES
 #=================================================
-ynh_script_progression --message="Restarting synapse services..." --weight=5
+ynh_script_progression --message="Restarting Synapse services..." --weight=5
 
 ynh_systemd_action --service_name=coturn-$app.service --action=restart
 ynh_systemd_action --service_name=matrix-$app --action=restart --line_match="Synapse now listening on TCP port $synapse_tls_port" --log_path="/var/log/matrix-$app/homeserver.log" --timeout=300

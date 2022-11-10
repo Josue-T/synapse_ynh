@@ -67,7 +67,7 @@ ynh_systemd_action --service_name=matrix-$app.service --action=stop
 # NGINX CONFIGURATION
 #=================================================
 
-ynh_script_progression --message="Updating nginx configuration..."
+ynh_script_progression --message="Updating NGINX configuration..."
 
 # MODIFY URL IN NGINX CONF
 nginx_conf_path=/etc/nginx/conf.d/$old_domain.d/$app.conf
@@ -89,7 +89,7 @@ fi
 # UPDATE SYNAPSE CONFIG
 #=================================================
 
-ynh_script_progression --message="Updating synapse config..." --weight=2
+ynh_script_progression --message="Updating Synapse config..." --weight=2
 
 # WARNING : theses command are used in INSTALL, UPGRADE, CONFIG, CHANGE-URL (4 times)
 # For any update do it in all files
@@ -127,7 +127,7 @@ chmod u=rwX,g=rX,o= -R /etc/matrix-$app
 #=================================================
 # RELOAD SERVICES
 #=================================================
-ynh_script_progression --message="Restarting synapse services..." --weight=5
+ynh_script_progression --message="Restarting Synapse services..." --weight=5
 
 ynh_systemd_action --service_name=coturn-$app.service --action=restart
 ynh_systemd_action --service_name=matrix-$app --action=restart --line_match="Synapse now listening on TCP port $synapse_tls_port" --log_path="/var/log/matrix-$app/homeserver.log" --timeout=300

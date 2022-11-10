@@ -1,9 +1,9 @@
 ;; General
     ; Manifest
-        domain="domain.tld"    (DOMAIN)
-        path="/_matrix/static/"	(PATH)
-        is_free_registration=1 (PUBLIC|public=1|private=0)
-        server_name="domain.tld"    (DOMAIN)
+        domain="domain.tld"
+        path="/_matrix/static/"
+        is_free_registration=1
+        server_name="domain.tld"
     ; Checks
         pkg_linter=1
         setup_sub_dir=1

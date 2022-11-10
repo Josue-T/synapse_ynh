@@ -4,7 +4,7 @@
 	"packaging_format": 1,
 	"description": {
 		"en": "Instant messaging server which uses Matrix",
-		"fr": "Un serveur de messagerie instantané basé sur Matrix"
+		"fr": "Serveur de messagerie instantané basé sur Matrix"
 	},
 	"version": "1.71.0~ynh1",
 	"url": "http://matrix.org",
@@ -45,7 +45,7 @@
 				"name": "is_free_registration",
 				"type": "boolean",
 				"ask": {
-					"en": "Is it a server with free registration ?",
+					"en": "Is it a server with free registration?",
 					"fr": "Est-ce un serveur avec création de compte libre ?"
 				},
 				"default": false,

@@ -1,53 +1,54 @@
-version = "0.1"
-name = "Synapse configuration panel"
+version = "1.0"
 
-[synapse_config]
+[main]
 name = "Synapse configuration"
 
-    [synapse_config.server_config]
-    name = "Synapse server configuration"
+    [main.config]
+    name = "Configuration Options"
 
-        [synapse_config.server_config.server_statistics]
-        ask = "Server statistics"
-        type = "boolean"
-        default = false
-        help = "True to send anonymous statistics about synapse to improve the performances"
+            [main.config.server_statistics]
+            ask = "Server statistics"
+            type = "boolean"
+            yes = true
+            no = false
+            help = "Set to 'true' to send anonymous statistics to Synapse to improve performance."
 
-        [synapse_config.server_config.is_free_registration]
-        ask = "Server with free registration"
-        type = "boolean"
-        default = false
-        help = "A public server means that anybody will be able to register on this server."
+            [main.config.is_free_registration]
+            ask = "Free registration"
+            type = "boolean"
+            yes = true
+            no = false
+            help = "A public server means that anybody will be able to register on this server."
 
-        [synapse_config.server_config.allow_public_rooms]
-        ask = "Public rooms directory"
-        type = "boolean"
-        default = false
-        help = "If set to 'false', requires authentication to access the server's public rooms directory through the client API and forbids any other homeserver to fetch the server's public rooms directory via federation."
+            [main.config.allow_public_rooms]
+            ask = "Public rooms directory"
+            type = "boolean"
+            yes = true
+            no = false
+            help = "If set to 'false', requires authentication to access the server's public rooms directory through the client API and forbids any other homeserver to fetch the server's public rooms directory via federation."
 
-    [synapse_config.client_config]
+    [main.client_config]
     name = "Matrix client configuration"
 
-        [synapse_config.client_config.jitsi_server]
-        ask = "Jitsi server address for conference"
+        [main.client_config.jitsi_server]
+        ask = "Jitsi server address"
         type = "string"
         default = 'jitsi.riot.im'
-        help = "Address of the Jitsi server for conference. Note that it's only for conference in rooms with more than 2 person. With 2 person the stun/turn server is used."
+        help = "Jitsi server address for the conference. Note that this is only for conferences in rooms with more than 2 people. With 2 people, the stun/turn server is used."
         
-        [synapse_config.client_config.e2e_enabled_by_default]
+        [main.client_config.e2e_enabled_by_default]
         ask = "End to end encryption by default for direct messages"
         type = "boolean"
-        default = true
+        yes = true
+        no = false
         help = "By default, Element will create encrypted DM rooms if the user you are chatting with has keys uploaded on their account. For private room creation, Element will default to encryption on but give you can disable this settings here."
 
-[package_config]
-name = "Package configuration"
+    [main.package_config]
+    name = "Package configuration"
 
-    [package_config.package_config]
-    name = "Upgrade"
-
-        [package_config.package_config.backup_before_upgrade]
+        [main.package_config.backup_before_upgrade]
         ask = "Backup before upgrade"
         type = "boolean"
-        default = true
-        help = "True to do a backup before every upgrade"
+        yes = true
+        no = false
+        help = "Set to 'true' to back up before each upgrade."

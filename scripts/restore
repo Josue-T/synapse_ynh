@@ -71,7 +71,7 @@ ynh_script_progression --message="Reinstalling dependencies..." --weight=70
 
 # WARNING : theses command are used in INSTALL, UPGRADE, RESTORE
 # For any update do it in all files
-ynh_install_app_dependencies $dependances
+ynh_exec_warn_less ynh_install_app_dependencies $dependances
 
 #=================================================
 # RECREATE THE DEDICATED USER
@@ -101,7 +101,7 @@ install_sources
 # RESTORE FAIL2BAN CONFIGURATION
 #=================================================
 
-ynh_script_progression --message="Reload fail2ban..." --weight=6
+ynh_script_progression --message="Reload Fail2Ban..." --weight=6
 ynh_systemd_action --action=restart --service_name=fail2ban
 
 #=================================================
@@ -155,7 +155,7 @@ fi
 #=================================================
 # RECONFIGURE THE TURNSERVER
 #=================================================
-ynh_script_progression --message="Reconfiguring coturn..." --weight=23
+ynh_script_progression --message="Reconfiguring Coturn..." --weight=23
 
 # To be sure that at the restoration the IP address in coturn config is the same as the real address we remake the coturn config
 
@@ -227,7 +227,7 @@ chown $synapse_user:root -R $final_www_path
 #=================================================
 # RELOAD NGINX, SYNAPSE AND COTURN
 #=================================================
-ynh_script_progression --message="Restarting synapse services..." --weight=7
+ynh_script_progression --message="Restarting Synapse services..." --weight=7
 
 ynh_systemd_action --service_name=coturn-$app.service --action=restart
 ynh_systemd_action --service_name=matrix-$app --action=restart --line_match="Synapse now listening on TCP port $synapse_tls_port" --log_path="/var/log/matrix-$app/homeserver.log" --timeout=300
@@ -256,7 +256,7 @@ ynh_send_readme_to_admin --app_message="mail_to_send" --type="restore"
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..."
+ynh_script_progression --message="Reloading NGINX web server..."
 
 ynh_systemd_action --service_name=php$phpversion-fpm --action=reload
 ynh_systemd_action --service_name=nginx --action=reload
