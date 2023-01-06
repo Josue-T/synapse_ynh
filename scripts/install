@@ -95,7 +95,7 @@ ynh_app_setting_set --app=$app --key=synapse_user_app_pwd --value=$synapse_user_
 ## SET STANDARD SETTINGS FROM DEFAULT CONFIG
 #=================================================
 
-element_ynh_url=element_domain+element_path
+element_ynh_url="https://"+element_domain+element_path
 allow_public_rooms_without_auth="false"
 allow_public_rooms_over_federation="false"
 disable_msisdn_registration="true"

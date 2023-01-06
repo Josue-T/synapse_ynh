@@ -191,7 +191,7 @@ element_path=$(ynh_app_setting_get --app $element_instance --key path)
 
 if [ -z "$element_ynh_url" ]
 then
-  element_ynh_url=element_domain+element_path
+  element_ynh_url="https://"+element_domain+element_path
   ynh_app_setting_set --app=$app --key=element_ynh_url --value=$element_ynh_url
 fi
 if [ -z "$allow_public_rooms_without_auth" ]
