@@ -33,7 +33,6 @@ synapse_db_user="matrix_$app"
 synapse_db_name="matrix_$app"
 upstream_version=$(ynh_app_upstream_version)
 report_stats="false"
-allow_public_rooms="false"
 e2e_enabled_by_default="true"
 default_domain_value="Same than the domain"
 domain_whitelist_client=$(get_domain_list)
@@ -45,7 +44,6 @@ domain_whitelist_client=$(get_domain_list)
 domain=$YNH_APP_ARG_DOMAIN
 server_name=$YNH_APP_ARG_SERVER_NAME
 is_free_registration=$YNH_APP_ARG_IS_FREE_REGISTRATION
-jitsi_server=$YNH_APP_ARG_JITSI_SERVER
 path_url="/_matrix"
 final_path="/opt/yunohost/matrix-$app"
 final_www_path="/var/www/$app"
@@ -55,6 +53,11 @@ main_domain=$(yunohost domain list --output-as json | jq -r .main)
 if [[ "$server_name" == "$default_domain_value" ]]; then
     server_name=$domain
 fi
+
+# Get app name of first Element Instance (can be changed later in Config Panel)
+element_instance="element"
+element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
+element_path=$(ynh_app_setting_get --app $element_instance --key path)
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
@@ -80,7 +83,6 @@ ynh_app_setting_set --app=$app --key=domain --value=$domain
 ynh_app_setting_set --app=$app --key=path --value=$path_url
 ynh_app_setting_set --app=$app --key=no_sso --value true
 ynh_app_setting_set --app=$app --key=server_name --value=$server_name
-ynh_app_setting_set --app=$app --key=jitsi_server --value=$jitsi_server
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 ynh_app_setting_set --app=$app --key=synapse_version --value=$upstream_version
 ynh_app_setting_set --app=$app --key=is_free_registration --value=$is_free_registration
@@ -88,6 +90,38 @@ ynh_app_setting_set --app=$app --key=report_stats --value=$report_stats
 ynh_app_setting_set --app=$app --key=allow_public_rooms --value=$allow_public_rooms
 ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 ynh_app_setting_set --app=$app --key=synapse_user_app_pwd --value=$synapse_user_app_pwd
+
+#=================================================
+## SET STANDARD SETTINGS FROM DEFAULT CONFIG
+#=================================================
+
+element_ynh_url=element_domain+element_path
+allow_public_rooms_without_auth="false"
+allow_public_rooms_over_federation="false"
+disable_msisdn_registration="true"
+allowed_local_3pids=""
+allow_guest_access="false"
+default_identity_server="https://matrix.org"
+auto_join_rooms=""
+auto_join_rooms_for_guests="true"
+password_enabled="true"
+enable_notifs="true"
+notif_for_new_users="true"
+enable_group_creation="true"
+
+ynh_app_setting_set --app=$app --key=element_ynh_url --value=$element_ynh_url
+ynh_app_setting_set --app=$app --key=allow_public_rooms_without_auth --value=$allow_public_rooms_without_auth
+ynh_app_setting_set --app=$app --key=allow_public_rooms_over_federation --value=$allow_public_rooms_over_federation
+ynh_app_setting_set --app=$app --key=disable_msisdn_registration --value=$disable_msisdn_registration
+ynh_app_setting_set --app=$app --key=allowed_local_3pids --value=$allowed_local_3pids
+ynh_app_setting_set --app=$app --key=allow_guest_access --value=$allow_guest_access
+ynh_app_setting_set --app=$app --key=default_identity_server --value=$default_identity_server
+ynh_app_setting_set --app=$app --key=auto_join_rooms --value=$auto_join_rooms
+ynh_app_setting_set --app=$app --key=auto_join_rooms_for_guests --value=$auto_join_rooms_for_guests
+ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
+ynh_app_setting_set --app=$app --key=enable_notifs --value=$enable_notifs
+ynh_app_setting_set --app=$app --key=notif_for_new_users --value=$notif_for_new_users
+ynh_app_setting_set --app=$app --key=enable_group_creation --value=$enable_group_creation
 
 #=================================================
 # STANDARD MODIFICATIONS

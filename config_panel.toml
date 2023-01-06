@@ -1,0 +1,185 @@
+version = "1.0"
+
+[homeserver]
+name = "Synapse Homeserver"
+services = ["__APP__"]
+
+    [homeserver.config]
+    name = "Configuration Options"
+
+            [homeserver.config.server_statistics]
+            ask = "Server statistics"
+            type = "boolean"
+            yes = true
+            no = false
+            help = "Set to 'true' to send anonymous statistics to Synapse to improve performance."
+            bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+    [homeserver.registration]
+    name = "Homeserver Registration"
+
+            [homeserver.registration.turn_allow_guests]
+            ask = "Should guests be allowed to use the TURN server?"
+            type = "boolean"
+            yes = true
+            no = false
+            help = "This defaults to True, otherwise VoIP will be unreliable for guests. However, it does introduce a slight security risk as it allows users to connect to arbitrary endpoints without having first signed up for a valid account (e.g. by passing a CAPTCHA)."
+            bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+            [homeserver.registration.enable_registration]
+            ask = "Enable Registration for new users."
+            type = "boolean"
+            yes = true
+            no = false
+            help = "Defaults to 'false'. If 'true', it is highly recommended to use either captcha, email, or token-based verification to avoid SPAM."
+            bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+            [homeserver.registration.registrations_require_3pid]
+            ask = "Register only with all below types of 3PID."
+            type = "string"
+            help = "Defaults to: '- email'. Phone number: '- msisdn'"
+            bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+            [homeserver.registration.disable_msisdn_registration]
+            ask = "Disable asking Phone Number in Registration flow."
+            type = "boolean"
+            yes = true
+            no = false
+            help = "Overrides above setting if MSISDNs are set as required."
+            bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+            [homeserver.registration.allowed_local_3pids]
+            ask = "Register only with given formats of 3PIDs."
+            type = "string"
+            help = '''
+            allowed_local_3pids:
+              - medium: email            - medium: email
+                pattern: '^[^@]+@matrix\.org$'
+              - medium: msisdn
+                pattern: '\+33'
+            '''
+
+            [homeserver.registration.registration_shared_secret]
+            ask = "Shared Secret for Registration."
+            type = "string"
+            help = "Allows registration of standard or admin accounts, even if Registration disabled."
+            bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+            [homeserver.registration.allow_guest_access]
+            ask = "Allow Users to Register as Guests?"
+            type = "boolean"
+            yes = true
+            no = false
+            help = "Guests can participate on this server in rooms with guest access enabled, without a password/email/etc."
+            bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+    [homeserver.privacy]
+    name = "Data Privacy"
+
+            [homeserver.privacy.default_identity_server]
+            ask = "Identity server suggested to clients."
+            type = "string"
+            help = "By default, no suggestion is made, so it is left up to the client."
+            bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+            [homeserver.privacy.allow_public_rooms_without_auth]
+            ask = "Public rooms directory"
+            type = "boolean"
+            yes = true
+            no = false
+            help = "If set to 'false', requires authentication to access the server's public rooms directory through the client API and forbids any other homeserver to fetch the server's public rooms directory via federation."
+            bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+            [homeserver.privacy.allow_public_rooms_over_federation]
+            ask = "Public rooms directory"
+            type = "boolean"
+            yes = true
+            no = false
+            help = "If set to 'false', requires authentication to access the server's public rooms directory through the client API and forbids any other homeserver to fetch the server's public rooms directory via federation."
+            bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+[client]
+name = "Matrix Client"
+services = ["__APP__"]
+
+    [client.welcome]
+    name = "Welcome User Experience"
+
+        [client.welcome.auto_join_rooms]
+        ask = "Auto Join new Users in following Rooms."
+        type = "string"
+        default = '#example:example.com'
+        help = "Room should be public. If not existing, will be created as public and federated by default. Can be customised with the settings autocreate_auto_join_rooms."
+        bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+        [client.welcome.auto_join_rooms_for_guests]
+        ask = "Enable Auto Join Room for Guests?"
+        type = "boolean"
+        yes = true
+        no = false
+        help = "Defaults to 'true'."
+        bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+        [client.welcome.password_enabled]
+        ask = "Enable Password Login?"
+        type = "boolean"
+        yes = true
+        no = false
+        help = "Defaults to 'true'."
+        bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+        [client.welcome.enable_notifs]
+        ask = "Enable sending emails for messages the user missed?"
+        type = "boolean"
+        yes = true
+        no = false
+        help = "Defaults to 'false'."
+        bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+        [client.welcome.notif_for_new_users]
+        ask = "Enable email notifications for new users?"
+        type = "boolean"
+        yes = true
+        no = false
+        help = "Defaults to 'true'."
+        bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+    [client.experience]
+    name = "User Experience"
+
+        [client.experience.element_ynh_url]
+        ask = "URL of the Default Element Instance."
+        type = "string"
+        default = '#example:example.com'
+        help = "URL for web client links within the email notifications (client_base_url) AND to direct users to during an invite (invite_client_location) AND to which / will redirect to (web_client_location)"
+        bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+        [client.experience.enable_group_creation]
+        ask = "Allow non-server-admin Users to create Spaces?"
+        type = "boolean"
+        yes = true
+        no = false
+        help = "Defaults to 'false'."
+        bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+        [client.experience.e2e_enabled_by_default]
+        ask = "End-to-End Encryption by default for locally-created Rooms"
+        type = "select"
+        choices = ["all", "invite", "off"]
+        help = '''
+        * "all": any locally-created room
+        * "invite": any room created with the "private_chat" or "trusted_private_chat" room creation presets
+        * "off": this option will take no effect
+        '''
+        bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+    [client.package_config]
+    name = "Package configuration"
+
+        [client.package_config.backup_before_upgrade]
+        ask = "Backup before upgrade"
+        type = "boolean"
+        yes = true
+        no = false
+        help = "Set to 'true' to back up before each upgrade."
+        bind = ":/etc/matrix-__APP__/homeserver.yaml"
