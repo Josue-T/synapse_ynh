@@ -173,6 +173,7 @@ if ! grep -q "$final_path" /etc/passwd; then
     sed --in-place -r "s@matrix-$app\:x\:([[:digit:]]+\:[[:digit:]]+)\:\:/.*/matrix-$app\:/usr/sbin/nologin@matrix-$app\:x\:\1\:\:$final_path\:/usr/sbin/nologin@g" /etc/passwd
 fi
 
+#=================================================
 # MIGRATION 7 : Working config panel v1
 #=================================================
 
@@ -181,18 +182,23 @@ if [ -z $allow_public_rooms ]; then
     allow_public_rooms="false"
 fi
 
-# Get app name of first Element Instance
-element_instance="element"
-element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
-element_path=$(ynh_app_setting_get --app $element_instance --key path)
-
 # SET STANDARD SETTINGS FROM DEFAULT CONFIG
+
+# Get app name of first Element Instance
 
 if [ -z "$element_ynh_url" ]
 then
-  element_ynh_url="https://"+element_domain+element_path
-  ynh_app_setting_set --app=$app --key=element_ynh_url --value=$element_ynh_url
+  element_instance="element"
+  element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
+  element_path=$(ynh_app_setting_get --app $element_instance --key path)
+  if [ -z "$element_domain" ]; then
+    element_ynh_url="https://matrix.to/"
+  else
+    element_ynh_url="https://"+element_domain+element_path
+  fi
 fi
+ynh_app_setting_set --app=$app --key=element_ynh_url --value=$element_ynh_url
+
 if [ -z "$allow_public_rooms_without_auth" ]
 then
   allow_public_rooms_without_auth=allow_public_rooms
