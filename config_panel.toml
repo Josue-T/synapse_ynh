@@ -13,7 +13,7 @@ services = ["__APP__"]
             yes = true
             no = false
             help = "Set to 'true' to send anonymous statistics to Synapse to improve performance."
-            bind = ":/etc/matrix-__APP__/homeserver.yaml"
+            bind = "report_stats:/etc/matrix-__APP__/homeserver.yaml"
 
     [homeserver.registration]
     name = "Homeserver Registration"
@@ -126,7 +126,7 @@ services = ["__APP__"]
         yes = true
         no = false
         help = "Defaults to 'true'."
-        bind = ":/etc/matrix-__APP__/homeserver.yaml"
+        bind = "password_config>enabled:/etc/matrix-__APP__/homeserver.yaml"
 
         [client.welcome.enable_notifs]
         ask = "Enable sending emails for messages the user missed?"
@@ -152,7 +152,9 @@ services = ["__APP__"]
         type = "string"
         default = '#example:example.com'
         help = "URL for web client links within the email notifications (client_base_url) AND to direct users to during an invite (invite_client_location) AND to which / will redirect to (web_client_location)"
-        bind = ":/etc/matrix-__APP__/homeserver.yaml"
+        bind = "client_base_url:/etc/matrix-__APP__/homeserver.yaml"
+        bind = "invite_client_location:/etc/matrix-__APP__/homeserver.yaml"
+        bind = "web_client_location:/etc/matrix-__APP__/homeserver.yaml"
 
         [client.experience.enable_group_creation]
         ask = "Allow non-server-admin Users to create Spaces?"
@@ -171,7 +173,7 @@ services = ["__APP__"]
         * "invite": any room created with the "private_chat" or "trusted_private_chat" room creation presets
         * "off": this option will take no effect
         '''
-        bind = ":/etc/matrix-__APP__/homeserver.yaml"
+        bind = "encryption_enabled_by_default_for_room_type:/etc/matrix-__APP__/homeserver.yaml"
 
     [client.package_config]
     name = "Package configuration"
@@ -182,4 +184,3 @@ services = ["__APP__"]
         yes = true
         no = false
         help = "Set to 'true' to back up before each upgrade."
-        bind = ":/etc/matrix-__APP__/homeserver.yaml"
