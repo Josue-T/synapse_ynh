@@ -144,11 +144,6 @@ if [ -z $report_stats ]; then
     ynh_app_setting_set --app=$app --key=report_stats --value=$report_stats
 fi
 
-if [ -z $allow_public_rooms ]; then
-    allow_public_rooms="false"
-    ynh_app_setting_set --app=$app --key=allow_public_rooms --value=$allow_public_rooms
-fi
-
 if [ -z $is_free_registration ]; then
     is_free_registration=$(ynh_app_setting_get --app=$app --key=is_""public)
     ynh_app_setting_set --app=$app --key=is_free_registration --value=$is_free_registration
@@ -182,6 +177,10 @@ fi
 #=================================================
 
 allow_public_rooms=$(ynh_app_setting_get --app=$app --key=allow_public_rooms)
+if [ -z $allow_public_rooms ]; then
+    allow_public_rooms="false"
+fi
+
 # Get app name of first Element Instance
 element_instance="element"
 element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
