@@ -55,11 +55,6 @@ if [[ "$server_name" == "$default_domain_value" ]]; then
     server_name=$domain
 fi
 
-# Get app name of first Element Instance (can be changed later in Config Panel)
-element_instance="element"
-element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
-element_path=$(ynh_app_setting_get --app $element_instance --key path)
-
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
@@ -96,7 +91,15 @@ ynh_app_setting_set --app=$app --key=synapse_user_app_pwd --value=$synapse_user_
 ## SET STANDARD SETTINGS FROM DEFAULT CONFIG
 #=================================================
 
+# Get app name of first Element Instance (can be changed later in Config Panel)
+element_instance="element"
+element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
+element_path=$(ynh_app_setting_get --app $element_instance --key path)
 element_ynh_url="https://"+element_domain+element_path
+if [ -z "$element_domain" ]; then
+    element_ynh_url="https://matrix.to/"    
+fi
+
 allow_public_rooms_without_auth="false"
 allow_public_rooms_over_federation="false"
 disable_msisdn_registration="true"
