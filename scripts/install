@@ -105,12 +105,12 @@ fi
 allow_public_rooms_without_auth="false"
 allow_public_rooms_over_federation="false"
 disable_msisdn_registration="true"
-allowed_local_3pids=""
-#  - medium: email
-#    pattern: '^[^@]+@matrix\.org$'
+registrations_require_3pid="email"
+# here we need sed magic to transform $server_name
+allowed_local_3pids="'^[^@]+@""matrix""\.org$'"
 allow_guest_access="false"
 default_identity_server="https://matrix.org"
-auto_join_rooms='  - "#auto_join_room:'+$server_name+'"'
+auto_join_rooms="#auto_join_room:""$server_name"
 autocreate_auto_join_rooms="false"
 auto_join_rooms_for_guests="true"
 password_enabled="true"
@@ -122,6 +122,7 @@ ynh_app_setting_set --app=$app --key=element_ynh_url --value=$element_ynh_url
 ynh_app_setting_set --app=$app --key=allow_public_rooms_without_auth --value=$allow_public_rooms_without_auth
 ynh_app_setting_set --app=$app --key=allow_public_rooms_over_federation --value=$allow_public_rooms_over_federation
 ynh_app_setting_set --app=$app --key=disable_msisdn_registration --value=$disable_msisdn_registration
+ynh_app_setting_set --app=$app --key=registrations_require_3pid --value=$registrations_require_3pid
 ynh_app_setting_set --app=$app --key=allowed_local_3pids --value=$allowed_local_3pids
 ynh_app_setting_set --app=$app --key=allow_guest_access --value=$allow_guest_access
 ynh_app_setting_set --app=$app --key=default_identity_server --value=$default_identity_server
