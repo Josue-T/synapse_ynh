@@ -141,7 +141,13 @@ fi
 if [ -z $synapse_user_app_pwd ]; then
     synapse_user_app_pwd="$(ynh_string_random --length=30)"
     ynh_app_setting_set --app=$app --key=synapse_user_app_pwd --value=$synapse_user_app_pwd
-    yunohost user create $synapse_user_app -f Synapse -l Application -F "Synapse Application" -d $domain -p "$synapse_user_app_pwd"
+    # The format to create an user account varies depending on the version of YunoHost currently installed.
+    ynh_current_version=$(dpkg-query --showformat='${Version}' --show yunohost)
+    if $(dpkg --compare-versions "$ynh_current_version" ge "11.1"); then
+        yunohost user create $synapse_user_app -F "Synapse Application" -d $domain -p "$synapse_user_app_pwd"
+    else
+        yunohost user create $synapse_user_app -f Synapse -l Application -d $domain -p "$synapse_user_app_pwd"
+    fi
 fi
 
 #=================================================

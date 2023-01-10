@@ -146,7 +146,13 @@ ynh_exec_warn_less ynh_install_app_dependencies $dependances
 ynh_script_progression --message="Configuring system user..." --weight=3
 
 ynh_system_user_create --username=$synapse_user --home_dir=$final_path
-yunohost user create $synapse_user_app -f Synapse -l Application -F "Synapse Application" -d $domain -p "$synapse_user_app_pwd"
+# The format to create an user account varies depending on the version of YunoHost currently installed.
+ynh_current_version=$(dpkg-query --showformat='${Version}' --show yunohost)
+if $(dpkg --compare-versions "$ynh_current_version" ge "11.1"); then
+    yunohost user create $synapse_user_app -F "Synapse Application" -d $domain -p "$synapse_user_app_pwd"
+else
+    yunohost user create $synapse_user_app -f Synapse -l Application -d $domain -p "$synapse_user_app_pwd"
+fi
 adduser $synapse_user ssl-cert
 adduser turnserver ssl-cert
 
