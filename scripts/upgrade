@@ -188,12 +188,13 @@ fi
 
 if [ -z "$element_ynh_url" ]
 then
+  element_ynh_url="https://matrix.to/"
   element_instance="element"
-  element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
-  element_path=$(ynh_app_setting_get --app $element_instance --key path)
-  if [ -z "$element_domain" ]; then
-    element_ynh_url="https://matrix.to/"
-  else
+  if yunohost --output-as plain app list | grep -q "^$element_instance$"; then
+    element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
+    element_path=$(ynh_app_setting_get --app $element_instance --key path)
+  #if [ -z "$element_domain" ]; then
+  #else
     element_ynh_url="https://"+element_domain+element_path
   fi
 fi
