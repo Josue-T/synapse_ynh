@@ -250,7 +250,6 @@ else
     sso_enabled=False
 fi
 
-ynh_replace_string __DOMAIN_WHITELIST_CLIENT__ "$domain_whitelist_client" "$YNH_APP_BASEDIR/conf/homeserver.yaml"
 ynh_add_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
 ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
 
