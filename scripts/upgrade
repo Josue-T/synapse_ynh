@@ -68,6 +68,7 @@ allowed_local_3pids=$(ynh_app_setting_get --app=$app --key=allowed_local_3pids)
 allow_guest_access=$(ynh_app_setting_get --app=$app --key=allow_guest_access)
 default_identity_server=$(ynh_app_setting_get --app=$app --key=default_identity_server)
 auto_join_rooms=$(ynh_app_setting_get --app=$app --key=auto_join_rooms)
+autocreate_auto_join_rooms=$(ynh_app_setting_get --app=$app --key=autocreate_auto_join_rooms)
 auto_join_rooms_for_guests=$(ynh_app_setting_get --app=$app --key=auto_join_rooms_for_guests)
 password_enabled=$(ynh_app_setting_get --app=$app --key=password_enabled)
 enable_notifs=$(ynh_app_setting_get --app=$app --key=enable_notifs)
@@ -232,8 +233,13 @@ then
 fi
 if [ -z "$auto_join_rooms" ]
 then
-  auto_join_rooms=""
+  auto_join_rooms='  - "#auto_join_room:'+$server_name+'"'
   ynh_app_setting_set --app=$app --key=auto_join_rooms --value=$auto_join_rooms
+fi
+if [ -z "$autocreate_auto_join_rooms" ]
+then
+  autocreate_auto_join_rooms="false"
+  ynh_app_setting_set --app=$app --key=autocreate_auto_join_rooms --value=$autocreate_auto_join_rooms
 fi
 if [ -z "$auto_join_rooms_for_guests" ]
 then

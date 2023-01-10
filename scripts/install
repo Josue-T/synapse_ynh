@@ -106,9 +106,12 @@ allow_public_rooms_without_auth="false"
 allow_public_rooms_over_federation="false"
 disable_msisdn_registration="true"
 allowed_local_3pids=""
+#  - medium: email
+#    pattern: '^[^@]+@matrix\.org$'
 allow_guest_access="false"
 default_identity_server="https://matrix.org"
-auto_join_rooms=""
+auto_join_rooms='  - "#auto_join_room:'+$server_name+'"'
+autocreate_auto_join_rooms="false"
 auto_join_rooms_for_guests="true"
 password_enabled="true"
 enable_notifs="true"
@@ -123,6 +126,7 @@ ynh_app_setting_set --app=$app --key=allowed_local_3pids --value=$allowed_local_
 ynh_app_setting_set --app=$app --key=allow_guest_access --value=$allow_guest_access
 ynh_app_setting_set --app=$app --key=default_identity_server --value=$default_identity_server
 ynh_app_setting_set --app=$app --key=auto_join_rooms --value=$auto_join_rooms
+ynh_app_setting_set --app=$app --key=autocreate_auto_join_rooms --value=$autocreate_auto_join_rooms
 ynh_app_setting_set --app=$app --key=auto_join_rooms_for_guests --value=$auto_join_rooms_for_guests
 ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
 ynh_app_setting_set --app=$app --key=enable_notifs --value=$enable_notifs

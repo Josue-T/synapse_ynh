@@ -108,8 +108,15 @@ services = ["__APP__"]
         [client.welcome.auto_join_rooms]
         ask = "Auto Join new Users in following Rooms."
         type = "string"
-        default = '#example:example.com'
-        help = "Room should be public. If not existing, will be created as public and federated by default. Can be customised with the settings autocreate_auto_join_rooms."
+        help = "Room should be public. If not existing, will be created as public and federated by default."
+        bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
+        [client.welcome.autocreate_auto_join_rooms]
+        ask = "Create room for Auto Join if not existing."
+        type = "boolean"
+        yes = true
+        no = false
+        help = "Will be created as public and federated by default. Can be customised with the settings auto_join_*."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
         [client.welcome.auto_join_rooms_for_guests]
