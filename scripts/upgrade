@@ -100,9 +100,9 @@ fi
 #=================================================
 backup_before_upgrade=$(ynh_app_setting_get --app=$app --key=backup_before_upgrade)
 if [ -z "$backup_before_upgrade" ] ; then
-    disable_backup_before_upgrade=$(ynh_app_setting_get --app=$app --key=disable_backup_before_upgrade)
-    if [ $disable_backup_before_upgrade ] ; then
-        backup_before_upgrade="false"
+    #disable_backup_before_upgrade=$(ynh_app_setting_get --app=$app --key=disable_backup_before_upgrade)
+    #if [ [ ] [ $disable_backup_before_upgrade ] ] ; then
+    backup_before_upgrade="false"
 fi
 
 #=================================================
