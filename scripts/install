@@ -100,6 +100,10 @@ element_ynh_url="https://"+element_domain+element_path
 #    element_ynh_url="https://matrix.to/"    
 fi
 
+web_client_location=$element_ynh_url
+client_base_url=$element_ynh_url
+invite_client_location=$element_ynh_url
+
 allow_public_rooms_without_auth="false"
 allow_public_rooms_over_federation="false"
 disable_msisdn_registration="true"
@@ -116,7 +120,9 @@ enable_notifs="true"
 notif_for_new_users="true"
 enable_group_creation="true"
 
-ynh_app_setting_set --app=$app --key=element_ynh_url --value=$element_ynh_url
+ynh_app_setting_set --app=$app --key=web_client_location --value=$web_client_location
+ynh_app_setting_set --app=$app --key=client_base_url --value=$client_base_url
+ynh_app_setting_set --app=$app --key=invite_client_location --value=$invite_client_location
 ynh_app_setting_set --app=$app --key=allow_public_rooms_without_auth --value=$allow_public_rooms_without_auth
 ynh_app_setting_set --app=$app --key=allow_public_rooms_over_federation --value=$allow_public_rooms_over_federation
 ynh_app_setting_set --app=$app --key=disable_msisdn_registration --value=$disable_msisdn_registration

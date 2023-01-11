@@ -50,7 +50,7 @@ pid_file: /run/matrix-__APP__/homeserver.pid
 
 # The absolute URL to the web client which / will redirect to.
 #
-web_client_location: __ELEMENT_YNH_URL__
+web_client_location: __WEB_CLIENT_LOCATION__
 
 # The public-facing base URL that clients use to access this Homeserver (not
 # including _matrix/...). This is the same URL a user might enter into the
@@ -2320,7 +2320,7 @@ email:
   # (This setting used to be called riot_base_url; the old name is still
   # supported for backwards-compatibility but is now deprecated.)
   #
-  client_base_url: __ELEMENT_YNH_URL__
+  client_base_url: __CLIENT_BASE_URL__
 
   # Configure the time that a validation email will expire after sending.
   # Defaults to 1h.
@@ -2331,7 +2331,7 @@ email:
   # to the identity server as the org.matrix.web_client_location key. Defaults
   # to unset, giving no guidance to the identity server.
   #
-  invite_client_location: __ELEMENT_YNH_URL__
+  invite_client_location: __INVITE_CLIENT_LOCATION__
 
   # Subjects to use when sending emails from Synapse.
   #

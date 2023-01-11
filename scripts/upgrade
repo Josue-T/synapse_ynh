@@ -60,7 +60,9 @@ data_path="/home/yunohost.app/matrix-$app"
 #=================================================
 # GET CONFIG PANEL SETTINGS
 #=================================================
-element_ynh_url=$(ynh_app_setting_get --app=$app --key=element_ynh_url)
+web_client_location=$(ynh_app_setting_get --app=$app --key=web_client_location)
+client_base_url=$(ynh_app_setting_get --app=$app --key=client_base_url)
+invite_client_location=$(ynh_app_setting_get --app=$app --key=invite_client_location)
 allow_public_rooms_without_auth=$(ynh_app_setting_get --app=$app --key=allow_public_rooms_without_auth)
 allow_public_rooms_over_federation=$(ynh_app_setting_get --app=$app --key=allow_public_rooms_over_federation)
 disable_msisdn_registration=$(ynh_app_setting_get --app=$app --key=disable_msisdn_registration)
@@ -198,7 +200,7 @@ fi
 
 # Get app name of first Element Instance
 
-if [ -z "$element_ynh_url" ]
+if [ -z "$web_client_location" ]
 then
   element_ynh_url="https://matrix.to/"
   element_instance="element"
@@ -209,8 +211,13 @@ then
   #else
     element_ynh_url="https://"+element_domain+element_path
   fi
+  web_client_location=$element_ynh_url
+  client_base_url=$element_ynh_url
+  invite_client_location=$element_ynh_url
 fi
-ynh_app_setting_set --app=$app --key=element_ynh_url --value=$element_ynh_url
+ynh_app_setting_set --app=$app --key=web_client_location --value=$web_client_location
+ynh_app_setting_set --app=$app --key=client_base_url --value=$client_base_url
+ynh_app_setting_set --app=$app --key=invite_client_location --value=$invite_client_location
 
 if [ -z "$allow_public_rooms_without_auth" ]
 then
