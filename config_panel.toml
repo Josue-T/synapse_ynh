@@ -12,7 +12,7 @@ services = ["__APP__"]
             type = "boolean"
             yes = true
             no = false
-            help = "Set to 'true' to back up before each upgrade."
+            help = "Set to 'true' to backup the Synapse YunoHost App before each upgrade."
 
             [homeserver.config.server_statistics]
             ask = "Server statistics"

@@ -1200,7 +1200,7 @@ turn_user_lifetime: 1h
 # connect to arbitrary endpoints without having first signed up for a
 # valid account (e.g. by passing a CAPTCHA).
 #
-turn_allow_guests: __ALLOWED_ACCESS__
+turn_allow_guests: __TURN_ALLOW_GUESTS__
 
 
 ## Registration ##
@@ -1212,7 +1212,7 @@ turn_allow_guests: __ALLOWED_ACCESS__
 # you use either captcha, email, or token-based verification to verify that new users are not bots. In order to enable registration
 # without any verification, you must also set `enable_registration_without_verification`, found below.
 #
-enable_registration: __ALLOWED_ACCESS__
+enable_registration: __ENABLE_REGISTRATION__
 
 # Enable registration without email or captcha verification. Note: this option is *not* recommended,
 # as registration without verification is a known vector for spam and abuse. Defaults to false. Has no effect

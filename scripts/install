@@ -85,6 +85,24 @@ ynh_app_setting_set --app=$app --key=report_stats --value=$report_stats
 ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 ynh_app_setting_set --app=$app --key=synapse_user_app_pwd --value=$synapse_user_app_pwd
 
+if [ $is_free_registration -eq 0 ]
+then
+    enable_registration="false"
+    turn_allow_guests="false"
+    sso_enabled="true"
+    password_enabled="false"
+else
+    enable_registration="true"
+    turn_allow_guests="true"
+    sso_enabled="false"
+    password_enabled="true"
+fi
+
+ynh_app_setting_set --app=$app --key=enable_registration --value=$enable_registration
+ynh_app_setting_set --app=$app --key=turn_allow_guests --value=$turn_allow_guests
+ynh_app_setting_set --app=$app --key=sso_enabled --value=$sso_enabled
+ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
+
 #=================================================
 ## SET STANDARD SETTINGS FROM DEFAULT CONFIG
 #=================================================
@@ -104,6 +122,8 @@ web_client_location=$element_ynh_url
 client_base_url=$element_ynh_url
 invite_client_location=$element_ynh_url
 
+backup_before_upgrade="true"
+server_statistics="false"
 allow_public_rooms_without_auth="false"
 allow_public_rooms_over_federation="false"
 disable_msisdn_registration="true"
@@ -120,6 +140,8 @@ enable_notifs="true"
 notif_for_new_users="true"
 enable_group_creation="true"
 
+ynh_app_setting_set --app=$app --key=backup_before_upgrade --value=$backup_before_upgrade
+ynh_app_setting_set --app=$app --key=server_statistics --value=$server_statistics
 ynh_app_setting_set --app=$app --key=web_client_location --value=$web_client_location
 ynh_app_setting_set --app=$app --key=client_base_url --value=$client_base_url
 ynh_app_setting_set --app=$app --key=invite_client_location --value=$invite_client_location
@@ -316,24 +338,6 @@ ynh_app_setting_set --app=$app --key=turnserver_pwd --value=$turnserver_pwd
 # For any update do it in all files
 
 macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
-
-if [ $is_free_registration -eq 0 ]
-then
-    allow_registration=False
-    turn_allow_guests=False
-    sso_enabled=True
-    password_enabled=False
-else
-    allow_registration=True
-    turn_allow_guests=True
-    sso_enabled=False
-    password_enabled=True
-fi
-
-ynh_app_setting_set --app=$app --key=allow_registration --value=$allow_registration
-ynh_app_setting_set --app=$app --key=turn_allow_guests --value=$turn_allow_guests
-ynh_app_setting_set --app=$app --key=sso_enabled --value=$sso_enabled
-ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
 
 ynh_add_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
 ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
