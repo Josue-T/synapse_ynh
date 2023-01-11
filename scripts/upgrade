@@ -99,10 +99,12 @@ fi
 # MIGRATION 7 : Working config panel v1
 #=================================================
 backup_before_upgrade=$(ynh_app_setting_get --app=$app --key=backup_before_upgrade)
-if [ -z "$backup_before_upgrade" ] ; then
-    #disable_backup_before_upgrade=$(ynh_app_setting_get --app=$app --key=disable_backup_before_upgrade)
-    #if [ [ ] [ $disable_backup_before_upgrade ] ] ; then
+if [ -z $backup_before_upgrade ] ; then
+    backup_before_upgrade="true"
+    disable_backup_before_upgrade=$(ynh_app_setting_get --app=$app --key=disable_backup_before_upgrade)
+    if $disable_backup_before_upgrade ; then
     backup_before_upgrade="false"
+fi
 fi
 
 #=================================================
