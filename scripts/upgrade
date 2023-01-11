@@ -78,6 +78,11 @@ enable_notifs=$(ynh_app_setting_get --app=$app --key=enable_notifs)
 notif_for_new_users=$(ynh_app_setting_get --app=$app --key=notif_for_new_users)
 enable_group_creation=$(ynh_app_setting_get --app=$app --key=enable_group_creation)
 
+allow_registration=$(ynh_app_setting_get --app=$app --key=allow_registration)
+turn_allow_guests=$(ynh_app_setting_get --app=$app --key=turn_allow_guests)
+sso_enabled=$(ynh_app_setting_get --app=$app --key=sso_enabled)
+password_enabled=$(ynh_app_setting_get --app=$app --key=password_enabled)
+
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
@@ -160,7 +165,6 @@ fi
 
 if [ -z $is_free_registration ]; then
     is_free_registration=$(ynh_app_setting_get --app=$app --key=is_""public)
-    ynh_app_setting_set --app=$app --key=is_free_registration --value=$is_free_registration
 fi
 
 if [ -z $synapse_user_app_pwd ]; then
@@ -288,6 +292,25 @@ if [ -z "$enable_group_creation" ]
 then
   enable_group_creation="true"
   ynh_app_setting_set --app=$app --key=enable_group_creation --value=$enable_group_creation
+fi
+
+if [ -z "$allow_registration" ] ; then
+  if [ $is_free_registration -eq 0 ]
+  then
+      allow_registration=False
+      turn_allow_guests=False
+      sso_enabled=True
+      password_enabled=False
+  else
+      allow_registration=True
+      turn_allow_guests=True
+      sso_enabled=False
+      password_enabled=True
+  fi
+  ynh_app_setting_set --app=$app --key=allow_registration --value=$allow_registration
+  ynh_app_setting_set --app=$app --key=turn_allow_guests --value=$turn_allow_guests
+  ynh_app_setting_set --app=$app --key=sso_enabled --value=$sso_enabled
+  ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
 fi
 
 #=================================================
