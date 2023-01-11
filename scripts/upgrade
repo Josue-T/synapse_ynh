@@ -100,7 +100,7 @@ fi
 #=================================================
 backup_before_upgrade=$(ynh_app_setting_get --app=$app --key=backup_before_upgrade)
 if [ -z "$backup_before_upgrade" ] ; then
-  if $(ynh_app_setting_get --app=$app --key=disable_backup_before_upgrade) ; then
+  if [ $(ynh_app_setting_get --app=$app --key=disable_backup_before_upgrade) ] ; then
   backup_before_upgrade="false"
 fi
 
@@ -113,7 +113,7 @@ ynh_script_progression --message="Backing up the app before upgrading (may take 
 ynh_systemd_action --service_name=matrix-$app.service --action=stop
 
 # Backup the current version of the app
-if $backup_before_upgrade ; then
+if [ $backup_before_upgrade ] ; then
     ynh_backup_before_upgrade
     ynh_clean_setup () {
         # Clean installation remainings that are not handled by the remove script.
@@ -212,17 +212,17 @@ fi
 # SET STANDARD SETTINGS FROM DEFAULT CONFIG
 
 # Get app name of first Element Instance
-
+yunohost --output-as plain domain list | grep -q "^$server_name"'$'
 if [ -z "$web_client_location" ]
 then
   element_ynh_url="https://matrix.to/"
   element_instance="element"
-  if yunohost --output-as plain app list | grep -q "^$element_instance$"; then
+  if yunohost --output-as plain app list | grep -q "^$element_instance"'$'; then
     element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
     element_path=$(ynh_app_setting_get --app $element_instance --key path)
   #if [ -z "$element_domain" ]; then
   #else
-    element_ynh_url="https://"+element_domain+element_path
+    element_ynh_url="https://""$element_domain""$element_path"
   fi
   web_client_location=$element_ynh_url
   client_base_url=$element_ynh_url
@@ -303,7 +303,8 @@ then
   ynh_app_setting_set --app=$app --key=enable_group_creation --value=$enable_group_creation
 fi
 
-if [ -z "$enable_registration" ] ; then
+if [ -z "$enable_registration" ]
+then
   if [ $is_free_registration -eq 0 ]
   then
       enable_registration="false"
