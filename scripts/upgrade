@@ -136,15 +136,17 @@ if [ -z $jitsi_server ]; then
 fi
 
 # Define $e2e_enabled_by_default if not already defined
-if [-z $e2e_enabled_by_default] ; then
+if [ -z $e2e_enabled_by_default ] ; then
    e2e_enabled_by_default="invite"
    ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 fi
-if [$e2e_enabled_by_default=="true"] ; then
+
+if [ "$e2e_enabled_by_default" = "true" ] ; then
    e2e_enabled_by_default="all"
    ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 fi
-if [$e2e_enabled_by_default=="false"]; then
+
+if [ "$e2e_enabled_by_default" = "false" ]; then
    e2e_enabled_by_default="off"
    ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 fi
