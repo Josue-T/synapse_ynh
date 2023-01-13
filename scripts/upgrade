@@ -67,6 +67,7 @@ client_base_url=$(ynh_app_setting_get --app=$app --key=client_base_url)
 invite_client_location=$(ynh_app_setting_get --app=$app --key=invite_client_location)
 allow_public_rooms_without_auth=$(ynh_app_setting_get --app=$app --key=allow_public_rooms_without_auth)
 allow_public_rooms_over_federation=$(ynh_app_setting_get --app=$app --key=allow_public_rooms_over_federation)
+max_upload_size=$(ynh_app_setting_get --app=$app --key=max_upload_size)
 disable_msisdn_registration=$(ynh_app_setting_get --app=$app --key=disable_msisdn_registration)
 registrations_require_3pid=$(ynh_app_setting_get --app=$app --key=registrations_require_3pid)
 allowed_local_3pids=$(ynh_app_setting_get --app=$app --key=allowed_local_3pids)
@@ -218,7 +219,6 @@ fi
 # SET STANDARD SETTINGS FROM DEFAULT CONFIG
 
 # Get app name of first Element Instance
-yunohost --output-as plain domain list | grep -q "^$server_name"'$'
 if [ -z "$web_client_location" ]
 then
   element_ynh_url="https://matrix.to/"
@@ -252,6 +252,11 @@ if [ -z "$allow_public_rooms_over_federation" ]
 then
   allow_public_rooms_over_federation=allow_public_rooms
   ynh_app_setting_set --app=$app --key=allow_public_rooms_over_federation --value=$allow_public_rooms_over_federation
+fi
+if [ -z "$max_upload_size" ]
+then
+  max_upload_size="10M"
+  ynh_app_setting_set --app=$app --key=max_upload_size --value=$max_upload_size
 fi
 if [ -z "$disable_msisdn_registration" ]
 then

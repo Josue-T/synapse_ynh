@@ -116,23 +116,29 @@ services = ["__APP__"]
     [client.experience]
     name = "User Experience"
 
+        [client.experience.max_upload_size]
+        ask = "Largest allowed media upload size in bytes."
+        type = "url"
+        help = "Defaults to: '10M' . If you are using a reverse proxy you may also need to set this value in your reverse proxy's config. Notably Nginx has a small max body size by default. See https://matrix-org.github.io/synapse/latest/reverse_proxy.html."
+        bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
         [client.experience.web_client_location]
         ask = "URL to the web client which / will redirect to."
         type = "url"
         help = "Basically Element instance the server should redirect to."
-        bind = "web_client_location:/etc/matrix-__APP__/homeserver.yaml"
+        bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
         [client.experience.client_base_url]
         ask = "URL for client links within the email notifications."
         type = "url"
         help = "Used to be called 'riot_base_url', still supported"
-        bind = "client_base_url:/etc/matrix-__APP__/homeserver.yaml"
+        bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
         [client.experience.invite_client_location]
         ask = "Web client location to direct users to during an invite."
         type = "url"
         help = "This is passed to the identity server as the org.matrix.web_client_location key. Defaults to unset, giving no guidance to the identity server."
-        bind = "invite_client_location:/etc/matrix-__APP__/homeserver.yaml"
+        bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
         [client.experience.enable_group_creation]
         ask = "Allow non-server-admin Users to create Spaces?"

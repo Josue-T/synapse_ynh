@@ -978,7 +978,7 @@ media_storage_providers:
 # your reverse proxy's config. Notably Nginx has a small max body size by default.
 # See https://matrix-org.github.io/synapse/latest/reverse_proxy.html.
 #
-max_upload_size: 100M
+max_upload_size: __MAX_UPLOAD_SIZE__
 
 # Maximum number of pixels that will be thumbnailed
 #

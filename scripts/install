@@ -126,6 +126,7 @@ backup_before_upgrade="true"
 server_statistics="false"
 allow_public_rooms_without_auth="false"
 allow_public_rooms_over_federation="false"
+max_upload_size="10M"
 disable_msisdn_registration="true"
 registrations_require_3pid="email"
 # here we need sed magic to transform $server_name
@@ -147,6 +148,7 @@ ynh_app_setting_set --app=$app --key=client_base_url --value=$client_base_url
 ynh_app_setting_set --app=$app --key=invite_client_location --value=$invite_client_location
 ynh_app_setting_set --app=$app --key=allow_public_rooms_without_auth --value=$allow_public_rooms_without_auth
 ynh_app_setting_set --app=$app --key=allow_public_rooms_over_federation --value=$allow_public_rooms_over_federation
+ynh_app_setting_set --app=$app --key=max_upload_size --value=$max_upload_size
 ynh_app_setting_set --app=$app --key=disable_msisdn_registration --value=$disable_msisdn_registration
 ynh_app_setting_set --app=$app --key=registrations_require_3pid --value=$registrations_require_3pid
 ynh_app_setting_set --app=$app --key=allowed_local_3pids --value=$allowed_local_3pids
