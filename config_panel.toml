@@ -7,14 +7,6 @@ services = ["matrix-__APP__"]
     [main.welcome]
     name = "Experience for new Users"
 
-        [main.welcome.password_enabled]
-        ask = "Enable Password Login?"
-        type = "boolean"
-        yes = true
-        no = false
-        help = "If disabled, Login with Non-YunoHost Users impossible. But it simplies Login process if your Matrix server only has YunoHost SSO Users."
-        bind = "password_config>enabled:/etc/matrix-__APP__/homeserver.yaml"
-
         [main.welcome.enable_registration]
         ask = "Enable Registration for new users."
         type = "boolean"
@@ -22,7 +14,15 @@ services = ["matrix-__APP__"]
         no = false
         help = "Defaults to 'false'. If 'true', it is highly recommended to use either captcha, email, or token-based verification to avoid SPAM."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
-        visible = password_enabled
+
+        [main.welcome.password_enabled]
+        ask = "Enable Password Login?"
+        type = "boolean"
+        yes = true
+        no = false
+        help = "If disabled, Login with Non-YunoHost Users impossible. But it simplies Login process if your Matrix server only has YunoHost SSO Users."
+        bind = "password_config>enabled:/etc/matrix-__APP__/homeserver.yaml"
+        visible = "! enable_registration"
 
         [main.welcome.registrations_require_3pid]
         ask = "Register only with all following types of 3PID."
@@ -64,7 +64,7 @@ services = ["matrix-__APP__"]
         no = false
         help = "Defaults to 'true'."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
-        visible = enable_notifs
+        visible = "enable_notifs"
 
     [main.privacy]
     name = "Data Privacy"
@@ -99,7 +99,7 @@ services = ["matrix-__APP__"]
         no = false
         help = "Overrides 3PID settings if MSISDNs are set as required."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
-        visible = enable_registration
+        visible = "enable_registration"
 
     [main.experience]
     name = "User Experience"
