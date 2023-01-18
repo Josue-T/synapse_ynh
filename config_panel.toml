@@ -29,7 +29,7 @@ services = ["matrix-__APP__"]
         type = "select"
         choices = ["false","email", "msidn", "email&msisdn"]
         help = "Defaults to: 'email'. Phone number: 'msisdn'"
-        visible = enable_registration
+        visible = "enable_registration"
 
         [main.welcome.allowed_local_3pids]
         ask = "Register only with given formats of 3PIDs."
