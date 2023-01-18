@@ -137,16 +137,13 @@ name = "Resource Usage"
 services = ["matrix-__APP__", "nginx"]
 
     [resources.media]
-    name = "Manage Synapse Media growth and clean-up"
+    name = "Manage Media growth and clean-up"
 
         [resources.media.max_upload_size]
         ask = "Largest allowed media upload size in bytes."
-        type = "url"
+        type = "string"
         help = "Defaults to: '10M' ."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
-
-    [resources.database]
-    name = "Manage Synapse DataBase growth and clean-up"
 
 [advanced]
 name = "Advanced Settings"
@@ -157,7 +154,7 @@ services = ["matrix-__APP__"]
 
         [advanced.help.text]
         ask = '''
-        There are security and privacy risks if you change these settings without knowing what you do!
+        **There are security and privacy risks if you change these settings without knowing what you do!**
         '''
         type = "markdown"
 
