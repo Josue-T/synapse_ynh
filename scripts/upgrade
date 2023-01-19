@@ -70,7 +70,8 @@ allow_public_rooms_over_federation=$(ynh_app_setting_get --app=$app --key=allow_
 max_upload_size=$(ynh_app_setting_get --app=$app --key=max_upload_size)
 disable_msisdn_registration=$(ynh_app_setting_get --app=$app --key=disable_msisdn_registration)
 registrations_require_3pid=$(ynh_app_setting_get --app=$app --key=registrations_require_3pid)
-allowed_local_3pids=$(ynh_app_setting_get --app=$app --key=allowed_local_3pids)
+allowed_local_3pids_email=$(ynh_app_setting_get --app=$app --key=allowed_local_3pids_email)
+allowed_local_3pids_msisdn=$(ynh_app_setting_get --app=$app --key=allowed_local_3pids_msisdn)
 allow_guest_access=$(ynh_app_setting_get --app=$app --key=allow_guest_access)
 default_identity_server=$(ynh_app_setting_get --app=$app --key=default_identity_server)
 auto_join_rooms=$(ynh_app_setting_get --app=$app --key=auto_join_rooms)
@@ -84,6 +85,7 @@ enable_registration=$(ynh_app_setting_get --app=$app --key=enable_registration)
 turn_allow_guests=$(ynh_app_setting_get --app=$app --key=turn_allow_guests)
 sso_enabled=$(ynh_app_setting_get --app=$app --key=sso_enabled)
 password_enabled=$(ynh_app_setting_get --app=$app --key=password_enabled)
+enable_3pid_lookup=$(ynh_app_setting_get --app=$app --key=enable_3pid_lookup)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -274,10 +276,15 @@ then
   registrations_require_3pid="email"
   ynh_app_setting_set --app=$app --key=registrations_require_3pid --value=$registrations_require_3pid
 fi
-if [ -z "$allowed_local_3pids" ]
+if [ -z "$allowed_local_3pids_email" ]
 then
-  allowed_local_3pids="'^[^@]+@""matrix""\.org$'"
-  ynh_app_setting_set --app=$app --key=allowed_local_3pids --value=$allowed_local_3pids
+  allowed_local_3pids_email="'^[^@]+@""matrix""\.org$'"
+  ynh_app_setting_set --app=$app --key=allowed_local_3pids_email --value=$allowed_local_3pids_email
+fi
+if [ -z "$allowed_local_3pids_msisdn" ]
+then
+  allowed_local_3pids_msisdn="'\+33'"
+  ynh_app_setting_set --app=$app --key=allowed_local_3pids_msisdn --value=$allowed_local_3pids_msisdn
 fi
 if [ -z "$allow_guest_access" ]
 then
@@ -328,16 +335,19 @@ then
       turn_allow_guests="false"
       sso_enabled="true"
       password_enabled="false"
+      enable_3pid_lookup="false"
   else
       enable_registration="true"
       turn_allow_guests="true"
       sso_enabled="false"
       password_enabled="true"
+      enable_3pid_lookup="true"
   fi
   ynh_app_setting_set --app=$app --key=enable_registration --value=$enable_registration
   ynh_app_setting_set --app=$app --key=turn_allow_guests --value=$turn_allow_guests
   ynh_app_setting_set --app=$app --key=sso_enabled --value=$sso_enabled
   ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
+  ynh_app_setting_set --app=$app --key=enable_3pid_lookup --value=$enable_3pid_lookup
 fi
 
 #=================================================

@@ -25,27 +25,27 @@ services = ["matrix-__APP__"]
         visible = "! enable_registration"
 
         [main.welcome.registrations_require_3pid]
-        ask = "Register only with all following types of 3PID."
+        ask = "Registration requires all following 3PID personal identifier."
         type = "select"
-        choices = ["false","email", "msidn", "email&msisdn"]
+        choices = ["false","email", "msisdn", "email&msisdn"]
         help = "Defaults to: 'email'. Phone number: 'msisdn'"
         visible = "enable_registration"
 
-        [main.welcome.allowed_local_3pids]
-        ask = "Register only with given formats of 3PIDs."
-        type = "string"
-        help = '''
-        allowed_local_3pids:
-          - medium: email
-            pattern: '^[^@]+@matrix\.org$'
-          - medium: msisdn
-            pattern: '\+33'
-        '''
-        visible = "registrations_require_3pid != 'false'"
+        [main.welcome.allowed_local_3pids_email]
+        ask = "Register only with given email formats."
+        type = "tags"
+        help = "'^[^@]+@matrix\.org$'"
+        visible = 'enable_registration && (registrations_require_3pid == "email" || registrations_require_3pid == "email&msisdn")'
+
+        [main.welcome.allowed_local_3pids_msisdn]
+        ask = "Register only with given phone number formats."
+        type = "tags"
+        help = "'\+33'"
+        visible = 'enable_registration && (registrations_require_3pid == "email&msisdn" || registrations_require_3pid == "msisdn")'
 
         [main.welcome.auto_join_rooms]
         ask = "Auto Join new Users in following Rooms:"
-        type = "string"
+        type = "tags"
         help = "Users who register on this homeserver will automatically be joined to these rooms. If the room already exists, the join rule must be set to 'public'. See also next setting."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
@@ -105,9 +105,9 @@ services = ["matrix-__APP__"]
     name = "User Experience"
 
         [main.experience.web_client_location]
-        ask = "URL to the web client which / will redirect to."
+        ask = "Element instance your HomeServer should redirect to."
         type = "url"
-        help = "Basically Element instance the server should redirect to."
+        help = "URL to the web client which / will redirect to."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
         [main.experience.enable_group_creation]
@@ -115,7 +115,7 @@ services = ["matrix-__APP__"]
         type = "boolean"
         yes = true
         no = false
-        help = "Defaults to 'false'."
+        help = "Disabled by default: only server admins can create Spaces"
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
         [main.experience.enable_notifs]
@@ -131,6 +131,7 @@ services = ["matrix-__APP__"]
         type = "url"
         help = "Used to be called 'riot_base_url', still supported"
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
+        visible = "enable_notifs"
 
 [resources]
 name = "Resource Usage"
@@ -150,11 +151,11 @@ name = "Advanced Settings"
 services = ["matrix-__APP__"]
 
     [advanced.help]
-    name = "ONLY CHANGE THIS IF YOU'RE AN EXPERT IN SERVER ADMINISTRATION"
+    name = "SETTINGS FOR EXPERTS IN SERVER ADMINISTRATION"
 
         [advanced.help.text]
         ask = '''
-        **There are security and privacy risks if you change these settings without knowing what you do!**
+        !!There are security and privacy risks if you change these settings without knowing what you do!!
         '''
         type = "markdown"
 
@@ -166,7 +167,7 @@ services = ["matrix-__APP__"]
             type = "boolean"
             yes = true
             no = false
-            help = "!!If disabled, do a manual backup before upgrade!! Enable if your Synapse instance is huge and you prefer to disable the backup that is normally automatically done before each upgrade."
+            help = "!! If disabled, do a manual backup before upgrade !! Disable if your Synapse instance is huge and you prefer to disable the backup that is normally automatically done before each upgrade."
 
             [advanced.others.server_statistics]
             ask = "Server statistics"
@@ -204,10 +205,18 @@ services = ["matrix-__APP__"]
     [advanced.privacy]
     name = "Data Privacy"
 
+            [advanced.privacy.enable_3pid_lookup]
+            ask = "Allow discovering friends with phone number or email?"
+            type = "boolean"
+            yes = true
+            no = false
+            help = "Enable 3PIDs lookup requests to identity servers from this server. See Settings->General->Discovery in Element."
+            bind = ":/etc/matrix-__APP__/homeserver.yaml"
+
             [advanced.privacy.default_identity_server]
             ask = "Identity server suggested to clients?"
             type = "url"
-            help = "By default, no suggestion is made, so it is left up to the client."
+            help = "Identity server allows to discover, be discovered and invite people you know with phone number or email. If not set, users will probably chose centralized vector.im. See Settings->General->Discovery in Element."
             bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
             [advanced.privacy.allow_public_rooms_without_auth]

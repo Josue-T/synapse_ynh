@@ -1283,9 +1283,7 @@ disable_msisdn_registration: __DISABLE_MSISDN_REGISTRATION__
 # Mandate that users are only allowed to associate certain formats of
 # 3PIDs with accounts on this server.
 #
-allowed_local_3pids:
-  - medium: __REGISTRATIONS_REQUIRE_3PID__
-    pattern: __ALLOWED_LOCAL_3PIDS__
+#allowed_local_3pids:
 #  - medium: email
 #    pattern: '^[^@]+@vector\.im$'
 #  - medium: msisdn
@@ -1293,7 +1291,7 @@ allowed_local_3pids:
 
 # Enable 3PIDs lookup requests to identity servers from this server.
 #
-#enable_3pid_lookup: true
+enable_3pid_lookup: __ENABLE_3PID_LOOKUP__
 
 # Require users to submit a token during registration.
 # Tokens can be managed using the admin API:
