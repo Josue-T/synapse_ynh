@@ -101,7 +101,7 @@ services = ["matrix-__APP__"]
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
         visible = "enable_registration"
         
-        [main.privacy.disable_msisdn_registration]
+        [main.privacy.disable_push_incluse_content]
         ask = "Disable content sharing inside push notification."
         type = "boolean"
         yes = true
