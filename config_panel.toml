@@ -101,14 +101,13 @@ services = ["matrix-__APP__"]
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
         visible = "enable_registration"
         
-        [main.privacy.disable_push_incluse_content]
+        [main.privacy.disable_push_content]
         ask = "Disable content sharing inside push notification."
         type = "boolean"
         yes = true
         no = false
         help = "Do not send content message and sender infromation in push notification increase privacy when GAFAM notification service is used (ie: when element client is downloaded thrue Gplay store)."
-        bind = ":/etc/matrix-__APP__/homeserver.yaml"
-        visible = "include_content"
+        bind = "push>include_content:/etc/matrix-__APP__/homeserver.yaml"
 
     [main.experience]
     name = "User Experience"
