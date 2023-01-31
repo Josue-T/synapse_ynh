@@ -100,6 +100,14 @@ services = ["matrix-__APP__"]
         help = "Overrides 3PID settings if MSISDNs are set as required."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
         visible = "enable_registration"
+        
+        [main.privacy.push_include_content]
+        ask = "Disable content sharing inside push notification."
+        type = "boolean"
+        yes = true
+        no = false
+        help = "Send content message and sender infromation in push notification. Set to false increase privacy when GAFAM notification service is used (ie: when element client is downloaded thrue Gplay store)."
+        bind = "push>include_content:/etc/matrix-__APP__/homeserver.yaml"
 
     [main.experience]
     name = "User Experience"

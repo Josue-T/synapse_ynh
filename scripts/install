@@ -144,6 +144,7 @@ password_enabled="true"
 enable_notifs="true"
 notif_for_new_users="true"
 enable_group_creation="true"
+push_include_content="true"
 
 ynh_app_setting_set --app=$app --key=backup_before_upgrade --value=$backup_before_upgrade
 ynh_app_setting_set --app=$app --key=server_statistics --value=$server_statistics
@@ -166,6 +167,8 @@ ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
 ynh_app_setting_set --app=$app --key=enable_notifs --value=$enable_notifs
 ynh_app_setting_set --app=$app --key=notif_for_new_users --value=$notif_for_new_users
 ynh_app_setting_set --app=$app --key=enable_group_creation --value=$enable_group_creation
+ynh_app_setting_set --app=$app --key=push_include_content --value=$push_include_content
+
 
 #=================================================
 # STANDARD MODIFICATIONS
