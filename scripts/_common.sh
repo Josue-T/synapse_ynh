@@ -47,16 +47,15 @@ install_sources() {
         source $final_path/bin/activate
         set -$u_arg;
         if [ $(lsb_release --codename --short) == "bullseye" ]; then
+            # Fix issue with setuptools https://github.com/pypa/setuptools/issues/3118
             pip3 install --upgrade setuptools==60.8.2 wheel pip
         else
             pip3 install --upgrade setuptools wheel pip
         fi
 
         chown $synapse_user:root -R $final_path
-        sudo -u $synapse_user env PATH=$PATH pip3 install --upgrade 'cryptography>=3.4.7' 'pyOpenSSL>=22.1.0' 'attrs>=22.1.0'
         pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
-        # Fix issue https://github.com/YunoHost-Apps/synapse_ynh/issues/248
-        pip3 install --upgrade 'Twisted>=21' 'treq>=21.1.0' matrix-synapse==$upstream_version matrix-synapse-ldap3
+        sudo -u $synapse_user env PATH=$PATH pip3 install --upgrade -r ../conf/requirement_$(lsb_release --codename --short).txt
 
         # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
         set +$u_arg;
