@@ -5,22 +5,22 @@ It shall NOT be edited by hand.
 
 # Synapse pour YunoHost
 
-[![Niveau d'intégration](https://dash.yunohost.org/integration/synapse.svg)](https://dash.yunohost.org/appci/app/synapse) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/synapse.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/synapse.maintain.svg)  
+[![Niveau d’intégration](https://dash.yunohost.org/integration/synapse.svg)](https://dash.yunohost.org/appci/app/synapse) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/synapse.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/synapse.maintain.svg)
 [![Installer Synapse avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=synapse)
 
 *[Read this readme in english.](./README.md)*
 
-> *Ce package vous permet d'installer Synapse rapidement et simplement sur un serveur YunoHost.
-Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l'installer et en profiter.*
+> *Ce package vous permet d’installer Synapse rapidement et simplement sur un serveur YunoHost.
+Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l’installer et en profiter.*
 
-## Vue d'ensemble
+## Vue d’ensemble
 
 Instant messaging server matrix network.
 
 Yunohost chatroom with matrix : [https://matrix.to/#/#yunohost:matrix.org](https://matrix.to/#/#yunohost:matrix.org)
 
 
-**Version incluse :** 1.74.0~ynh1
+**Version incluse :** 1.76.0~ynh1
 ## Avertissements / informations importantes
 
 ## Configuration
@@ -205,8 +205,8 @@ Before installing a second instance of the app it's really recommended to update
 
 ## Documentations et ressources
 
-* Site officiel de l'app : <https://matrix.org/>
-* Dépôt de code officiel de l'app : <https://github.com/matrix-org/synapse>
+* Site officiel de l’app : <https://matrix.org/>
+* Dépôt de code officiel de l’app : <https://github.com/matrix-org/synapse>
 * Documentation YunoHost pour cette app : <https://yunohost.org/app_synapse>
 * Signaler un bug : <https://github.com/YunoHost-Apps/synapse_ynh/issues>
 
@@ -222,4 +222,4 @@ ou
 sudo yunohost app upgrade synapse -u https://github.com/YunoHost-Apps/synapse_ynh/tree/testing --debug
 ```
 
-**Plus d'infos sur le packaging d'applications :** <https://yunohost.org/packaging_apps>
+**Plus d’infos sur le packaging d’applications :** <https://yunohost.org/packaging_apps>
