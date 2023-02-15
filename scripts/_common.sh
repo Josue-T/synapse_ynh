@@ -56,7 +56,7 @@ install_sources() {
         chown $synapse_user:root -R $final_path
         chown $synapse_user:root $YNH_APP_BASEDIR/conf/requirement_$(lsb_release --codename --short).txt
         pip3 install --upgrade cffi ndg-httpsclient psycopg2 lxml jinja2
-        sudo -u $synapse_user env PATH=$PATH pip3 install --upgrade -r ../conf/requirement_$(lsb_release --codename --short).txt
+        sudo -u $synapse_user env PATH=$PATH pip3 install --upgrade -r $YNH_APP_BASEDIR/conf/requirement_$(lsb_release --codename --short).txt
 
         # This function was defined when we called "source $final_path/bin/activate". With this function we undo what "$final_path/bin/activate" does
         set +$u_arg;
