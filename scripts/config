@@ -10,6 +10,18 @@ source /usr/share/yunohost/helpers
 
 # Stop script if errors
 ynh_abort_if_errors
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+
+get__max_upload_size() {
+    max_upload_size=$(ynh_app_setting_get --app $app --key max_upload_size)
+    echo "${max_upload_size}"
+}
+
+set__max_upload_size() { 
+    ynh_write_var_in_file --file=/etc/matrix-$app/homeserver.yaml --key=max_upload_size --value="${max_upload_size}" 
+    sed -i -r "s|client_max_body_size\s+[[:digit:]]+M;|client_max_body_size ${max_upload_size}M;|g" "/etc/nginx/conf.d/$domain.d/$app.conf 
+    ynh_add_nginx_conf
+}
 
 
 #=================================================
