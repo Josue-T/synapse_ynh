@@ -34,6 +34,8 @@ If it is not automatically done, you need to open this in your ISP box.
 
 You also need a valid TLS certificate for the domain used by synapse. To do that you can refer to the documentation here : https://yunohost.org/#/certificate_en
 
+https://federationtester.matrix.org/ can be used to easily debug federation issues
+
 ### Turnserver
 
 For Voip and video conferencing a turnserver is also installed (and configured). The turnserver listens on two UDP and TCP ports. You can get them with these commands:

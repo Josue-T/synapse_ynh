@@ -5,7 +5,8 @@ It shall NOT be edited by hand.
 
 # Synapse for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/synapse.svg)](https://dash.yunohost.org/appci/app/synapse) ![Working status](https://ci-apps.yunohost.org/ci/badges/synapse.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/synapse.maintain.svg)  
+[![Integration level](https://dash.yunohost.org/integration/synapse.svg)](https://dash.yunohost.org/appci/app/synapse) ![Working status](https://ci-apps.yunohost.org/ci/badges/synapse.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/synapse.maintain.svg)
+
 [![Install Synapse with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=synapse)
 
 *[Lire ce readme en français.](./README_fr.md)*
@@ -20,7 +21,7 @@ Instant messaging server matrix network.
 Yunohost chatroom with matrix : [https://matrix.to/#/#yunohost:matrix.org](https://matrix.to/#/#yunohost:matrix.org)
 
 
-**Shipped version:** 1.74.0~ynh1
+**Shipped version:** 1.81.0~ynh1
 ## Disclaimers / important information
 
 ## Configuration
@@ -58,6 +59,8 @@ For more details, see : https://github.com/matrix-org/synapse/blob/master/docs/f
 If it is not automatically done, you need to open this in your ISP box.
 
 You also need a valid TLS certificate for the domain used by synapse. To do that you can refer to the documentation here : https://yunohost.org/#/certificate_en
+
+https://federationtester.matrix.org/ can be used to easily debug federation issues
 
 ### Turnserver
 
