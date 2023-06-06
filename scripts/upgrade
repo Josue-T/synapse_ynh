@@ -380,7 +380,14 @@ ynh_add_config --template="../sources/update_synapse_for_appservice.sh" --destin
 
 # Ensure app-service folder has exists and the config file exit (Migration)
 mkdir -p /etc/matrix-$app/app-service
-test -e /etc/matrix-$app/conf.d/app_service.yaml || touch /etc/matrix-$app/conf.d/app_service.yaml
+if [ -e /etc/matrix-$app/conf.d/app_service.yaml ]; then
+    # ensure that the file is empty if no app service are installed (fix issue #385)
+    if [ ! "$(ls -A /etc/matrix-$app/app-service)" ]; then
+        echo "" > /etc/matrix-$app/conf.d/app_service.yaml
+    fi
+else
+    touch /etc/matrix-$app/conf.d/app_service.yaml
+fi
 
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
