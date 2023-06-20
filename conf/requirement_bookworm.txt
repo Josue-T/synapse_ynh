@@ -10,7 +10,7 @@ constantly==15.1.0
 cryptography==41.0.1
 hyperlink==21.0.0
 idna==3.4
-ijson==3.2.0.post0
+ijson==3.2.1
 immutabledict==2.2.4
 incremental==22.10.0
 Jinja2==3.1.2
@@ -19,13 +19,13 @@ ldap3==2.9.1
 lxml==4.9.2
 MarkupSafe==2.1.3
 matrix-common==1.3.0
-matrix-synapse==1.85.2
+matrix-synapse==1.86.0
 matrix-synapse-ldap3==0.2.2
 msgpack==1.0.5
 ndg-httpsclient==0.5.1
 netaddr==0.8.0
 packaging==23.1
-phonenumbers==8.13.13
+phonenumbers==8.13.14
 Pillow==9.5.0
 prometheus-client==0.17.0
 psycopg2==2.9.6
@@ -40,7 +40,7 @@ pyrsistent==0.19.3
 PyYAML==6.0
 requests==2.31.0
 semantic-version==2.10.0
-service-identity==21.1.0
+service-identity==23.1.0
 setuptools-rust==1.6.0
 signedjson==1.1.4
 six==1.16.0
