@@ -151,7 +151,7 @@ services = ["matrix-__APP__", "nginx"]
         [resources.media.max_upload_size]
         ask = "Largest allowed media upload size in bytes."
         type = "string"
-        help = "Defaults to: '10M' ."
+        help = "Defaults to: '10M' . Format : <value><[GMK]?>"
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
 [advanced]
