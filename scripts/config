@@ -23,6 +23,44 @@ set__max_upload_size() {
     ynh_add_nginx_conf
 }
 
+get__registrations_require_3pid() {
+    max_upload_size=$(ynh_app_setting_get --app $app --key registrations_require_3pid)
+    echo "${registrations_require_3pid}"
+}
+
+set__registrations_require_3pid() { 
+    
+    case ${registrations_require_3pid} in
+    	email)
+    		sed -i -r -e "s|\#?[^\S\n]*registrations_require_3pid:\s(\#?[^\S\n]*- .*\s){0,2}|registrations_require_3pid:\n - email\n# - msisdn|g" "/etc/matrix-$app/homeserver.yaml"
+    		;;
+    	msisdn)
+    		sed -i -r -e "s|\#?[^\S\n]*registrations_require_3pid:\s(\#?[^\S\n]*- .*\s){0,2}|registrations_require_3pid:\n# - email\n - msisdn|g" "/etc/matrix-$app/homeserver.yaml"
+    		;;
+    	email&msisdn)
+    		sed -i -r -e "s|\#?[^\S\n]*registrations_require_3pid:\s(\#?[^\S\n]*- .*\s){0,2}|registrations_require_3pid:\n - email\n - msisdn|g" "/etc/matrix-$app/homeserver.yaml"
+    		;;
+    	*)
+    		sed -i -r -e "s|\#?[^\S\n]*registrations_require_3pid:\s(\#?[^\S\n]*- .*\s){0,2}|#registrations_require_3pid:\n# - email\n# - msisdn|g" "/etc/matrix-$app/homeserver.yaml"
+    		;;
+    esac
+    
+    ynh_app_setting_set --app=$app --key=registrations_require_3pid --value="${registrations_require_3pid}"
+}
+
+get__allowed_local_3pids_email() {
+    max_upload_size=$(ynh_app_setting_get --app $app --key allowed_local_3pids_email)
+    echo "${allowed_local_3pids_email}"
+}
+
+set__allowed_local_3pids_email() { 
+    
+    sed -i -r -e "s|(\#?[^\S\n]*allowed_local_3pids:\s(\#?[^\S\n]*- medium:.*\s\#?[^\S\n]*pattern:.*\s)?\#?[^\S\n]*- medium: email\s\#?[^\S\n]*pattern: )(.*)(\s)|$1'${allowed_local_3pids_email}'$3\2|g" "/etc/matrix-$app/homeserver.yaml"
+
+    ynh_app_setting_set --app=$app --key=fpm_footprint --value="${registrations_require_3pid}"
+}
+
+
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
