@@ -55,9 +55,24 @@ get__allowed_local_3pids_email() {
 }
 
 set__allowed_local_3pids_email() { 
-    sed -i -z -r "s|(\#?[^\S\n]*allowed_local_3pids:\s(\#?[^\S\n]*- medium:.*\s\#?[^\S\n]*pattern:.*\s)?\#?[^\S\n]*- medium: email\s\#?[^\S\n]*pattern: )(.*)(\s)|$1'${allowed_local_3pids_email}'$3\2|g" "/etc/matrix-$app/homeserver.yaml"
+	if [ -z ${registrations_require_3pid} ] ; then
+		sed -i -z -r "s|#?([^\S\n]*allowed_local_3pids:\n)#?([^\S\n]*-[^\S\n]*medium: email\n)#?([^\S\n]*pattern:[^\S\n]*')([^']*)('\n)#?([^\S\n]*-[^\S\n]*medium: msisdn\n)#?([^\S\n]*pattern: ')([^']*)('?)|#\1#\2#\3\4\5#\6#\7\8\9|" "/etc/matrix-$app/homeserver.yaml"
+	else
+		sed -i -z -r "s|#?([^\S\n]*allowed_local_3pids:\n)#?([^\S\n]*-[^\S\n]*medium: email\n)#?([^\S\n]*pattern:[^\S\n]*')([^']*)('\n)#?([^\S\n]*-[^\S\n]*medium: msisdn\n)#?([^\S\n]*pattern: ')([^']*)('?)|\1#\2#\3EMAIL\5#\6#\7\8\9|" "/etc/matrix-$app/homeserver.yaml"
+    ynh_app_setting_set --app=$app --key=allowed_local_3pids_email --value="${allowed_local_3pids_email}"
+}
 
-    ynh_app_setting_set --app=$app --key=fpm_footprint --value="${registrations_require_3pid}"
+get__allowed_local_3pids_msisdn() {
+    max_upload_size=$(ynh_app_setting_get --app $app --key allowed_local_3pids_msisdn)
+    echo "${allowed_local_3pids_msisdn}"
+}
+
+set__allowed_local_3pids_msisdn() { 
+	if [ -z ${registrations_require_3pid} ] ; then
+		sed -i -z -r "s|#?([^\S\n]*allowed_local_3pids:\n)#?([^\S\n]*-[^\S\n]*medium: email\n)#?([^\S\n]*pattern:[^\S\n]*')([^']*)('\n)#?([^\S\n]*-[^\S\n]*medium: msisdn\n)#?([^\S\n]*pattern: ')([^']*)('?)|#\1#\2#\3\4\5#\6#\7\8\9|" "/etc/matrix-$app/homeserver.yaml"
+	else
+		sed -i -z -r "s|#?([^\S\n]*allowed_local_3pids:\n)#?([^\S\n]*-[^\S\n]*medium: email\n)#?([^\S\n]*pattern:[^\S\n]*')([^']*)('\n)#?([^\S\n]*-[^\S\n]*medium: msisdn\n)#?([^\S\n]*pattern: ')([^']*)('?)|\1#\2#\3\4\5#\6#\7MSISDN\9|" "/etc/matrix-$app/homeserver.yaml"
+    ynh_app_setting_set --app=$app --key=allowed_local_3pids_msisdn --value="${allowed_local_3pids_msisdn}"
 }
 
 
