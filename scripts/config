@@ -75,7 +75,30 @@ set__allowed_local_3pids_msisdn() {
     ynh_app_setting_set --app=$app --key=allowed_local_3pids_msisdn --value="${allowed_local_3pids_msisdn}"
 }
 
+get__auto_join_rooms() {
+    max_upload_size=$(ynh_app_setting_get --app $app --key auto_join_rooms)
+    echo "${auto_join_rooms}"
+}
 
+set__auto_join_rooms() {
+
+	if [ -z ${auto_join_rooms} ] ; then
+		# remove all values comment header ans example value
+		sed -i -z -r "s|#?([^\S\n]*auto_join_rooms:\n)#?([^\S\n]*-[^\S\n]*"[^\"]*"\n)*|#\1#  - "#example:example.com"\n\n|" "/etc/matrix-$app/homeserver.yaml"
+	else
+		
+		IFS=' ' read -r -a arrroom <<< "${auto_join_rooms}";
+		
+		# print header then all space separated values
+		myregex='s|#?([^\S\n]*auto_join_rooms:)#?([^\S\n]*-[^\S\n]*"[^\"]*"\n)*|#\1';
+		for room in "${arrroom[@]}"; do 
+			myregex="${myregex}\n  - ${room}";
+		done; 
+		myregex="${myregex}\n\n|";
+		sed -i -z -r "${myregex}" "/etc/matrix-$app/homeserver.yaml"
+	fi
+	
+}
 
 #=================================================
 # GENERIC FINALIZATION
