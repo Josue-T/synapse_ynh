@@ -24,7 +24,7 @@ set__max_upload_size() {
 }
 
 get__registrations_require_3pid() {
-    max_upload_size=$(ynh_app_setting_get --app $app --key registrations_require_3pid)
+    registrations_require_3pid=$(ynh_app_setting_get --app $app --key registrations_require_3pid)
     echo "${registrations_require_3pid}"
 }
 
@@ -50,7 +50,7 @@ set__registrations_require_3pid() {
 }
 
 get__allowed_local_3pids_email() {
-    max_upload_size=$(ynh_app_setting_get --app $app --key allowed_local_3pids_email)
+    allowed_local_3pids_email=$(ynh_app_setting_get --app $app --key allowed_local_3pids_email)
     echo "${allowed_local_3pids_email}"
 }
 
@@ -65,7 +65,7 @@ set__allowed_local_3pids_email() {
 }
 
 get__allowed_local_3pids_msisdn() {
-    max_upload_size=$(ynh_app_setting_get --app $app --key allowed_local_3pids_msisdn)
+    allowed_local_3pids_msisdn=$(ynh_app_setting_get --app $app --key allowed_local_3pids_msisdn)
     echo "${allowed_local_3pids_msisdn}"
 }
 
@@ -79,7 +79,7 @@ set__allowed_local_3pids_msisdn() {
 }
 
 get__auto_join_rooms() {
-    max_upload_size=$(ynh_app_setting_get --app $app --key auto_join_rooms)
+    auto_join_rooms=$(ynh_app_setting_get --app $app --key auto_join_rooms)
     echo "${auto_join_rooms}"
 }
 
