@@ -28,77 +28,135 @@ get__registrations_require_3pid() {
     echo "${registrations_require_3pid}"
 }
 
+# set__registrations_require_3pid() this function is setting datas for registrations_require_3pid field and allowed_local_3pids_(email/msisdn)
+# it consist on comment or not "registrations_require_3pid:", " - email" and/or " - msisdn"
+# then depending on the "registrations_require_3pid" value it comment or not "allowed_local_3pids:" lines 
+# and generate all it sub configuration :
+#
+# allowed_local_3pids:
+#  - medium: email
+#    pattern: *
+#  ...
+#  - medium: msisdn
+#    pattern: *
+#
+# sed -z and \n as new line carracter do the trick on this kind of multline replacement.
+
 set__registrations_require_3pid() { 
-    # sed -z do the trick on this king of multline replacement
-    case ${registrations_require_3pid} in
-    	email)
-            
-    		sed -i -z -r "s|#?([^\S\n]*registrations_require_3pid:\n)#?([^\S\n]*-[^\S\n]*email\n)#?([^\S\n]*-[^\S\n]*msisdn)|\1\2#\3|" "/etc/matrix-$app/homeserver.yaml"
-    		;;
-    	msisdn)
-    		sed -i -z -r "s|#?([^\S\n]*registrations_require_3pid:\n)#?([^\S\n]*-[^\S\n]*email\n)#?([^\S\n]*-[^\S\n]*msisdn)|\1#\2\3|" "/etc/matrix-$app/homeserver.yaml"
-    		;;
-    	'email&msisdn')
-    		sed -i -z -r "s|#?([^\S\n]*registrations_require_3pid:\n)#?([^\S\n]*-[^\S\n]*email\n)#?([^\S\n]*-[^\S\n]*msisdn)|\1\2\3|" "/etc/matrix-$app/homeserver.yaml"
-    		;;
-    	*)
-    		sed -i -z -r "s|#?([^\S\n]*registrations_require_3pid:\n)#?([^\S\n]*-[^\S\n]*email\n)#?([^\S\n]*-[^\S\n]*msisdn)|#\1#\2#\3|" "/etc/matrix-$app/homeserver.yaml"
-    		;;
-    esac
-    
-    ynh_app_setting_set --app=$app --key=registrations_require_3pid --value="${registrations_require_3pid}"
+
+	# search pattern to replace (it correspond to the complete section)
+	allowedLocal3pids="s;#?([^\S\n]*allowed_local_3pids:)\n(#?([^\S\n]*-[^\S\n]*medium:[^\S\n]*(email|msisdn)\n)#?([^\S\n]*pattern:[^\S\n]*[^\n]*\n))*;"
+                         
+	case ${registrations_require_3pid} in
+		'email')
+			# registrations_require_3pid: part
+			sed -i -z -r "s|#?([^\S\n]*registrations_require_3pid:\n)#?([^\S\n]*-[^\S\n]*email\n)#?([^\S\n]*-[^\S\n]*msisdn)|\1\2#\3|" "/etc/matrix-$app/homeserver.yaml"
+			
+			# allowed_local_3pids: part
+			allowedLocal3pids=${allowedLocal3pids}"\1"
+			
+			readarray -td, arr3pidemail < <(echo ${allowed_local_3pids_email});
+			for pidemail in "${arr3pidemail[@]}"; do 
+				# add it to regex substitution part
+				allowedLocal3pids=${allowedLocal3pids}"\n  - medium: email";
+				allowedLocal3pids=${allowedLocal3pids}"\n    pattern: '$(echo ${pidemail})'";
+			done; 
+			;;
+			
+		'msisdn')
+			# registrations_require_3pid: part
+			sed -i -z -r "s|#?([^\S\n]*registrations_require_3pid:\n)#?([^\S\n]*-[^\S\n]*email\n)#?([^\S\n]*-[^\S\n]*msisdn)|\1#\2\3|" "/etc/matrix-$app/homeserver.yaml"
+
+			# allowed_local_3pids: part
+			allowedLocal3pids="${allowedLocal3pids}\1"
+			
+			readarray -td, arr3pidmsisdn < <(echo ${allowed_local_3pids_msisdn});
+			for pidmsisdn in "${arr3pidmsisdn[@]}"; do 
+				# add it to regex substitution part
+				allowedLocal3pids=${allowedLocal3pids}"\n  - medium: msisdn";
+				allowedLocal3pids=${allowedLocal3pids}"\n    pattern: '$(echo ${pidmsisdn})'";
+			done; 
+			;;
+			
+		'email&msisdn')
+			# registrations_require_3pid: part
+			sed -i -z -r "s|#?([^\S\n]*registrations_require_3pid:\n)#?([^\S\n]*-[^\S\n]*email\n)#?([^\S\n]*-[^\S\n]*msisdn)|\1\2\3|" "/etc/matrix-$app/homeserver.yaml"
+
+			# allowed_local_3pids: part
+			allowedLocal3pids="$(echo ${allowedLocal3pids})\1"
+			
+			readarray -td, arr3pidemail < <(echo ${allowed_local_3pids_email});
+			for pidemail in "${arr3pidemail[@]}"; do 
+				# add it to regex substitution part
+				allowedLocal3pids="$(echo ${allowedLocal3pids})\n  - medium: email";
+				allowedLocal3pids="$(echo ${allowedLocal3pids})\n    pattern: '$(echo ${pidemail})'";
+			done;
+			
+			readarray -td, arr3pidmsisdn < <(echo ${allowed_local_3pids_msisdn});
+			for pidmsisdn in "${arr3pidmsisdn[@]}"; do 
+				# add it to regex substitution part
+				allowedLocal3pids="$(echo ${allowedLocal3pids})\n  - medium: msisdn";
+				allowedLocal3pids="$(echo ${allowedLocal3pids})\n    pattern: '$(echo ${pidmsisdn})'";
+			done; 
+			;;
+		
+		*)
+			sed -i -z -r "s|#?([^\S\n]*registrations_require_3pid:\n)#?([^\S\n]*-[^\S\n]*email\n)#?([^\S\n]*-[^\S\n]*msisdn)|#\1#\2#\3|" "/etc/matrix-$app/homeserver.yaml";
+
+			# empty fields and comment registration
+			allowedLocal3pids="$(echo ${allowedLocal3pids})#\1"
+			;;
+	esac
+
+	# finalize regex then apply sed command on the homeserver conf file
+	allowedLocal3pids="$(echo ${allowedLocal3pids})\n;";
+	sed -i -z -r "${allowedLocal3pids}" "/etc/matrix-$app/homeserver.yaml"
+
+
+	ynh_app_setting_set --app=$app --key=registrations_require_3pid --value="${registrations_require_3pid}"
 }
 
 get__allowed_local_3pids_email() {
-    allowed_local_3pids_email=$(ynh_app_setting_get --app $app --key allowed_local_3pids_email)
-    echo "${allowed_local_3pids_email}"
+	allowed_local_3pids_email=$(ynh_app_setting_get --app $app --key allowed_local_3pids_email)
+	echo "${allowed_local_3pids_email}"
 }
 
 set__allowed_local_3pids_email() { 
-	if [ -z ${registrations_require_3pid} ] ; then
-		sed -i -z -r "s|#?([^\S\n]*allowed_local_3pids:\n)#?([^\S\n]*-[^\S\n]*medium: email\n)#?([^\S\n]*pattern:[^\S\n]*')([^']*)('\n)#?([^\S\n]*-[^\S\n]*medium: msisdn\n)#?([^\S\n]*pattern: ')([^']*)('?)|#\1#\2#\3\4\5#\6#\7\8\9|" "/etc/matrix-$app/homeserver.yaml"
-	else
-		sed -i -z -r "s|#?([^\S\n]*allowed_local_3pids:\n)#?([^\S\n]*-[^\S\n]*medium: email\n)#?([^\S\n]*pattern:[^\S\n]*')([^']*)('\n)#?([^\S\n]*-[^\S\n]*medium: msisdn\n)#?([^\S\n]*pattern: ')([^']*)('?)|\1#\2#\3EMAIL\5#\6#\7\8\9|" "/etc/matrix-$app/homeserver.yaml"
-	fi
-
+	set__registrations_require_3pid;	
 	ynh_app_setting_set --app=$app --key=allowed_local_3pids_email --value="${allowed_local_3pids_email}"
 }
 
 get__allowed_local_3pids_msisdn() {
-    allowed_local_3pids_msisdn=$(ynh_app_setting_get --app $app --key allowed_local_3pids_msisdn)
-    echo "${allowed_local_3pids_msisdn}"
+	allowed_local_3pids_msisdn=$(ynh_app_setting_get --app $app --key allowed_local_3pids_msisdn)
+	echo "${allowed_local_3pids_msisdn}"
 }
 
 set__allowed_local_3pids_msisdn() { 
-	if [ -z ${registrations_require_3pid} ] ; then
-		sed -i -z -r "s|#?([^\S\n]*allowed_local_3pids:\n)#?([^\S\n]*-[^\S\n]*medium: email\n)#?([^\S\n]*pattern:[^\S\n]*')([^']*)('\n)#?([^\S\n]*-[^\S\n]*medium: msisdn\n)#?([^\S\n]*pattern: ')([^']*)('?)|#\1#\2#\3\4\5#\6#\7\8\9|" "/etc/matrix-$app/homeserver.yaml"
-	else
-		sed -i -z -r "s|#?([^\S\n]*allowed_local_3pids:\n)#?([^\S\n]*-[^\S\n]*medium: email\n)#?([^\S\n]*pattern:[^\S\n]*')([^']*)('\n)#?([^\S\n]*-[^\S\n]*medium: msisdn\n)#?([^\S\n]*pattern: ')([^']*)('?)|\1#\2#\3\4\5#\6#\7MSISDN\9|" "/etc/matrix-$app/homeserver.yaml"
-	fi
+	set__registrations_require_3pid;	
 	ynh_app_setting_set --app=$app --key=allowed_local_3pids_msisdn --value="${allowed_local_3pids_msisdn}"
 }
 
 get__auto_join_rooms() {
-    auto_join_rooms=$(ynh_app_setting_get --app $app --key auto_join_rooms)
-    echo "${auto_join_rooms}"
+	auto_join_rooms=$(ynh_app_setting_get --app $app --key auto_join_rooms)
+	echo "${auto_join_rooms}"
 }
 
 set__auto_join_rooms() {
 
 	if [ -z ${auto_join_rooms} ] ; then
-		# remove all values comment header ans example value
-		sed -i -z -r "s|#?([^\S\n]*auto_join_rooms:\n)#?([^\S\n]*-[^\S\n]*"[^\"]*"\n)*|#\1#  - "#example:example.com"\n\n|" "/etc/matrix-$app/homeserver.yaml"
+		# remove all values comment header and example value
+		sed -i -z -r "s|#?([^\S\n]*auto_join_rooms:\n)#?([^\S\n]*-[^\n]*\n)*|#\1#  - \"#example:example.com\"\n|" "/etc/matrix-$app/homeserver.yaml"
 	else
 		
-		IFS=' ' read -r -a arrroom <<< "${auto_join_rooms}";
+		readarray -td, arrroom < <(echo ${auto_join_rooms});
 		
 		# print header then all space separated values
-		myregex='s|#?([^\S\n]*auto_join_rooms:)#?([^\S\n]*-[^\S\n]*"[^\"]*"\n)*|#\1';
+		autoJoinRooms="s|#?([^\S\n]*auto_join_rooms:)\n(#?[^\S\n]*-[^\n]*\n)*|\1";
 		for room in "${arrroom[@]}"; do 
-			myregex="${myregex}\n  - ${room}";
+			autoJoinRooms="${autoJoinRooms}\n  - '$(echo ${room})'";
 		done; 
-		myregex="${myregex}\n\n|";
-		sed -i -z -r "${myregex}" "/etc/matrix-$app/homeserver.yaml"
+		autoJoinRooms="${autoJoinRooms}\n|";
+		sed -i -z -r "${autoJoinRooms}" "/etc/matrix-$app/homeserver.yaml"
 	fi
 
 	ynh_app_setting_set --app=$app --key=auto_join_rooms --value="${auto_join_rooms}"
