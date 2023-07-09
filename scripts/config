@@ -50,7 +50,7 @@ set__registrations_require_3pid() {
 	case ${registrations_require_3pid} in
 		'email')
 			# registrations_require_3pid: part
-			sed -i -z -r "s|#?([^\S\n]*registrations_require_3pid:\n)#?([^\S\n]*-[^\S\n]*email\n)#?([^\S\n]*-[^\S\n]*msisdn)|\1\2#\3|" "/etc/matrix-$app/homeserver.yaml"
+			sed -i -z -r "s|#?[^\S\n]*registrations_require_3pid:\n#?[^\S\n]*-[^\S\n]*email\n#?[^\S\n]*-[^\S\n]*msisdn|registrations_require_3pid:\n - email\n# - msisdn|" "/etc/matrix-$app/homeserver.yaml"
 			
 			# allowed_local_3pids: part
 			allowedLocal3pids=${allowedLocal3pids}"\1"
@@ -59,57 +59,57 @@ set__registrations_require_3pid() {
 			for pidemail in "${arr3pidemail[@]}"; do 
 				# add it to regex substitution part
 				allowedLocal3pids=${allowedLocal3pids}"\n  - medium: email";
-				allowedLocal3pids=${allowedLocal3pids}"\n    pattern: '$(echo ${pidemail})'";
+				allowedLocal3pids=${allowedLocal3pids}"\n$(echo '    ')pattern: '$(echo ${pidemail})'";
 			done; 
 			;;
 			
 		'msisdn')
 			# registrations_require_3pid: part
-			sed -i -z -r "s|#?([^\S\n]*registrations_require_3pid:\n)#?([^\S\n]*-[^\S\n]*email\n)#?([^\S\n]*-[^\S\n]*msisdn)|\1#\2\3|" "/etc/matrix-$app/homeserver.yaml"
+			sed -i -z -r "s|#?[^\S\n]*registrations_require_3pid:\n#?[^\S\n]*-[^\S\n]*email\n#?[^\S\n]*-[^\S\n]*msisdn|registrations_require_3pid:\n# - email\n - msisdn|" "/etc/matrix-$app/homeserver.yaml"
 
 			# allowed_local_3pids: part
-			allowedLocal3pids="${allowedLocal3pids}\1"
+			allowedLocal3pids=${allowedLocal3pids}"\1"
 			
 			readarray -td, arr3pidmsisdn < <(echo ${allowed_local_3pids_msisdn});
 			for pidmsisdn in "${arr3pidmsisdn[@]}"; do 
 				# add it to regex substitution part
 				allowedLocal3pids=${allowedLocal3pids}"\n  - medium: msisdn";
-				allowedLocal3pids=${allowedLocal3pids}"\n    pattern: '$(echo ${pidmsisdn})'";
+				allowedLocal3pids=${allowedLocal3pids}"\n$(echo '    ')pattern: '$(echo ${pidmsisdn})'";
 			done; 
 			;;
 			
 		'email&msisdn')
 			# registrations_require_3pid: part
-			sed -i -z -r "s|#?([^\S\n]*registrations_require_3pid:\n)#?([^\S\n]*-[^\S\n]*email\n)#?([^\S\n]*-[^\S\n]*msisdn)|\1\2\3|" "/etc/matrix-$app/homeserver.yaml"
+			sed -i -z -r "s|#?[^\S\n]*registrations_require_3pid:\n#?[^\S\n]*-[^\S\n]*email\n#?[^\S\n]*-[^\S\n]*msisdn|registrations_require_3pid:\n - email\n - msisdn|" "/etc/matrix-$app/homeserver.yaml"
 
 			# allowed_local_3pids: part
-			allowedLocal3pids="$(echo ${allowedLocal3pids})\1"
+			allowedLocal3pids=${allowedLocal3pids}"\1"
 			
 			readarray -td, arr3pidemail < <(echo ${allowed_local_3pids_email});
 			for pidemail in "${arr3pidemail[@]}"; do 
 				# add it to regex substitution part
-				allowedLocal3pids="$(echo ${allowedLocal3pids})\n  - medium: email";
-				allowedLocal3pids="$(echo ${allowedLocal3pids})\n    pattern: '$(echo ${pidemail})'";
+				allowedLocal3pids=${allowedLocal3pids}"\n  - medium: email";
+				allowedLocal3pids=${allowedLocal3pids}"\n$(echo '    ')pattern: '$(echo ${pidemail})'";
 			done;
 			
 			readarray -td, arr3pidmsisdn < <(echo ${allowed_local_3pids_msisdn});
 			for pidmsisdn in "${arr3pidmsisdn[@]}"; do 
 				# add it to regex substitution part
-				allowedLocal3pids="$(echo ${allowedLocal3pids})\n  - medium: msisdn";
-				allowedLocal3pids="$(echo ${allowedLocal3pids})\n    pattern: '$(echo ${pidmsisdn})'";
+				allowedLocal3pids=${allowedLocal3pids}"\n  - medium: msisdn";
+				allowedLocal3pids=${allowedLocal3pids}"\n$(echo '    ')pattern: '$(echo ${pidmsisdn})'";
 			done; 
 			;;
 		
 		*)
-			sed -i -z -r "s|#?([^\S\n]*registrations_require_3pid:\n)#?([^\S\n]*-[^\S\n]*email\n)#?([^\S\n]*-[^\S\n]*msisdn)|#\1#\2#\3|" "/etc/matrix-$app/homeserver.yaml";
+			sed -i -z -r "s|#?[^\S\n]*registrations_require_3pid:\n#?[^\S\n]*-[^\S\n]*email\n#?[^\S\n]*-[^\S\n]*msisdn|#registrations_require_3pid:\n# - email\n# - msisdn|" "/etc/matrix-$app/homeserver.yaml"
 
 			# empty fields and comment registration
-			allowedLocal3pids="$(echo ${allowedLocal3pids})#\1"
+			allowedLocal3pids=${allowedLocal3pids}"#\1"
 			;;
 	esac
 
 	# finalize regex then apply sed command on the homeserver conf file
-	allowedLocal3pids="$(echo ${allowedLocal3pids})\n;";
+	allowedLocal3pids="${allowedLocal3pids}\n;";
 	sed -i -z -r "${allowedLocal3pids}" "/etc/matrix-$app/homeserver.yaml"
 
 
