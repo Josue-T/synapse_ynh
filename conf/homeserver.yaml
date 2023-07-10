@@ -1272,8 +1272,8 @@ enable_registration: __ENABLE_REGISTRATION__
 # The user must provide all of the below types of 3PID when registering.
 #
 registrations_require_3pid:
- - __REGISTRATIONS_REQUIRE_3PID__
-#  - msisdn
+ - email
+# - msisdn
 
 # Explicitly disable asking for MSISDNs from the registration
 # flow (overrides registrations_require_3pid if MSISDNs are set as required)
@@ -1393,7 +1393,7 @@ account_threepid_delegates:
 # room. The join rule of the room must be set to 'public'.
 #
 auto_join_rooms:
-  - "__AUTO_JOIN_ROOMS__"
+  - "#example:example.com"
 
 # Where auto_join_rooms are specified, setting this flag ensures that the
 # the rooms exist by creating them when the first user on the
