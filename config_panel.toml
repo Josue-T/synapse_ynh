@@ -34,13 +34,13 @@ services = ["matrix-__APP__"]
         [main.welcome.allowed_local_3pids_email]
         ask = "Register only with given email formats."
         type = "tags"
-        help = '( e.g. ^[^@]+@matrix\\\.org$ ) Note that \\\ will write \\ in homeserver.yaml'
+        help = '( e.g. ^[^@]+@matrix\\\\.org$ ) Note that \\\ will write \\ in homeserver.yaml'
         visible = 'enable_registration && (registrations_require_3pid == "email" || registrations_require_3pid == "email&msisdn")'
 
         [main.welcome.allowed_local_3pids_msisdn]
         ask = "Register only with given phone number formats."
         type = "tags"
-        help = '( e.g. \\\+33 ) Note that \\\ will write \\ in homeserver.yaml'
+        help = '( e.g. \\\\+33 ) Note that \\\ will write \\ in homeserver.yaml'
         visible = 'enable_registration && (registrations_require_3pid == "email&msisdn" || registrations_require_3pid == "msisdn")'
 
         [main.welcome.auto_join_rooms]
