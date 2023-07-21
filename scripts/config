@@ -138,6 +138,7 @@ set__allowed_local_3pids_msisdn() {
 
 get__auto_join_rooms() {
 	auto_join_rooms=$(ynh_app_setting_get --app $app --key auto_join_rooms)
+	auto_join_rooms=$(echo ${auto_join_rooms} | sed "s~(\\\\)*\#~\\\\\#~g")
 	echo "${auto_join_rooms}"
 }
 
