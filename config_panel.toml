@@ -34,19 +34,19 @@ services = ["matrix-__APP__"]
         [main.welcome.allowed_local_3pids_email]
         ask = "Register only with given email formats."
         type = "tags"
-        help = '( e.g. ^[^@]+@matrix\\.org$ ) Note that \\ will write \ in homeserver.yaml'
+        help = '( e.g. ^[^@]+@matrix.org$ ) Note that this syntax is OK even though ^[^@]+@matrix\\.org$ is suggested in homeserver.yaml'
         visible = 'enable_registration && (registrations_require_3pid == "email" || registrations_require_3pid == "email&msisdn")'
 
         [main.welcome.allowed_local_3pids_msisdn]
         ask = "Register only with given phone number formats."
         type = "tags"
-        help = '( e.g. \\+33 ) Note that \\ will write \ in homeserver.yaml'
+        help = '( e.g. \\\\+33 ) Note that \\\\ will write \\\ in homeserver.yaml'
         visible = 'enable_registration && (registrations_require_3pid == "email&msisdn" || registrations_require_3pid == "msisdn")'
 
         [main.welcome.auto_join_rooms]
         ask = "Auto Join new Users in following Rooms:"
         type = "tags"
-        help = "( e.g. \#example:example.com )  Note that \# will write # in homeserver.yaml. Users who register on this homeserver will automatically be joined to these rooms. If the room already exists, the join rule must be set to 'public'. See also next setting."
+        help = "( e.g. \\\\#example:example.com )  Note that \\\\# will write # in homeserver.yaml. Users who register on this homeserver will automatically be joined to these rooms. If the room already exists, the join rule must be set to 'public'. See also next setting."
        
         [main.welcome.autocreate_auto_join_rooms]
         ask = "Auto-Create room for Auto Join if not existing?"
