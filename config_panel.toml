@@ -43,6 +43,15 @@ services = ["matrix-__APP__"]
         help = '( e.g. \\\\+33 ) Note that \\\\ will write \\\ in homeserver.yaml'
         visible = 'enable_registration && (registrations_require_3pid == "email&msisdn" || registrations_require_3pid == "msisdn")'
 
+        [main.welcome.disable_msisdn_registration]
+        ask = "Disable asking Phone Number in Registration flow."
+        type = "boolean"
+        yes = true
+        no = false
+        help = "Overrides 3PID settings if MSISDNs are set as required."
+        bind = ":/etc/matrix-__APP__/homeserver.yaml"
+        visible = "enable_registration"
+        
         [main.welcome.auto_join_rooms]
         ask = "Auto Join new Users in following Rooms:"
         type = "tags"
@@ -91,15 +100,6 @@ services = ["matrix-__APP__"]
         help = "Disabled by default. If disabled, users on other homeserver will not be able to look for a public room on your homeserver. They will have to type the ID of the room to join."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
-        [main.privacy.disable_msisdn_registration]
-        ask = "Disable asking Phone Number in Registration flow."
-        type = "boolean"
-        yes = true
-        no = false
-        help = "Overrides 3PID settings if MSISDNs are set as required."
-        bind = ":/etc/matrix-__APP__/homeserver.yaml"
-        visible = "enable_registration"
-        
         [main.privacy.push_include_content]
         ask = "Disable content sharing inside push notification."
         type = "boolean"
