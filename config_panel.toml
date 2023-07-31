@@ -34,13 +34,13 @@ services = ["matrix-__APP__"]
         [main.welcome.allowed_local_3pids_email]
         ask = "Register only with given email formats."
         type = "tags"
-        help = '( e.g. ^[^@]+@matrix.org$ ) Note that this syntax is OK even though ^[^@]+@matrix\\.org$ is suggested in homeserver.yaml'
+        help = '( e.g. ^[^@]+@matrix\\\\.org$ ) Note that \\\ will write \\ as suggested in homeserver.yaml'
         visible = 'enable_registration && (registrations_require_3pid == "email" || registrations_require_3pid == "email&msisdn")'
 
         [main.welcome.allowed_local_3pids_msisdn]
         ask = "Register only with given phone number formats."
         type = "tags"
-        help = '( e.g. \\\\+33 ) Note that \\\\ will write \\ in homeserver.yaml'
+        help = '( e.g. \\\\+33 ) Note that \\\ will write \\ as suggested in homeserver.yaml'
         visible = 'enable_registration && (registrations_require_3pid == "email&msisdn" || registrations_require_3pid == "msisdn")'
 
         [main.welcome.disable_msisdn_registration]
@@ -105,7 +105,7 @@ services = ["matrix-__APP__"]
         type = "boolean"
         yes = true
         no = false
-        help = "Send content message and sender infromation in push notification. Set to false increase privacy when GAFAM notification service is used (ie: when element client is downloaded thrue Gplay store)."
+        help = "Send content message and sender information in push notification. Set to false increase privacy when GAFAM notification service is used (ie: when element client is downloaded thrue Gplay store)."
         bind = "push>include_content:/etc/matrix-__APP__/homeserver.yaml"
 
     [main.experience]
