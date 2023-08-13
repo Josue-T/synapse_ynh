@@ -10,16 +10,16 @@ services = ["matrix-__APP__"]
         [main.welcome.enable_registration]
         ask = "Enable Registration for new users."
         type = "boolean"
-        yes = true
-        no = false
+        yes = "true"
+        no = "false"
         help = "Defaults to 'false'. If 'true', it is highly recommended to use either captcha, email, or token-based verification to avoid SPAM."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
         [main.welcome.password_enabled]
         ask = "Enable Password Login?"
         type = "boolean"
-        yes = true
-        no = false
+        yes = "true"
+        no = "false"
         help = "If disabled, Login with Non-YunoHost Users impossible. But it simplies Login process if your Matrix server only has YunoHost SSO Users."
         bind = "password_config>enabled:/etc/matrix-__APP__/homeserver.yaml"
         visible = "! enable_registration"
@@ -46,8 +46,8 @@ services = ["matrix-__APP__"]
         [main.welcome.disable_msisdn_registration]
         ask = "Disable asking Phone Number in Registration flow."
         type = "boolean"
-        yes = true
-        no = false
+        yes = "true"
+        no = "false"
         help = "Overrides 3PID settings if MSISDNs are set as required."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
         visible = "enable_registration"
@@ -60,16 +60,16 @@ services = ["matrix-__APP__"]
         [main.welcome.autocreate_auto_join_rooms]
         ask = "Auto-Create room for Auto Join if not existing?"
         type = "boolean"
-        yes = true
-        no = false
+        yes = "true"
+        no = "false"
         help = "Setting to false means that if the rooms are not manually created, users cannot be auto-joined. Auto-created rooms will be public and federated by default, this can be customised in CLI with the settings auto_join_*."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
         [main.welcome.notif_for_new_users]
         ask = "Enable email notifications for new users?"
         type = "boolean"
-        yes = true
-        no = false
+        yes = "true"
+        no = "false"
         help = "Defaults to 'true'."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
         visible = "enable_notifs"
@@ -95,16 +95,16 @@ services = ["matrix-__APP__"]
         [main.privacy.allow_public_rooms_over_federation]
         ask = "Access Public Rooms Directory over Federation?"
         type = "boolean"
-        yes = true
-        no = false
+        yes = "true"
+        no = "false"
         help = "Disabled by default. If disabled, users on other homeserver will not be able to look for a public room on your homeserver. They will have to type the ID of the room to join."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
         [main.privacy.push_include_content]
         ask = "Disable content sharing inside push notification."
         type = "boolean"
-        yes = true
-        no = false
+        yes = "true"
+        no = "false"
         help = "Send content message and sender information in push notification. Set to false increase privacy when GAFAM notification service is used (ie: when element client is downloaded thrue Gplay store)."
         bind = "push>include_content:/etc/matrix-__APP__/homeserver.yaml"
 
@@ -120,16 +120,16 @@ services = ["matrix-__APP__"]
         [main.experience.enable_group_creation]
         ask = "Allow non-server-admin Users to create Spaces?"
         type = "boolean"
-        yes = true
-        no = false
+        yes = "true"
+        no = "false"
         help = "Disabled by default: only server admins can create Spaces"
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
         [main.experience.enable_notifs]
         ask = "Enable sending emails for messages the user missed?"
         type = "boolean"
-        yes = true
-        no = false
+        yes = "true"
+        no = "false"
         help = "Defaults to 'false'."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
@@ -172,15 +172,15 @@ services = ["matrix-__APP__"]
             [advanced.others.backup_before_upgrade]
             ask = "Backup before upgrade?"
             type = "boolean"
-            yes = true
-            no = false
+            yes = "true"
+            no = "false"
             help = "!! If disabled, do a manual backup before upgrade !! Disable if your Synapse instance is huge and you prefer to disable the backup that is normally automatically done before each upgrade."
 
             [advanced.others.server_statistics]
             ask = "Server statistics"
             type = "boolean"
-            yes = true
-            no = false
+            yes = "true"
+            no = "false"
             help = "Enable to send anonymous statistics to Synapse Developers to improve performance."
             bind = "report_stats:/etc/matrix-__APP__/homeserver.yaml"
 
@@ -196,16 +196,16 @@ services = ["matrix-__APP__"]
         [advanced.guests.allow_guest_access]
         ask = "Allow Users to Register as Guests?"
         type = "boolean"
-        yes = true
-        no = false
+        yes = "true"
+        no = "false"
         help = "Guests can participate on this server in rooms with guest access enabled, without a password/email/etc."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
         [advanced.guests.auto_join_rooms_for_guests]
         ask = "Enable Auto Join Room for Guests?"
         type = "boolean"
-        yes = true
-        no = false
+        yes = "true"
+        no = "false"
         help = "Defaults to 'true'."
         bind = ":/etc/matrix-__APP__/homeserver.yaml"
         visible = "allow_guest_access"
@@ -216,8 +216,8 @@ services = ["matrix-__APP__"]
             [advanced.privacy.enable_3pid_lookup]
             ask = "Allow discovering friends with phone number or email?"
             type = "boolean"
-            yes = true
-            no = false
+            yes = "true"
+            no = "false"
             help = "Enable 3PIDs lookup requests to identity servers from this server. See Settings->General->Discovery in Element."
             bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
@@ -230,8 +230,8 @@ services = ["matrix-__APP__"]
             [advanced.privacy.allow_public_rooms_without_auth]
             ask = "Access Public Rooms Directory without authentification?"
             type = "boolean"
-            yes = true
-            no = false
+            yes = "true"
+            no = "false"
             help = "Disabled by default. If enabled, anyone can query the Public Rooms Directory (access through the client API). This only makes sense if you want everyone to be able to scroll your public room to see what's interesting on your Homeserver"
             bind = ":/etc/matrix-__APP__/homeserver.yaml"
 
@@ -247,7 +247,7 @@ services = ["matrix-__APP__"]
             [advanced.registration.turn_allow_guests]
             ask = "Should guests be allowed to use the TURN server?"
             type = "boolean"
-            yes = true
-            no = false
+            yes = "true"
+            no = "false"
             help = "This defaults to True, otherwise VoIP will be unreliable for guests. However, it does introduce a slight security risk as it allows users to connect to arbitrary endpoints without having first signed up for a valid account (e.g. by passing a CAPTCHA)."
             bind = ":/etc/matrix-__APP__/homeserver.yaml"

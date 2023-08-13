@@ -86,7 +86,7 @@ ynh_app_setting_set --app=$app --key=report_stats --value=$report_stats
 ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 ynh_app_setting_set --app=$app --key=synapse_user_app_pwd --value=$synapse_user_app_pwd
 
-if [ $is_free_registration -eq 0 ]
+if [ "$is_free_registration" -eq "0" ]
 then
     enable_registration="false"
     turn_allow_guests="false"

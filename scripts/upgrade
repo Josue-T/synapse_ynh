@@ -334,7 +334,7 @@ fi
 
 if [ -z "$enable_registration" ]
 then
-  if [ $is_free_registration -eq 0 ]
+  if [ "$is_free_registration" -eq "0" ]
   then
       enable_registration="false"
       turn_allow_guests="false"
