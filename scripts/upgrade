@@ -73,6 +73,7 @@ disable_msisdn_registration=$(ynh_app_setting_get --app=$app --key=disable_msisd
 registrations_require_3pid=$(ynh_app_setting_get --app=$app --key=registrations_require_3pid)
 allowed_local_3pids_email=$(ynh_app_setting_get --app=$app --key=allowed_local_3pids_email)
 allowed_local_3pids_msisdn=$(ynh_app_setting_get --app=$app --key=allowed_local_3pids_msisdn)
+account_threepid_delegates_msisdn=$(ynh_app_setting_get --app=$app --key=account_threepid_delegates_msisdn)
 allow_guest_access=$(ynh_app_setting_get --app=$app --key=allow_guest_access)
 default_identity_server=$(ynh_app_setting_get --app=$app --key=default_identity_server)
 auto_join_rooms=$(ynh_app_setting_get --app=$app --key=auto_join_rooms)
