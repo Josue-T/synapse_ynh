@@ -1356,7 +1356,9 @@ default_identity_server: __DEFAULT_IDENTITY_SERVER__
 # by the Matrix Identity Service API specification:
 # https://matrix.org/docs/spec/identity_service/latest
 #
-account_threepid_delegates:
+# As email delegates is managed by the synapse server itself this email section is 
+# deprecated but msisdn format is still composed by email: <value> on a new line
+account_threepid_delegates: __ACCOUNT_THREEPID_DELEGATES_MSISDN__
     #email: https://example.com     # Delegate email sending to example.com
     #msisdn: http://localhost:8090  # Delegate SMS sending to this local process
 
