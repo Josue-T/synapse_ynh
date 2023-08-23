@@ -158,7 +158,7 @@ ynh_app_setting_set --app=$app --key=disable_msisdn_registration --value=$disabl
 ynh_app_setting_set --app=$app --key=registrations_require_3pid --value=$registrations_require_3pid
 ynh_app_setting_set --app=$app --key=allowed_local_3pids_email --value=$allowed_local_3pids_email
 ynh_app_setting_set --app=$app --key=allowed_local_3pids_msisdn --value=$allowed_local_3pids_msisdn
-ynh_app_setting_set --app=$app --key=account_threepid_delegates_msisdn --value="$account_threepid_delegates_msisdn"
+ynh_app_setting_set --app=$app --key=account_threepid_delegates_msisdn --value=$account_threepid_delegates_msisdn
 ynh_app_setting_set --app=$app --key=allow_guest_access --value=$allow_guest_access
 ynh_app_setting_set --app=$app --key=default_identity_server --value=$default_identity_server
 ynh_app_setting_set --app=$app --key=auto_join_rooms --value=$auto_join_rooms
