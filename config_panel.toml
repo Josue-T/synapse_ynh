@@ -28,7 +28,7 @@ services = ["matrix-__APP__"]
         ask = "Registration requires all following 3PID personal identifier."
         type = "select"
         choices = ["false","email", "msisdn", "email&msisdn"]
-        help = "! warning msisdn (Phone number) registration require a third party service which send confirmation token by SMS do not select any option including msisdn if you don't know what to do.\nDefaults to: 'email'."
+        help = "! Warning msisdn (Phone number) registration require a third party service which send confirmation token by SMS.\n Do not select any option including msisdn if you don't know what to do. And don't understand privacy flow\nDefaults to: 'false'."
         visible = "enable_registration"
 
         [main.welcome.allowed_local_3pids_email]
@@ -55,8 +55,8 @@ services = ["matrix-__APP__"]
         [main.welcome.account_threepid_delegates_msisdn]
         ask = "specify a third party server to send confirmation code by SMS."
         type = "string"
-        help = "! Mandatory for msisdn registration. Specify here the server which will send the configmation token by SMS (synapse can not do it for now). it mus be preced by 'msisdn: ' then the url of the server (for now)"
-        bind = ":/etc/matrix-__APP__/homeserver.yaml"
+        help = "Specify here the server which will send the configmation token by SMS (synapse can not do it for now). \nIt mus be preced by 'msisdn: ' then the url of the server"
+        bind = "account_threepid_delegates:/etc/matrix-__APP__/homeserver.yaml"
         visible = 'enable_registration && (registrations_require_3pid == "email&msisdn" || registrations_require_3pid == "msisdn")'
         
         [main.welcome.auto_join_rooms]
