@@ -15,7 +15,7 @@
         upgrade=1   from_commit=0a485e0d6bcd14392b9203b3b27e7e1a7ba21d19
         upgrade=1   from_commit=6af39e6e086e70e2063eb8f63c48a1e4a597300d
         backup_restore=1
-        multi_instance=0
+        multi_instance=1
         incorrect_path=0
         port_already_use=1 (8448)
         change_url=0
