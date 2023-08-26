@@ -294,7 +294,7 @@ then
 fi
 if [ -z "$account_threepid_delegates_msisdn" ]
 then
-  account_threepid_delegates_msisdn="#email:"
+  account_threepid_delegates_msisdn=""
   ynh_app_setting_set --app=$app --key=account_threepid_delegates_msisdn --value=$account_threepid_delegates_msisdn
 fi
 if [ -z "$allow_guest_access" ]
