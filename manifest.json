@@ -19,7 +19,7 @@
         "code": "https://github.com/matrix-org/synapse"
     },
 	"requirements": {
-		"yunohost": ">= 11.0.11"
+		"yunohost": ">= 11.2"
 	},
 	"multi_instance": true,
 	"services": [
