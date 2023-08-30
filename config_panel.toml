@@ -53,9 +53,9 @@ services = ["matrix-__APP__"]
         visible = "enable_registration"
 
         [main.welcome.account_threepid_delegates_msisdn]
-        ask = "specify a third party server to send confirmation code by SMS."
+        ask = "Specify a third party server to send confirmation code by SMS."
         type = "string"
-        help = "Specify here the server which will send the configmation token by SMS (synapse can not do it for now). "
+        help = "That should be an URL with port or API."
         bind = "account_threepid_delegates>msisdn:/etc/matrix-__APP__/homeserver.yaml"
         visible = 'enable_registration && (registrations_require_3pid == "email&msisdn" || registrations_require_3pid == "msisdn")'
         
