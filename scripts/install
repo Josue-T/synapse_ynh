@@ -129,7 +129,7 @@ allow_public_rooms_without_auth="false"
 allow_public_rooms_over_federation="false"
 max_upload_size="10M"
 disable_msisdn_registration="true"
-registrations_require_3pid="false"
+registrations_require_3pid="none"
 # here we need sed magic to transform $server_name
 allowed_local_3pids_email=""
 allowed_local_3pids_msisdn=""
