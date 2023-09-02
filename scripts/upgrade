@@ -279,7 +279,7 @@ then
 fi
 if [ -z "$registrations_require_3pid" ]
 then
-  registrations_require_3pid="email"
+  registrations_require_3pid="none"
   ynh_app_setting_set --app=$app --key=registrations_require_3pid --value=$registrations_require_3pid
 fi
 if [ -z "$allowed_local_3pids_email" ]
