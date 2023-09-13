@@ -50,7 +50,7 @@ pid_file: /run/matrix-__APP__/homeserver.pid
 
 # The absolute URL to the web client which / will redirect to.
 #
-#web_client_location: https://riot.example.com/
+web_client_location: __WEB_CLIENT_LOCATION__
 
 # The public-facing base URL that clients use to access this Homeserver (not
 # including _matrix/...). This is the same URL a user might enter into the
@@ -122,12 +122,12 @@ presence:
 # public rooms directory through the client API, meaning that anyone can
 # query the room directory. Defaults to 'false'.
 #
-allow_public_rooms_without_auth: __ALLOW_PUBLIC_ROOMS__
+allow_public_rooms_without_auth: __ALLOW_PUBLIC_ROOMS_WITHOUT_AUTH__
 
 # If set to 'true', allows any other homeserver to fetch the server's public
 # rooms directory via federation. Defaults to 'false'.
 #
-allow_public_rooms_over_federation: __ALLOW_PUBLIC_ROOMS__
+allow_public_rooms_over_federation: __ALLOW_PUBLIC_ROOMS_OVER_FEDERATION__
 
 # The default room version for newly created rooms.
 #
@@ -978,7 +978,7 @@ media_storage_providers:
 # your reverse proxy's config. Notably Nginx has a small max body size by default.
 # See https://matrix-org.github.io/synapse/latest/reverse_proxy.html.
 #
-max_upload_size: 100M
+max_upload_size: __MAX_UPLOAD_SIZE__
 
 # Maximum number of pixels that will be thumbnailed
 #
@@ -1200,7 +1200,7 @@ turn_user_lifetime: 1h
 # connect to arbitrary endpoints without having first signed up for a
 # valid account (e.g. by passing a CAPTCHA).
 #
-turn_allow_guests: __ALLOWED_ACCESS__
+turn_allow_guests: __TURN_ALLOW_GUESTS__
 
 
 ## Registration ##
@@ -1212,7 +1212,7 @@ turn_allow_guests: __ALLOWED_ACCESS__
 # you use either captcha, email, or token-based verification to verify that new users are not bots. In order to enable registration
 # without any verification, you must also set `enable_registration_without_verification`, found below.
 #
-enable_registration: __ALLOWED_ACCESS__
+enable_registration: __ENABLE_REGISTRATION__
 
 # Enable registration without email or captcha verification. Note: this option is *not* recommended,
 # as registration without verification is a known vector for spam and abuse. Defaults to false. Has no effect
@@ -1273,19 +1273,17 @@ enable_registration: __ALLOWED_ACCESS__
 #
 registrations_require_3pid:
  - email
-#  - msisdn
+# - msisdn
 
 # Explicitly disable asking for MSISDNs from the registration
 # flow (overrides registrations_require_3pid if MSISDNs are set as required)
 #
-#disable_msisdn_registration: true
+disable_msisdn_registration: __DISABLE_MSISDN_REGISTRATION__
 
 # Mandate that users are only allowed to associate certain formats of
 # 3PIDs with accounts on this server.
 #
 #allowed_local_3pids:
-#  - medium: email
-#    pattern: '^[^@]+@matrix\.org$'
 #  - medium: email
 #    pattern: '^[^@]+@vector\.im$'
 #  - medium: msisdn
@@ -1293,7 +1291,7 @@ registrations_require_3pid:
 
 # Enable 3PIDs lookup requests to identity servers from this server.
 #
-#enable_3pid_lookup: true
+enable_3pid_lookup: __ENABLE_3PID_LOOKUP__
 
 # Require users to submit a token during registration.
 # Tokens can be managed using the admin API:
@@ -1327,7 +1325,7 @@ registration_shared_secret: "__REGISTRATION_SHARED_SECRET__"
 # participate in rooms hosted on this server which have been made
 # accessible to anonymous users.
 #
-#allow_guest_access: false
+allow_guest_access: __ALLOW_GUEST_ACCESS__
 
 # The identity server which we suggest that clients should use when users log
 # in on this server.
@@ -1335,7 +1333,7 @@ registration_shared_secret: "__REGISTRATION_SHARED_SECRET__"
 # (By default, no suggestion is made, so it is left up to the client.
 # This setting is ignored unless public_baseurl is also explicitly set.)
 #
-#default_identity_server: https://matrix.org
+default_identity_server: __DEFAULT_IDENTITY_SERVER__
 
 # Handle threepid (email/phone etc) registration and password resets through a set of
 # *trusted* identity servers. Note that this allows the configured identity server to
@@ -1358,7 +1356,10 @@ registration_shared_secret: "__REGISTRATION_SHARED_SECRET__"
 # by the Matrix Identity Service API specification:
 # https://matrix.org/docs/spec/identity_service/latest
 #
-account_threepid_delegates:
+# As email delegates is managed by the synapse server itself this email section is 
+# not necessary but msisdn format is still composed by msisdn: <value> on a new line
+account_threepid_delegates: 
+    msisdn: __ACCOUNT_THREEPID_DELEGATES_MSISDN__
     #email: https://example.com     # Delegate email sending to example.com
     #msisdn: http://localhost:8090  # Delegate SMS sending to this local process
 
@@ -1394,8 +1395,8 @@ account_threepid_delegates:
 # If the room already exists, make certain it is a publicly joinable
 # room. The join rule of the room must be set to 'public'.
 #
-#auto_join_rooms:
-#  - "#example:example.com"
+auto_join_rooms:
+  - "#example:example.com"
 
 # Where auto_join_rooms are specified, setting this flag ensures that the
 # the rooms exist by creating them when the first user on the
@@ -1411,7 +1412,7 @@ account_threepid_delegates:
 # Defaults to true. Uncomment the following line to disable automatically
 # creating auto-join rooms.
 #
-#autocreate_auto_join_rooms: false
+autocreate_auto_join_rooms: __AUTOCREATE_AUTO_JOIN_ROOMS__
 
 # Whether the auto_join_rooms that are auto-created are available via
 # federation. Only has an effect if autocreate_auto_join_rooms is true.
@@ -1462,7 +1463,7 @@ account_threepid_delegates:
 #
 # Defaults to true.
 #
-#auto_join_rooms_for_guests: false
+auto_join_rooms_for_guests: __AUTO_JOIN_ROOMS_FOR_GUESTS__
 
 # Whether to inhibit errors raised when registering a new account if the user ID
 # already exists. If turned on, that requests to /register/available will always
@@ -2167,7 +2168,7 @@ __DOMAIN_WHITELIST_CLIENT__
 password_config:
    # Uncomment to disable password login
    #
-   #enabled: false
+   enabled: __PASSWORD_ENABLED__
 
    # Uncomment to disable authentication against the local password
    # database. This is ignored if `enabled` is false, and is only useful
@@ -2307,12 +2308,12 @@ email:
   # Uncomment the following to enable sending emails for messages that the user
   # has missed. Disabled by default.
   #
-  enable_notifs: true
+  enable_notifs: __ENABLE_NOTIFS__
 
   # Uncomment the following to disable automatic subscription to email
   # notifications for new users. Enabled by default.
   #
-  #notif_for_new_users: false
+  notif_for_new_users: __NOTIF_FOR_NEW_USERS__
 
   # Custom URL for client links within the email notifications. By default
   # links will be based on "https://matrix.to".
@@ -2320,7 +2321,7 @@ email:
   # (This setting used to be called riot_base_url; the old name is still
   # supported for backwards-compatibility but is now deprecated.)
   #
-  #client_base_url: "http://localhost/riot"
+  client_base_url: __CLIENT_BASE_URL__
 
   # Configure the time that a validation email will expire after sending.
   # Defaults to 1h.
@@ -2331,7 +2332,7 @@ email:
   # to the identity server as the org.matrix.web_client_location key. Defaults
   # to unset, giving no guidance to the identity server.
   #
-  #invite_client_location: https://app.element.io
+  invite_client_location: __INVITE_CLIENT_LOCATION__
 
   # Subjects to use when sending emails from Synapse.
   #
@@ -2420,7 +2421,7 @@ push:
   # The default value is "true" to include message details. Uncomment to only
   # include the event ID and room ID in push notification payloads.
   #
-  #include_content: false
+  include_content: __PUSH_INCLUDE_CONTENT__
 
   # When a push notification is received, an unread count is also sent.
   # This number can either be calculated as the number of unread messages
@@ -2450,12 +2451,12 @@ push:
 # Note that this option will only affect rooms created after it is set. It
 # will also not affect rooms created by other servers.
 #
-#encryption_enabled_by_default_for_room_type: invite
+encryption_enabled_by_default_for_room_type: __E2E_ENABLED_BY_DEFAULT__
 
 
 # Uncomment to allow non-server-admin users to create groups on this server
 #
-enable_group_creation: true
+enable_group_creation: __ENABLE_GROUP_CREATION__
 
 # If enabled, non server admins can only create groups with local parts
 # starting with this prefix

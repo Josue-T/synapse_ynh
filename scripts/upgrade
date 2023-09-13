@@ -33,7 +33,6 @@ turnserver_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_tls_port)
 turnserver_alt_tls_port=$(ynh_app_setting_get --app=$app --key=turnserver_alt_tls_port)
 cli_port=$(ynh_app_setting_get --app=$app --key=cli_port)
 report_stats=$(ynh_app_setting_get --app=$app --key=report_stats)
-allow_public_rooms=$(ynh_app_setting_get --app=$app --key=allow_public_rooms)
 e2e_enabled_by_default=$(ynh_app_setting_get --app=$app --key=e2e_enabled_by_default)
 synapse_db_pwd=$(ynh_app_setting_get --app=$app --key=synapse_db_pwd)
 turnserver_pwd=$(ynh_app_setting_get --app=$app --key=turnserver_pwd)
@@ -60,6 +59,38 @@ final_www_path="/var/www/$app"
 data_path="/home/yunohost.app/matrix-$app"
 
 #=================================================
+# GET CONFIG PANEL SETTINGS
+#=================================================
+
+server_statistics=$(ynh_app_setting_get --app=$app --key=server_statistics)
+web_client_location=$(ynh_app_setting_get --app=$app --key=web_client_location)
+client_base_url=$(ynh_app_setting_get --app=$app --key=client_base_url)
+invite_client_location=$(ynh_app_setting_get --app=$app --key=invite_client_location)
+allow_public_rooms_without_auth=$(ynh_app_setting_get --app=$app --key=allow_public_rooms_without_auth)
+allow_public_rooms_over_federation=$(ynh_app_setting_get --app=$app --key=allow_public_rooms_over_federation)
+max_upload_size=$(ynh_app_setting_get --app=$app --key=max_upload_size)
+disable_msisdn_registration=$(ynh_app_setting_get --app=$app --key=disable_msisdn_registration)
+registrations_require_3pid=$(ynh_app_setting_get --app=$app --key=registrations_require_3pid)
+allowed_local_3pids_email=$(ynh_app_setting_get --app=$app --key=allowed_local_3pids_email)
+allowed_local_3pids_msisdn=$(ynh_app_setting_get --app=$app --key=allowed_local_3pids_msisdn)
+account_threepid_delegates_msisdn=$(ynh_app_setting_get --app=$app --key=account_threepid_delegates_msisdn)
+allow_guest_access=$(ynh_app_setting_get --app=$app --key=allow_guest_access)
+default_identity_server=$(ynh_app_setting_get --app=$app --key=default_identity_server)
+auto_join_rooms=$(ynh_app_setting_get --app=$app --key=auto_join_rooms)
+autocreate_auto_join_rooms=$(ynh_app_setting_get --app=$app --key=autocreate_auto_join_rooms)
+auto_join_rooms_for_guests=$(ynh_app_setting_get --app=$app --key=auto_join_rooms_for_guests)
+enable_notifs=$(ynh_app_setting_get --app=$app --key=enable_notifs)
+notif_for_new_users=$(ynh_app_setting_get --app=$app --key=notif_for_new_users)
+enable_group_creation=$(ynh_app_setting_get --app=$app --key=enable_group_creation)
+
+enable_registration=$(ynh_app_setting_get --app=$app --key=enable_registration)
+turn_allow_guests=$(ynh_app_setting_get --app=$app --key=turn_allow_guests)
+sso_enabled=$(ynh_app_setting_get --app=$app --key=sso_enabled)
+password_enabled=$(ynh_app_setting_get --app=$app --key=password_enabled)
+enable_3pid_lookup=$(ynh_app_setting_get --app=$app --key=enable_3pid_lookup)
+push_include_content=$(ynh_app_setting_get --app=$app --key=push_include_content)
+
+#=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
@@ -71,22 +102,36 @@ then
 fi
 
 #=================================================
+# MIGRATION 7 : Working config panel v1
+#=================================================
+backup_before_upgrade=$(ynh_app_setting_get --app=$app --key=backup_before_upgrade)
+if [ -z $backup_before_upgrade ] ; then
+    backup_before_upgrade="true"
+    disable_backup_before_upgrade=$(ynh_app_setting_get --app=$app --key=disable_backup_before_upgrade)
+    if [ "0$disable_backup_before_upgrade" -ne 0 ]; then
+        backup_before_upgrade="false"
+    fi
+    ynh_app_setting_set --app=$app --key=backup_before_upgrade --value=$backup_before_upgrade
+fi
+
+#=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=30
 
 # We stop the service before to set ynh_clean_setup
 ynh_systemd_action --service_name=matrix-$app.service --action=stop
 
 # Backup the current version of the app
-if [ "0$(ynh_app_setting_get --app=$app --key=disable_backup_before_upgrade)" -ne 1 ]
-then
+if $backup_before_upgrade ; then
+    ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=30
     ynh_backup_before_upgrade
     ynh_clean_setup () {
         # Clean installation remainings that are not handled by the remove script.
         ynh_clean_check_starting
         ynh_restore_upgradebackup
     }
+else
+    ynh_script_progression --message="NOT Backing up the app before upgrading..." --weight=1
 fi
 
 #=================================================
@@ -119,8 +164,18 @@ if [ -z $jitsi_server ]; then
 fi
 
 # Define $e2e_enabled_by_default if not already defined
-if [ -z $e2e_enabled_by_default ]; then
-   e2e_enabled_by_default='true'
+if [ -z $e2e_enabled_by_default ] ; then
+   e2e_enabled_by_default="invite"
+   ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
+fi
+
+if [ "$e2e_enabled_by_default" = "true" ] ; then
+   e2e_enabled_by_default="all"
+   ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
+fi
+
+if [ "$e2e_enabled_by_default" = "false" ]; then
+   e2e_enabled_by_default="off"
    ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 fi
 
@@ -129,14 +184,8 @@ if [ -z $report_stats ]; then
     ynh_app_setting_set --app=$app --key=report_stats --value=$report_stats
 fi
 
-if [ -z $allow_public_rooms ]; then
-    allow_public_rooms="false"
-    ynh_app_setting_set --app=$app --key=allow_public_rooms --value=$allow_public_rooms
-fi
-
 if [ -z $is_free_registration ]; then
     is_free_registration=$(ynh_app_setting_get --app=$app --key=is_""public)
-    ynh_app_setting_set --app=$app --key=is_free_registration --value=$is_free_registration
 fi
 
 if [ -z $synapse_user_app_pwd ]; then
@@ -167,6 +216,155 @@ fi
 if ! grep -q "$final_path" /etc/passwd; then
     # matrix-synapse:x:994:994::/var/lib/matrix-synapse:/usr/sbin/nologin
     sed --in-place -r "s@matrix-$app\:x\:([[:digit:]]+\:[[:digit:]]+)\:\:/.*/matrix-$app\:/usr/sbin/nologin@matrix-$app\:x\:\1\:\:$final_path\:/usr/sbin/nologin@g" /etc/passwd
+fi
+
+#=================================================
+# MIGRATION 7 : Working config panel v1
+#=================================================
+
+allow_public_rooms=$(ynh_app_setting_get --app=$app --key=allow_public_rooms)
+if [ -z $allow_public_rooms ]; then
+    allow_public_rooms="false"
+fi
+
+# SET STANDARD SETTINGS FROM DEFAULT CONFIG
+
+# Get app name of first Element Instance
+element_ynh_url="https://matrix.to/"
+element_domain=""
+element_path=""
+web_client_location=$element_ynh_url
+client_base_url=$element_ynh_url
+invite_client_location=$element_ynh_url
+element_instance="element"
+if [ -z "$web_client_location" ]
+then
+  if yunohost --output-as plain app list | grep -q "^$element_instance"'$'; then
+    element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
+    element_path=$(ynh_app_setting_get --app $element_instance --key path)
+    element_ynh_url="https://""$element_domain""$element_path"
+  fi
+  web_client_location=$element_ynh_url
+  client_base_url=$element_ynh_url
+  invite_client_location=$element_ynh_url
+  ynh_app_setting_set --app=$app --key=web_client_location --value=$web_client_location
+  ynh_app_setting_set --app=$app --key=client_base_url --value=$client_base_url
+  ynh_app_setting_set --app=$app --key=invite_client_location --value=$invite_client_location
+fi
+
+if [ -z "$server_statistics" ]
+then
+  server_statistics="false"
+  ynh_app_setting_set --app=$app --key=server_statistics --value=$server_statistics
+fi
+if [ -z "$allow_public_rooms_without_auth" ]
+then
+  allow_public_rooms_without_auth=$allow_public_rooms
+  ynh_app_setting_set --app=$app --key=allow_public_rooms_without_auth --value=$allow_public_rooms_without_auth
+fi
+if [ -z "$allow_public_rooms_over_federation" ]
+then
+  allow_public_rooms_over_federation=$allow_public_rooms
+  ynh_app_setting_set --app=$app --key=allow_public_rooms_over_federation --value=$allow_public_rooms_over_federation
+fi
+if [ -z "$max_upload_size" ]
+then
+  max_upload_size="10M"
+  ynh_app_setting_set --app=$app --key=max_upload_size --value=$max_upload_size
+fi
+if [ -z "$disable_msisdn_registration" ]
+then
+  disable_msisdn_registration="true"
+  ynh_app_setting_set --app=$app --key=disable_msisdn_registration --value=$disable_msisdn_registration
+fi
+if [ -z "$registrations_require_3pid" ]
+then
+  registrations_require_3pid="none"
+  ynh_app_setting_set --app=$app --key=registrations_require_3pid --value=$registrations_require_3pid
+fi
+if [ -z "$allowed_local_3pids_email" ]
+then
+  allowed_local_3pids_email="'^[^@]+@""matrix""\.org$'"
+  ynh_app_setting_set --app=$app --key=allowed_local_3pids_email --value=$allowed_local_3pids_email
+fi
+if [ -z "$allowed_local_3pids_msisdn" ]
+then
+  allowed_local_3pids_msisdn="'\+33'"
+  ynh_app_setting_set --app=$app --key=allowed_local_3pids_msisdn --value=$allowed_local_3pids_msisdn
+fi
+if [ -z "$account_threepid_delegates_msisdn" ]
+then
+  account_threepid_delegates_msisdn=""
+  ynh_app_setting_set --app=$app --key=account_threepid_delegates_msisdn --value=$account_threepid_delegates_msisdn
+fi
+if [ -z "$allow_guest_access" ]
+then
+  allow_guest_access="false"
+  ynh_app_setting_set --app=$app --key=allow_guest_access --value=$allow_guest_access
+fi
+if [ -z "$default_identity_server" ]
+then
+  default_identity_server="https://matrix.org"
+  ynh_app_setting_set --app=$app --key=default_identity_server --value=$default_identity_server
+fi
+if [ -z "$auto_join_rooms" ]
+then
+  auto_join_rooms="#auto_join_room:""$server_name"
+  ynh_app_setting_set --app=$app --key=auto_join_rooms --value=$auto_join_rooms
+fi
+if [ -z "$autocreate_auto_join_rooms" ]
+then
+  autocreate_auto_join_rooms="false"
+  ynh_app_setting_set --app=$app --key=autocreate_auto_join_rooms --value=$autocreate_auto_join_rooms
+fi
+if [ -z "$auto_join_rooms_for_guests" ]
+then
+  auto_join_rooms_for_guests="true"
+  ynh_app_setting_set --app=$app --key=auto_join_rooms_for_guests --value=$auto_join_rooms_for_guests
+fi
+if [ -z "$enable_notifs" ]
+then
+  enable_notifs="true"
+  ynh_app_setting_set --app=$app --key=enable_notifs --value=$enable_notifs
+fi
+if [ -z "$notif_for_new_users" ]
+then
+  notif_for_new_users="true"
+  ynh_app_setting_set --app=$app --key=notif_for_new_users --value=$notif_for_new_users
+fi
+if [ -z "$enable_group_creation" ]
+then
+  enable_group_creation="true"
+  ynh_app_setting_set --app=$app --key=enable_group_creation --value=$enable_group_creation
+fi
+
+if [ -z "$enable_registration" ]
+then
+  if [ "$is_free_registration" -eq "0" ]
+  then
+      enable_registration="false"
+      turn_allow_guests="false"
+      sso_enabled="true"
+      password_enabled="false"
+      enable_3pid_lookup="false"
+  else
+      enable_registration="true"
+      turn_allow_guests="true"
+      sso_enabled="false"
+      password_enabled="true"
+      enable_3pid_lookup="true"
+  fi
+  ynh_app_setting_set --app=$app --key=enable_registration --value=$enable_registration
+  ynh_app_setting_set --app=$app --key=turn_allow_guests --value=$turn_allow_guests
+  ynh_app_setting_set --app=$app --key=sso_enabled --value=$sso_enabled
+  ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
+  ynh_app_setting_set --app=$app --key=enable_3pid_lookup --value=$enable_3pid_lookup
+fi
+
+if [ -z "$push_include_content" ]
+then
+  push_include_content="true"
+  ynh_app_setting_set --app=$app --key=push_include_content --value=$push_include_content
 fi
 
 #=================================================
@@ -245,15 +443,6 @@ if [ -z $macaroon_secret_key ]; then
     macaroon_secret_key_param='# macaroon_secret_key: ""'
 else
     macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
-fi
-
-if [ $is_free_registration -eq 0 ]
-then
-    allowed_access=False
-    sso_enabled=True
-else
-    allowed_access=True
-    sso_enabled=False
 fi
 
 ynh_add_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"

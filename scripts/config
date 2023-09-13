@@ -10,147 +10,157 @@ source /usr/share/yunohost/helpers
 
 # Stop script if errors
 ynh_abort_if_errors
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 
-# Import common fonctions
-source ./experimental_helper.sh
-source ./_common.sh
-
-#=================================================
-# RETRIEVE ARGUMENTS
-#=================================================
-
-app=$YNH_APP_INSTANCE_NAME
-report_stats=$(ynh_app_setting_get --app $app --key report_stats)
-allow_public_rooms=$(ynh_app_setting_get --app=$app --key=allow_public_rooms)
-disable_backup_before_upgrade=$(ynh_app_setting_get --app $app --key disable_backup_before_upgrade)
-is_free_registration=$(ynh_app_setting_get --app $app --key is_free_registration)
-jitsi_server=$(ynh_app_setting_get --app=$app --key=jitsi_server)
-e2e_enabled_by_default=$(ynh_app_setting_get --app=$app --key=e2e_enabled_by_default)
-synapse_user_app_pwd=$(ynh_app_setting_get --app=$app --key=synapse_user_app_pwd)
-domain_whitelist_client_=$(get_domain_list)
-domain_whitelist_client=${domain_whitelist_client_%"\n"}
-main_domain=$(yunohost domain list --output-as json | jq -r .main)
-
-#=================================================
-# SHOW_CONFIG FUNCTION FOR 'SHOW' COMMAND
-#=================================================
-
-show_config() {
-    # here you are supposed to read some config file/database/other then print the values
-    # ynh_return "YNH_CONFIG_${PANEL_ID}_${SECTION_ID}_${OPTION_ID}=value"
-    ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS=$report_stats"
-    ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_ALLOW_PUBLIC_ROOMS=$allow_public_rooms"
-    ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_CLIENT_CONFIG_JITSI_SERVER=$jitsi_server"
-    ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_FREE_REGISTRATION=${is_free_registration}"
-    ynh_return "YNH_CONFIG_SYNAPSE_CONFIG_CLIENT_CONFIG_E2E_ENABLED_BY_DEFAULT=${e2e_enabled_by_default}"
-
-    if [[ ${disable_backup_before_upgrade:-0} -eq 1 ]]
-    then
-        ynh_return "YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE=0"
-    else
-        ynh_return "YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE=1"
-    fi
+get__max_upload_size() {
+    max_upload_size=$(ynh_app_setting_get --app $app --key max_upload_size)
+    echo "${max_upload_size}"
 }
 
-#=================================================
-# MODIFY THE CONFIGURATION
-#=================================================
+set__max_upload_size() { 
+    ynh_write_var_in_file --file=/etc/matrix-$app/homeserver.yaml --key=max_upload_size --value="${max_upload_size}" 
+    sed -i -r "s|client_max_body_size\s[[:digit:]]*[GMK]?;|client_max_body_size ${max_upload_size};|g" "/etc/nginx/conf.d/$domain.d/$app.conf"
+    ynh_add_nginx_conf
+}
 
-apply_config() {
-    report_stats=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_SERVER_STATISTICS:-$report_stats}
-    allow_public_rooms=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_ALLOW_PUBLIC_ROOMS:-$allow_public_rooms}
-    do_backup_before_upgrade=${YNH_CONFIG_PACKAGE_CONFIG_PACKAGE_CONFIG_BACKUP_BEFORE_UPGRADE:-}
-    is_free_registration=${YNH_CONFIG_SYNAPSE_CONFIG_SERVER_CONFIG_IS_FREE_REGISTRATION:-$is_free_registration}
-    jitsi_server=${YNH_CONFIG_SYNAPSE_CONFIG_CLIENT_CONFIG_JITSI_SERVER:-$jitsi_server}
-    e2e_enabled_by_default=${YNH_CONFIG_SYNAPSE_CONFIG_CLIENT_CONFIG_E2E_ENABLED_BY_DEFAULT:-$e2e_enabled_by_default}
+get__registrations_require_3pid() {
+    registrations_require_3pid=$(ynh_app_setting_get --app $app --key registrations_require_3pid)
+    echo "${registrations_require_3pid}"
+}
 
-    if [ $report_stats == 1 ]; then
-        report_stats=true
-    fi
-    if [ $report_stats == 0 ]; then
-        report_stats=false
-    fi
-    if [ $allow_public_rooms == 1 ]; then
-        allow_public_rooms=true
-    fi
-    if [ $allow_public_rooms == 0 ]; then
-        allow_public_rooms=false
-    fi
-    if [ $e2e_enabled_by_default == 1 ]; then
-        e2e_enabled_by_default=true
-    fi
-    if [ $e2e_enabled_by_default == 0 ]; then
-        e2e_enabled_by_default=false
-    fi
+# set__registrations_require_3pid() this function is setting datas for registrations_require_3pid field and allowed_local_3pids_(email/msisdn)
+# it consist on comment or not "registrations_require_3pid:", " - email" and/or " - msisdn"
+# then depending on the "registrations_require_3pid" value it comment or not "allowed_local_3pids:" lines 
+# and generate all it sub configuration :
+#
+# allowed_local_3pids:
+#  - medium: email
+#    pattern: *
+#  ...
+#  - medium: msisdn
+#    pattern: *
+#
+# sed -z and \n as new line carracter do the trick on this kind of multline replacement.
 
-    ynh_app_setting_set --app $app --key report_stats --value $report_stats
-    ynh_app_setting_set --app $app --key allow_public_rooms --value $allow_public_rooms
-    ynh_app_setting_set --app $app --key is_free_registration --value $is_free_registration
-    ynh_app_setting_set --app $app --key jitsi_server --value $jitsi_server
-    ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
+set__registrations_require_3pid() { 
 
-    if [[ -n $do_backup_before_upgrade ]]; then
-        if [ $do_backup_before_upgrade -eq 1 ]; then
-            ynh_app_setting_set --app $app --key disable_backup_before_upgrade --value 0
-        else
-            ynh_app_setting_set --app $app --key disable_backup_before_upgrade --value 1
-        fi
-    fi
+	# search pattern to replace (it correspond to the complete section)
+	allowedLocal3pids="s;#?([^\S\n]*allowed_local_3pids:)\n(#?([^\S\n]*-[^\S\n]*medium:[^\S\n]*(email|msisdn)\n)#?([^\S\n]*pattern:[^\S\n]*[^\n]*\n))*;"
+                         
+	case ${registrations_require_3pid} in
+		'email')
+			# registrations_require_3pid: part
+			sed -i -z -r "s|#?[^\S\n]*registrations_require_3pid:\n#?[^\S\n]*-[^\S\n]*email\n#?[^\S\n]*-[^\S\n]*msisdn|registrations_require_3pid:\n - email\n# - msisdn|" "/etc/matrix-$app/homeserver.yaml"
+			
+			# allowed_local_3pids: part
+			allowedLocal3pids=${allowedLocal3pids}"\1"
+			
+			readarray -td, arr3pidemail < <(echo ${allowed_local_3pids_email});
+			for pidemail in "${arr3pidemail[@]}"; do 
+				# add it to regex substitution part
+				allowedLocal3pids=${allowedLocal3pids}"\n  - medium: email";
+				allowedLocal3pids=${allowedLocal3pids}"\n$(echo '    ')pattern: '$(echo ${pidemail})'";
+			done; 
+			;;
+			
+		'msisdn')
+			# registrations_require_3pid: part
+			sed -i -z -r "s|#?[^\S\n]*registrations_require_3pid:\n#?[^\S\n]*-[^\S\n]*email\n#?[^\S\n]*-[^\S\n]*msisdn|registrations_require_3pid:\n# - email\n - msisdn|" "/etc/matrix-$app/homeserver.yaml"
 
-    domain=$(ynh_app_setting_get --app $app --key domain)
-    server_name=$(ynh_app_setting_get --app $app --key server_name)
-    synapse_db_pwd=$(ynh_app_setting_get --app $app --key synapse_db_pwd)
-    is_free_registration=$(ynh_app_setting_get --app $app --key is_free_registration)
-    port=$(ynh_app_setting_get --app $app --key synapse_port)
-    synapse_tls_port=$(ynh_app_setting_get --app $app --key synapse_tls_port)
-    turnserver_tls_port=$(ynh_app_setting_get --app $app --key turnserver_tls_port)
-    turnserver_pwd=$(ynh_app_setting_get --app $app --key turnserver_pwd)
-    registration_shared_secret=$(ynh_app_setting_get --app $app --key registration_shared_secret)
-    form_secret=$(ynh_app_setting_get --app $app --key form_secret)
-    macaroon_secret_key=$(ynh_app_setting_get --app=$app --key=macaroon_secret_key)
+			# allowed_local_3pids: part
+			allowedLocal3pids=${allowedLocal3pids}"\1"
+			
+			readarray -td, arr3pidmsisdn < <(echo ${allowed_local_3pids_msisdn});
+			for pidmsisdn in "${arr3pidmsisdn[@]}"; do 
+				# add it to regex substitution part
+				allowedLocal3pids=${allowedLocal3pids}"\n  - medium: msisdn";
+				allowedLocal3pids=${allowedLocal3pids}"\n$(echo '    ')pattern: '$(echo ${pidmsisdn})'";
+			done; 
+			;;
+			
+		'email&msisdn')
+			# registrations_require_3pid: part
+			sed -i -z -r "s|#?[^\S\n]*registrations_require_3pid:\n#?[^\S\n]*-[^\S\n]*email\n#?[^\S\n]*-[^\S\n]*msisdn|registrations_require_3pid:\n - email\n - msisdn|" "/etc/matrix-$app/homeserver.yaml"
 
-    synapse_user="matrix-$app"
-    synapse_db_name="matrix_$app"
-    synapse_db_user="matrix_$app"
+			# allowed_local_3pids: part
+			allowedLocal3pids=${allowedLocal3pids}"\1"
+			
+			readarray -td, arr3pidemail < <(echo ${allowed_local_3pids_email});
+			for pidemail in "${arr3pidemail[@]}"; do 
+				# add it to regex substitution part
+				allowedLocal3pids=${allowedLocal3pids}"\n  - medium: email";
+				allowedLocal3pids=${allowedLocal3pids}"\n$(echo '    ')pattern: '$(echo ${pidemail})'";
+			done;
+			
+			readarray -td, arr3pidmsisdn < <(echo ${allowed_local_3pids_msisdn});
+			for pidmsisdn in "${arr3pidmsisdn[@]}"; do 
+				# add it to regex substitution part
+				allowedLocal3pids=${allowedLocal3pids}"\n  - medium: msisdn";
+				allowedLocal3pids=${allowedLocal3pids}"\n$(echo '    ')pattern: '$(echo ${pidmsisdn})'";
+			done; 
+			;;
+		
+		*)
+			sed -i -z -r "s|#?[^\S\n]*registrations_require_3pid:\n#?[^\S\n]*-[^\S\n]*email\n#?[^\S\n]*-[^\S\n]*msisdn|#registrations_require_3pid:\n# - email\n# - msisdn|" "/etc/matrix-$app/homeserver.yaml"
 
-    # Configure Synapse
+			# empty fields and comment registration
+			allowedLocal3pids=${allowedLocal3pids}"#\1"
+			;;
+	esac
 
-    # WARNING : theses command are used in INSTALL, UPGRADE, CONFIG, CHANGE-URL (4 times)
-    # For any update do it in all files
+	# finalize regex then apply sed command on the homeserver conf file
+	allowedLocal3pids="${allowedLocal3pids}\n;";
+	sed -i -z -r "${allowedLocal3pids}" "/etc/matrix-$app/homeserver.yaml"
 
-    if [ -z $macaroon_secret_key ]; then
-    # Well, in this package this value was not managed because it was not needed, synapse is able to generate this with some other secret in the config file but after some vulnerability was found with this practice.
-    # For more detail about this issue you can see : https://matrix.org/blog/2019/01/15/further-details-on-critical-security-update-in-synapse-affecting-all-versions-prior-to-0-34-1-cve-2019-5885/
-    # The problem is that we can't just say generate a new value if the package has not already defined a value. The reason is that changing this value logout all user. And in case of a user has enabled the encryption, the user might lost all conversation !!
-    # So for the old install we just leave this as it is. And for the new install we use a real macaroon.
-    macaroon_secret_key_param='# macaroon_secret_key: ""'
-    else
-        macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
-    fi
 
-    if [ $is_free_registration -eq 0 ]
-    then
-        allowed_access=False
-        sso_enabled=True
-    else
-        allowed_access=True
-        sso_enabled=False
-    fi
+	ynh_app_setting_set --app=$app --key=registrations_require_3pid --value="${registrations_require_3pid}"
+}
 
-    ynh_add_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
-    ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
+get__allowed_local_3pids_email() {
+	allowed_local_3pids_email=$(ynh_app_setting_get --app $app --key allowed_local_3pids_email)
+	echo "${allowed_local_3pids_email}"
+}
 
-    # Create .well-known redirection for access by federation
-    if yunohost --output-as plain domain list | grep -q "^$server_name$"
-    then
-        ynh_add_config --template="server_name.conf" --destination="/etc/nginx/conf.d/${server_name}.d/${app}_server_name.conf"
-    fi
+set__allowed_local_3pids_email() { 
+	set__registrations_require_3pid;	
+	ynh_app_setting_set --app=$app --key=allowed_local_3pids_email --value="${allowed_local_3pids_email}"
+}
 
-    ynh_store_file_checksum --file "$homeserver_config_path"
-    setfacl -R -m user:turnserver:rX  /etc/matrix-$app
+get__allowed_local_3pids_msisdn() {
+	allowed_local_3pids_msisdn=$(ynh_app_setting_get --app $app --key allowed_local_3pids_msisdn)
+	echo "${allowed_local_3pids_msisdn}"
+}
 
-    systemctl restart matrix-$app
-    systemctl reload nginx
+set__allowed_local_3pids_msisdn() { 
+	set__registrations_require_3pid;	
+	ynh_app_setting_set --app=$app --key=allowed_local_3pids_msisdn --value="${allowed_local_3pids_msisdn}"
+}
+
+get__auto_join_rooms() {
+	auto_join_rooms=$(ynh_app_setting_get --app $app --key auto_join_rooms)
+	auto_join_rooms=$(echo ${auto_join_rooms} | sed "s~(\\\\)*\#~\\\\\#~g")
+	echo "${auto_join_rooms}"
+}
+
+set__auto_join_rooms() {
+
+	if [ -z ${auto_join_rooms} ] ; then
+		# remove all values comment header and example value
+		sed -i -z -r "s|#?([^\S\n]*auto_join_rooms:\n)#?([^\S\n]*-[^\n]*\n)*|#\1#  - \"#example:example.com\"\n|" "/etc/matrix-$app/homeserver.yaml"
+	else
+		
+		readarray -td, arrroom < <(echo ${auto_join_rooms});
+		
+		# print header then all space separated values
+		autoJoinRooms="s|#?([^\S\n]*auto_join_rooms:)\n(#?[^\S\n]*-[^\n]*\n)*|\1";
+		for room in "${arrroom[@]}"; do 
+			autoJoinRooms="${autoJoinRooms}\n  - '$(echo ${room})'";
+		done; 
+		autoJoinRooms="${autoJoinRooms}\n|";
+		sed -i -z -r "${autoJoinRooms}" "/etc/matrix-$app/homeserver.yaml"
+	fi
+
+	ynh_app_setting_set --app=$app --key=auto_join_rooms --value="${auto_join_rooms}"
 }
 
 #=================================================
@@ -158,7 +168,4 @@ apply_config() {
 #=================================================
 # SELECT THE ACTION FOLLOWING THE GIVEN ARGUMENT
 #=================================================
-case $1 in
-    show) show_config;;
-    apply) apply_config;;
-esac
+ynh_app_config_run $1
