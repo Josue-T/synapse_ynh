@@ -162,11 +162,11 @@ Then, to log in the API with your credentials, you need to set your user as admi
 
 ### Upgrade
 
-By default a backup is made before the upgrade. To avoid this you have theses following possibilites:
+By default a backup is made before the upgrade. If for some reason you want to upgrade without backup:
 - Call the command with the `-b` flag: `yunohost app upgrade synapse -b`
-- Set the settings `disable_backup_before_upgrade` to `1`. You can set this with this command:
+- Disable the setting `Backup before upgrade` in the Config Panel. Or with command line:
 
-`yunohost app setting synapse disable_backup_before_upgrade -v 1`
+`yunohost app setting synapse backup_before_upgrade -v 0`
 
 After this settings will be applied for **all** next upgrade.
 
