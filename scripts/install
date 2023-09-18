@@ -33,8 +33,7 @@ synapse_db_user="matrix_$app"
 synapse_db_name="matrix_$app"
 upstream_version=$(ynh_app_upstream_version)
 report_stats="false"
-allow_public_rooms="false"
-e2e_enabled_by_default="true"
+e2e_enabled_by_default="off"
 default_domain_value="Same than the domain"
 domain_whitelist_client_=$(get_domain_list)
 domain_whitelist_client=${domain_whitelist_client_%"\n"}
@@ -79,16 +78,97 @@ ynh_script_progression --message="Storing installation settings..." --weight=1
 
 ynh_app_setting_set --app=$app --key=domain --value=$domain
 ynh_app_setting_set --app=$app --key=path --value=$path_url
-ynh_app_setting_set --app=$app --key=no_sso --value true
 ynh_app_setting_set --app=$app --key=server_name --value=$server_name
 ynh_app_setting_set --app=$app --key=jitsi_server --value=$jitsi_server
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 ynh_app_setting_set --app=$app --key=synapse_version --value=$upstream_version
-ynh_app_setting_set --app=$app --key=is_free_registration --value=$is_free_registration
 ynh_app_setting_set --app=$app --key=report_stats --value=$report_stats
-ynh_app_setting_set --app=$app --key=allow_public_rooms --value=$allow_public_rooms
 ynh_app_setting_set --app=$app --key=e2e_enabled_by_default --value=$e2e_enabled_by_default
 ynh_app_setting_set --app=$app --key=synapse_user_app_pwd --value=$synapse_user_app_pwd
+
+if [ "$is_free_registration" -eq "0" ]
+then
+    enable_registration="false"
+    turn_allow_guests="false"
+    sso_enabled="true"
+    password_enabled="false"
+    enable_3pid_lookup="false"
+else
+    enable_registration="true"
+    turn_allow_guests="true"
+    sso_enabled="false"
+    password_enabled="true"
+    enable_3pid_lookup="true"
+fi
+
+ynh_app_setting_set --app=$app --key=enable_registration --value=$enable_registration
+ynh_app_setting_set --app=$app --key=turn_allow_guests --value=$turn_allow_guests
+ynh_app_setting_set --app=$app --key=sso_enabled --value=$sso_enabled
+ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
+ynh_app_setting_set --app=$app --key=enable_3pid_lookup --value=$enable_3pid_lookup
+
+#=================================================
+## SET STANDARD SETTINGS FROM DEFAULT CONFIG
+#=================================================
+
+element_ynh_url="https://matrix.to/"
+# Get app name of first Element Instance (can be changed later in Config Panel)
+element_instance="element"
+if yunohost --output-as plain app list | grep -q "^$element_instance$"; then
+    element_domain=$(ynh_app_setting_get --app $element_instance --key domain)
+    element_path=$(ynh_app_setting_get --app $element_instance --key path)
+    element_ynh_url="https://""$element_domain""$element_path"
+fi
+web_client_location=$element_ynh_url
+client_base_url=$element_ynh_url
+invite_client_location=$element_ynh_url
+
+backup_before_upgrade="true"
+server_statistics="false"
+allow_public_rooms_without_auth="false"
+allow_public_rooms_over_federation="false"
+max_upload_size="10M"
+disable_msisdn_registration="true"
+registrations_require_3pid="none"
+# here we need sed magic to transform $server_name
+allowed_local_3pids_email=""
+allowed_local_3pids_msisdn=""
+allow_guest_access="false"
+account_threepid_delegates_msisdn=""
+default_identity_server="https://matrix.org"
+auto_join_rooms="#auto_join_room:""$server_name"
+autocreate_auto_join_rooms="false"
+auto_join_rooms_for_guests="true"
+password_enabled="true"
+enable_notifs="true"
+notif_for_new_users="true"
+enable_group_creation="true"
+push_include_content="true"
+
+ynh_app_setting_set --app=$app --key=backup_before_upgrade --value=$backup_before_upgrade
+ynh_app_setting_set --app=$app --key=server_statistics --value=$server_statistics
+ynh_app_setting_set --app=$app --key=web_client_location --value=$web_client_location
+ynh_app_setting_set --app=$app --key=client_base_url --value=$client_base_url
+ynh_app_setting_set --app=$app --key=invite_client_location --value=$invite_client_location
+ynh_app_setting_set --app=$app --key=allow_public_rooms_without_auth --value=$allow_public_rooms_without_auth
+ynh_app_setting_set --app=$app --key=allow_public_rooms_over_federation --value=$allow_public_rooms_over_federation
+ynh_app_setting_set --app=$app --key=max_upload_size --value=$max_upload_size
+ynh_app_setting_set --app=$app --key=disable_msisdn_registration --value=$disable_msisdn_registration
+ynh_app_setting_set --app=$app --key=registrations_require_3pid --value=$registrations_require_3pid
+ynh_app_setting_set --app=$app --key=allowed_local_3pids_email --value=$allowed_local_3pids_email
+ynh_app_setting_set --app=$app --key=allowed_local_3pids_msisdn --value=$allowed_local_3pids_msisdn
+ynh_app_setting_set --app=$app --key=account_threepid_delegates_msisdn --value=$account_threepid_delegates_msisdn
+ynh_app_setting_set --app=$app --key=allow_guest_access --value=$allow_guest_access
+ynh_app_setting_set --app=$app --key=default_identity_server --value=$default_identity_server
+ynh_app_setting_set --app=$app --key=auto_join_rooms --value=$auto_join_rooms
+ynh_app_setting_set --app=$app --key=autocreate_auto_join_rooms --value=$autocreate_auto_join_rooms
+ynh_app_setting_set --app=$app --key=auto_join_rooms_for_guests --value=$auto_join_rooms_for_guests
+ynh_app_setting_set --app=$app --key=password_enabled --value=$password_enabled
+ynh_app_setting_set --app=$app --key=enable_notifs --value=$enable_notifs
+ynh_app_setting_set --app=$app --key=notif_for_new_users --value=$notif_for_new_users
+ynh_app_setting_set --app=$app --key=enable_group_creation --value=$enable_group_creation
+ynh_app_setting_set --app=$app --key=push_include_content --value=$push_include_content
+
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -275,15 +355,6 @@ ynh_app_setting_set --app=$app --key=turnserver_pwd --value=$turnserver_pwd
 # For any update do it in all files
 
 macaroon_secret_key_param='macaroon_secret_key: "'$macaroon_secret_key'"'
-
-if [ $is_free_registration -eq 0 ]
-then
-    allowed_access=False
-    sso_enabled=True
-else
-    allowed_access=True
-    sso_enabled=False
-fi
 
 ynh_add_config --template="homeserver.yaml" --destination="/etc/matrix-$app/homeserver.yaml"
 ynh_add_config --template="log.yaml" --destination="/etc/matrix-$app/log.yaml"
