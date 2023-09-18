@@ -1,5 +1,5 @@
-SOURCE_URL=https://github.com/YunoHost-Apps/synapse_python_build/releases/download/v1.92.2/matrix-synapse_1.92.2-bookworm-bin1_armv7l.tar.gz
-SOURCE_SUM=a65ea4e667e3ea08942a0b39f52edb081225ff0ed80d916355efc5d019a2e435
+SOURCE_URL=https://github.com/YunoHost-Apps/synapse_python_build/releases/download/v1.92.3/matrix-synapse_1.92.3-bookworm-bin1_armv7l.tar.gz
+SOURCE_SUM=e169960390a16410210ff2cf6d744ae8d53c6cd3c7586a585ad6afdaf4874094
 # (Optional) Program to check the integrity (sha256sum, md5sum...)
 # default: sha256
 SOURCE_SUM_PRG=sha256sum
